@@ -59,14 +59,14 @@ class UsersController < ApplicationController
 	def update_avatar
 		@user = User.find(params[:id])
 		@user.update_attributes(params[:user])
-		redirect_to edit_avatar_user_path(@user), notice: 'New Avatar Uploaded!'
+		redirect_to edit_avatar_user_path(@user), notice: 'New profile pic uploaded!'
 	end
 
 	def destroy_avatar
 		@user = User.find(params[:id])
 		@user.avatar = nil
 		@user.save
-		redirect_to edit_avatar_user_path(@user), notice: 'Avatar Removed'
+		redirect_to edit_avatar_user_path(@user), notice: 'Profile pic removed'
 	end
 
 	private
