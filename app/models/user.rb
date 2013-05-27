@@ -1,5 +1,7 @@
 class User
   include Mongoid::Document
+  include Mongoid::Paperclip
+
   field :address
   field :birthdate
   field :city
@@ -17,6 +19,11 @@ class User
   field :state
   field :weight
   field :permission_groups, type: Array, default: ['user']
+
+  has_mongoid_attached_file :avatar,
+    default_url: lambda {|attachment| "http://robohash.org/#{attachment.instance._id}.png?bgset=bg2&size=330x330"},
+    styles: {profile: '330x330>'}
+
   has_many :identities
   has_and_belongs_to_many :teams, foreign_key: :teams
 

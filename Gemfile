@@ -9,6 +9,7 @@ gem 'json'
 gem 'multi_json'
 gem 'mongoid'
 gem 'declarative_authorization'
+gem 'mongoid-paperclip', require: 'mongoid_paperclip'
 
 # Frontend
 gem 'active_link_to'
