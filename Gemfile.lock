@@ -140,7 +140,6 @@ GEM
       tzinfo (~> 0.3.22)
     moped (1.4.5)
     multi_json (1.7.2)
-    mysql2 (0.3.11)
     net-scp (1.1.1)
       net-ssh (>= 2.6.5)
     net-sftp (2.1.2)
@@ -270,7 +269,6 @@ DEPENDENCIES
   json
   mongoid
   multi_json
-  mysql2
   pry
   rails (= 3.2.12)
   rb-fchange
