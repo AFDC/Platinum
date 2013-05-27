@@ -7,7 +7,6 @@ gem 'rails', '3.2.12'
 # gem 'newrelic_rpm'
 gem 'json'
 gem 'multi_json'
-gem 'mysql2'
 gem 'mongoid'
 gem 'declarative_authorization'
 
