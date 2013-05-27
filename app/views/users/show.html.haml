@@ -1,0 +1,60 @@
+- content_for :title, "AFDC Players"
+= render :partial => '/pageheader', :locals => {:subtitle => 'User Profile'}
+
+.row{style: 'margin-bottom: 25px'}
+	.span4{style: 'text-align: center'}
+		=image_tag "http://robohash.org/#{@user.email_address}.png?bgset=bg2&size=330x330", class: 'img-polaroid img-rounded'
+	.span8
+		%h3= "#{@user.firstname} #{@user.middlename} #{@user.lastname}"
+		.row
+			.span2{style: "font-weight: bold;"} Handedness
+			.span2= @user.handedness
+			.span2{style: "font-weight: bold;"} Gender
+			.span2= @user.gender
+		.row
+			.span2{style: "font-weight: bold;"} Height
+			.span2= @user.height_in_feet_and_inches
+			.span2{style: "font-weight: bold;"} Weight
+			.span2= @user.weight ? "#{@user.weight} pounds" : 'n/a'
+		.row
+			.span2{style: "font-weight: bold;"} Email Address
+			.span6= @user.email_address
+		- if @user.phone
+			- @user.phone.each do |type,number|
+				.row
+					.span2{style: "font-weight: bold; text-transform: capitalize;"}= type
+					.span6= number
+		.row
+			.span2{style: "font-weight: bold;"} Street Address
+			.span6
+				%address= simple_format("#{@user.address}\n#{@user.city}, #{@user.state} #{@user.postal_code}")
+		.row
+			.span2{style: "font-weight: bold;"} Birthdate
+			.span6= @user.birthdate ? "#{@user.birthdate} (#{@user.age} years old)" : 'n/a'
+- unless @user.teams.empty?
+	%h2 
+		%i.icon-group
+		Teams
+	%table.table.table-striped.tablesorter
+		%thead
+			%tr
+				%th League
+				%th Sport
+				%th Team
+				%th Rank
+				%th Wins
+				%th Losses
+				%th Pct.
+				%th Pt. Diff.
+		%tbody
+			- @user.teams.each do |team|
+				- stats = team.stats
+				%tr
+					%td= link_to team.league.name, team.league
+					%td{style: 'test-transform: capitalize'}= team.league.sport
+					%td= link_to team.name, team
+					%td= stats ? stats['rank'] : '-'
+					%td= stats ? stats['wins'] : '-'
+					%td= stats ? stats['losses'] : '-'
+					%td= stats ? '%.3f' % (stats['wins'].to_f/(stats['wins']+stats['losses'])) : '-'
+					%td= stats ? (stats['point_differential'] ? stats['point_differential'] : '0') : '-'

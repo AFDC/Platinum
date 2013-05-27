@@ -1,0 +1,37 @@
+- content_for :title, "AFDC Players"
+= render :partial => '/pageheader', :locals => {:subtitle => 'Search'}
+
+%div{:style => 'text-align: right;'}
+	= form_tag users_path, :class => 'form-search', :method => 'GET' do
+		= search_field_tag 'query', params[:query], :class => 'input-medium search-query'
+		= button_tag 'Search', :name => nil, :type => 'submit', :class => "btn"
+
+- if @user_list.count > 0
+	%table.table.table-striped.tablesorter
+		%thead
+			%tr
+				%th{:width => '15%'} ID
+				%th First Name
+				%th Middle
+				%th Last Name
+				%th Gender
+				%th Email Address
+				%th{:width => '8%'} City
+				%th State
+				%th Postal Code
+		%tbody
+			- @user_list.each do |user|
+				%tr{:style => 'text-transform: capitalize'}
+					%td= link_to user._id, user
+					%td= user.firstname
+					%td= user.middlename
+					%td= user.lastname
+					%td= user.gender
+					%td{:style => 'text-transform: lowercase'}= user.email_address
+					%td= user.city
+					%td= user.state
+					%td= user.postal_code
+- elsif @user_list.is_a?(Array)
+	%p{:style => 'text-align: center;'} Please enter a search term in the box above to search the AFDC's member directory.
+- else
+	.alert.alert-warning No results found for your search query.
