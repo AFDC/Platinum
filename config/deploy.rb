@@ -2,6 +2,8 @@ set :stages, %w(production staging)
 set :default_stage, "staging"
 require 'capistrano/ext/multistage'
 
+load 'deploy/assets'
+
 set :application, "platinum"
 set :user, "deploy"
 
