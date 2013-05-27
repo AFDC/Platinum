@@ -10,6 +10,7 @@ gem 'multi_json'
 gem 'mongoid'
 gem 'declarative_authorization'
 gem 'mongoid-paperclip', require: 'mongoid_paperclip'
+gem 'foreman'
 
 # Frontend
 gem 'active_link_to'
@@ -39,7 +40,6 @@ group :development, :test do
 end
 
 group :development do
-  gem 'foreman'
   gem 'annotate'
   gem 'haml-rails'
   gem 'rb-inotify', require: false
