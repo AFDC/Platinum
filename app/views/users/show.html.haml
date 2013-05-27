@@ -1,9 +1,11 @@
 - content_for :title, "AFDC Players"
-= render :partial => '/pageheader', :locals => {:subtitle => 'User Profile'}
+= render :partial => '/pageheader', :locals => {subtitle: 'User Profile'}
 
 .row{style: 'margin-bottom: 25px'}
 	.span4{style: 'text-align: center'}
-		=image_tag "http://robohash.org/#{@user.email_address}.png?bgset=bg2&size=330x330", class: 'img-polaroid img-rounded'
+		=image_tag @user.avatar.url(:profile), class: 'img-polaroid img-rounded', style: 'max-width: 330px; height: auto;'
+		- permitted_to? :edit_avatar, @user do
+			%p= link_to 'Change Profile Pic', edit_avatar_user_path(@user)
 	.span8
 		%h3= "#{@user.firstname} #{@user.middlename} #{@user.lastname}"
 		.row

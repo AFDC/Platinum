@@ -1,4 +1,5 @@
 class UsersController < ApplicationController
+	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
 	def index
 		@user_list = []
@@ -49,6 +50,23 @@ class UsersController < ApplicationController
 		else
 			render :action => 'new'
 		end
+	end
+
+	def edit_avatar
+		@user = User.find(params[:id])
+	end
+
+	def update_avatar
+		@user = User.find(params[:id])
+		@user.update_attributes(params[:user])
+		redirect_to edit_avatar_user_path(@user), notice: 'New Avatar Uploaded!'
+	end
+
+	def destroy_avatar
+		@user = User.find(params[:id])
+		@user.avatar = nil
+		@user.save
+		redirect_to edit_avatar_user_path(@user), notice: 'Avatar Removed'
 	end
 
 	private

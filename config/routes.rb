@@ -1,6 +1,14 @@
 Platinum::Application.routes.draw do
   match '/users/search' => 'users#search'
-  resources :users, :teams, :leagues
+  resources :teams, :leagues
+
+  resources :users do
+    member do
+      get 'edit_avatar'
+      put 'update_avatar'
+      delete 'destroy_avatar'
+    end
+  end
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

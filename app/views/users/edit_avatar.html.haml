@@ -1,0 +1,24 @@
+- content_for :title, "AFDC Players"
+= render :partial => '/pageheader', :locals => {subtitle: 'Change Profile Pic', breadcrumbs: {"#{@user.firstname} #{@user.lastname}'s Profile" => user_path(@user), 'Change Profile Pic' => nil}}
+
+.row
+	.span4
+		%h3 Current Image
+		%div{style: 'text-align: center'}
+			=image_tag @user.avatar.url(:profile), class: 'img-polaroid img-rounded'
+		- if @user.avatar?
+			= bootstrap_form_for(@user, html: { class: 'form-horizontal', style: 'text-align: center; margin-top: 10px' }, url: destroy_avatar_user_path(@user), method: 'DELETE') do |f|
+				= f.button "Remove Image", class: 'btn btn-danger'
+		- else
+			.alert.alert-info{style: 'margin-top: 10px;'}
+				%p
+					%strong Note:
+					This is an automatically-generated profile picture. It will be used if you haven't uploaded a picture of your own.
+	.span8
+		%h3 Upload a new Image
+		= bootstrap_form_for(@user, html: { class: 'form-horizontal' }, url: update_avatar_user_path(@user), method: 'PUT', help: :block) do |f|
+			= f.alert_message "Please fix the errors below."
+			= f.file_field :avatar, label: 'Upload file'
+			= f.actions do 
+				= f.primary "Upload Image", disable_with: 'Uploading...'
+
