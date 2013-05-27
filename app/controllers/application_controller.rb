@@ -5,6 +5,11 @@ class ApplicationController < ActionController::Base
 
   def current_user
   	return unless cookies['session.id']
-  	@current_user ||= Identity.where("session.id" => cookies['session.id']).first.user
+  	unless @current_user
+  		identity = Identity.where("session.id" => cookies['session.id']).first
+		@current_user = identity.user if identity
+	end
+
+	@current_user
   end
 end
