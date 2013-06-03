@@ -1,0 +1,12 @@
+.control-group.user-multi-select{"data-field-name" => "#{form.object_name}[#{fieldname}]"}
+	%label.control-label{style: 'text-transform: capitalize'}= fieldname 
+	.controls
+		.user-list
+			- users.each do |u|
+				%div
+					%input{type: 'hidden', name: "#{form.object_name}[#{fieldname}][]", value: u._id}
+					%span.span3.uneditable-input= "#{u.firstname} #{u.lastname}"
+					=link_to '#remove', class: 'remove' do
+						%i.icon-remove{style: 'color: #555555;'}
+		%input.span3.new-user{type: 'text'}
+			%i.icon-plus
