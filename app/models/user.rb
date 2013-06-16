@@ -1,6 +1,7 @@
 class User
   include Mongoid::Document
   include Mongoid::Paperclip
+  include ActiveModel::ForbiddenAttributesProtection
 
   field :address
   field :birthdate
@@ -22,7 +23,7 @@ class User
 
   has_mongoid_attached_file :avatar,
     default_url: lambda {|attachment| "http://robohash.org/#{attachment.instance._id}.png?bgset=bg2&size=330x330"},
-    styles: {profile: '330x330>'}
+    styles: {profile: '330x330>', roster: '160x160#', thumbnail: '32x32#'}
 
   has_many :identities
   has_and_belongs_to_many :teams, foreign_key: :teams

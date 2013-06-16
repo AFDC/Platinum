@@ -1,0 +1,147 @@
+- content_for :title, "AFDC Leagues"
+= render :partial => '/pageheader', :locals => {subtitle: 'Team Profile', breadcrumbs: {'Leagues' => leagues_path, @team.league.name => league_path(@team.league), @team.name => nil}}
+
+
+.row{style: 'margin-bottom: 25px'}
+	.span4
+		#profile-pic.row{style: 'text-align: center; margin-bottom: 10px'}
+			=image_tag @team.avatar.url(:profile), class: 'img-polaroid img-rounded', style: 'max-width: 330px; height: auto;'
+			- permitted_to? :edit_avatar, @team do
+				%p Change Pic
+				/ %p= link_to 'Change Profile Pic', edit_avatar_team_path(@team)
+		#captains.row
+			.span1{style: 'font-weight: bold;'} Captains:
+			.span3
+				- if @team.captains?
+					- @team.captains.each do |captain|
+						= link_to "#{captain.firstname} #{captain.lastname}", captain
+						%br
+				- else
+					None listed
+		#reporters.row
+			.span1{style: 'font-weight: bold;'} Reporters:
+			.span3
+				- if @team.reporters?
+					- @team.reporters.each do |reporter|
+						= link_to "#{reporter.firstname} #{reporter.lastname}", reporter
+						%br
+				- else
+					None listed
+		- if @team.stats
+			- stats = @team.stats
+			.row{style:'border-top: 1px solid #f0f0f0'}
+				.span1{style: 'font-weight: bold'} Rank:
+				.span3= @team.formatted_rank
+			.row
+				.span1{style: 'font-weight: bold'} Record:
+				- if @team.winning_percentage
+					.span3= "#{@team.formatted_record} (#{@team.winning_percentage})"
+				- else
+					.span3 n/a
+			.row
+				.span1{style: 'font-weight: bold'} Pt. Diff.:
+				.span3= stats['point_differential'] ? stats['point_differential'] : '0'
+		- else
+			.row
+				.span4
+					.alert.alert-warning Statistics not yet available
+		- permitted_to? :edit, @team do
+			#edit.row{style: 'text-align: center; margin-top: 10px;'}
+				.span4
+					= link_to edit_team_path(@team), class: 'btn btn-small btn-warning' do
+						%i.icon-cog
+						Edit Team Settings
+
+
+	.span8
+		%h3= @team.name
+		%ul.nav.nav-tabs#profile-tabs
+			%li= link_to 'Schedule', '#schedule', 'data-toggle' => 'tab'
+			%li= link_to 'Roster', '#roster', 'data-toggle' => 'tab'
+
+		.tab-content
+			.tab-pane#schedule
+				%table.table.table-striped.tablesorter
+					%thead
+						%tr
+							%th Opponent
+							%th Date / Time
+							%th Location
+							%th Results
+					%tbody
+						- opponent_data = {}
+						- @team.games.order_by(game_time: 1).each do |game|
+							- opponent = game.opponent_for(@team)
+							- opponent_data[opponent._id] = { name: opponent.name, rank: opponent.formatted_rank, avatar: opponent.avatar.url(:roster) }
+							- if opponent.winning_percentage
+								- opponent_data[opponent._id][:record] = "#{opponent.formatted_record} (#{opponent.winning_percentage})"
+							%tr
+								%td= link_to opponent.name, opponent, title: opponent.name, class: 'team', "data-team_id" => opponent._id
+								%td= game.game_time.strftime("%b %e, %Y %l:%M %P")
+								%td= link_to "#{game.field_site.name} (#{game.field})", field_path(game.field_site)
+								- if game.scores
+									- if game.scores['rainout']
+										%td.rainout-score
+											%i.icon-cloud
+											Rainout
+									- elsif game.scores['forfeit']
+										%td.forfeit-score
+											%i.icon-remove
+											Forfeit
+									- else
+										%td{class: game.winning_team == @team ? 'winning-score' : 'losing-score'}
+											- if permitted_to? :report_score, @team
+												=link_to "/leagues/reportScore/#{game._id}", style: "color: inherit;" do
+													%i.icon-pencil
+											= "#{game.score_for(@team)}-#{game.score_for(opponent)}"
+								- else
+									%td -
+			.tab-pane#roster
+				- if permitted_to? :view_roster, @team									
+					.row
+						- @team.players.each do |player|
+							.span2{style: 'margin-bottom: 10px;'}
+								= link_to player do
+									= image_tag player.avatar.url(:roster), class: 'img-polaroid', style: 'width: 160px; height: auto;'
+									%div
+										="#{player.firstname} #{player.lastname}"
+										%br
+										%small= player.email_address
+				- else
+					.alert.alert-info For privacy, league rosters are restricted to AFDC members only. Please log-in to view them.
+
+
+- content_for :page_scripts do
+	:javascript
+		$(function() {
+			var opponent_data = #{opponent_data.to_json}
+			// Tabs
+			$('#profile-tabs a').click(function (e) {
+				$(this).tab('show');
+			});
+
+			if (window.location.hash) {
+				tab_identifier = '#profile-tabs a[href="' + window.location.hash + '"]'
+				if ($(tab_identifier)) {
+					$(tab_identifier).tab('show');
+				}
+			} else {
+				$('#profile-tabs a:first').tab('show');
+			}
+
+			// Team Popovers on Schedule
+			$('.team').popover({
+				trigger: 'hover',
+				placement: 'left',
+				content: function() {
+					opponent = opponent_data[$(this).data('team_id')];
+					img_html = '<div style="text-align: center; margin: 10px 0;"><img src="' + opponent['avatar'] + '" class="img-polaroid img-rounded" style="max-width: 160px; height: auto;" /></div>';
+					data_html = '<ul class="unstyled">';
+					data_html += '<li><strong>Rank:</strong> ' + opponent['rank'] + '</li>';
+					data_html += '<li><strong>Record:</strong> ' + opponent['record'] + '</li>';
+					data_html += '</ul>';
+
+					return img_html + data_html;
+				}
+			});
+		});

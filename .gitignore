@@ -16,3 +16,6 @@
 
 # Ignore application configuration
 /config/application.yml
+
+# Ignore paperclip files
+/public/system
