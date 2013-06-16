@@ -31,7 +31,7 @@ class TeamsController < ApplicationController
 	end
 
 	def team_params
-		permitted_params = [{reporters: []}]
+		permitted_params = [:avatar, {reporters: []}]
 
 		if permitted_to? :modify_name
 			permitted_params << :name
