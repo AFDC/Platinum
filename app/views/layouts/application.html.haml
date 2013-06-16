@@ -23,6 +23,9 @@
     = javascript_include_tag '/js/userSelector.js'
 
     = javascript_include_tag "application"
+
+    = yield :page_scripts
+
     = csrf_meta_tags
   %body
     #navBar.navbar.navbar-fixed-top
@@ -63,6 +66,8 @@
       - if flash[:error]
         .alert.alert-error= flash[:error]
       = yield
-      = debug(params) if Rails.env.development?
+      - if Rails.env.development?
+        %div{style: 'margin-top: 50px'}
+          = debug(params) 
 
     #loginModal.modal.hide.fade

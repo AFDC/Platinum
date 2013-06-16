@@ -11,6 +11,7 @@ gem 'mongoid'
 gem 'declarative_authorization'
 gem 'mongoid-paperclip', require: 'mongoid_paperclip'
 gem 'foreman'
+gem 'strong_parameters'
 
 # Frontend
 gem 'active_link_to'

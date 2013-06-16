@@ -1,0 +1,9 @@
+- content_for :title, "AFDC Leagues"
+= render :partial => '/pageheader', :locals => {subtitle: 'Team Profile', breadcrumbs: {'Leagues' => leagues_path, @team.league.name => league_path(@team.league), @team.name => team_path(@team), 'Edit Team' => nil}}
+
+.row
+	.span4
+		%div{style: 'text-align: center'}
+			=image_tag @team.avatar.url(:profile), class: 'img-polaroid img-rounded'
+	.span8
+		= render :partial => 'form'

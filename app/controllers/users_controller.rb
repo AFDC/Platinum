@@ -1,4 +1,5 @@
 class UsersController < ApplicationController
+	before_filter :load_user_from_params, only: [:show, :edit_avatar, ]
 	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
 	def index
@@ -27,11 +28,6 @@ class UsersController < ApplicationController
 	end
 
 	def show
-		begin
-			@user = User.find(params[:id])
-		rescue
-			redirect_to users_path, flash: {error: "User profile not found for '#{params[:id]}', please try a different user."}
-		end
 	end
 
 	def new
@@ -43,7 +39,7 @@ class UsersController < ApplicationController
 	end
 
 	def create
-		@user = User.new(params[:user])
+		@user = User.new(user_params)
 
 		if @user.save
 			redirect_to "/auth/resetPassword/#{@user.email_address}", notice: 'You have successfully created a user account and a password has been emailed to you.'
@@ -53,23 +49,31 @@ class UsersController < ApplicationController
 	end
 
 	def edit_avatar
-		@user = User.find(params[:id])
 	end
 
 	def update_avatar
-		@user = User.find(params[:id])
-		@user.update_attributes(params[:user])
+		@user.update_attributes(user_params)
 		redirect_to edit_avatar_user_path(@user), notice: 'New profile pic uploaded!'
 	end
 
 	def destroy_avatar
-		@user = User.find(params[:id])
 		@user.avatar = nil
 		@user.save
 		redirect_to edit_avatar_user_path(@user), notice: 'Profile pic removed'
 	end
 
 	private
+
+	def user_params
+		permitted_params = [
+			:gender, :firstname, :lastname, :email_address, :birthdate, 
+			:avatar,
+			:middlename, :address, :city, :state, :postal_code, :height, :weight,
+			:occupation
+		]
+
+		params.require(:user).permit(*permitted_params)
+	end
 
 	def user_search(query)
 		name_search = {"$and" => []}
@@ -81,5 +85,13 @@ class UsersController < ApplicationController
 		end
 
 		User.any_of([{email_address: /#{query}/i}, name_search])
+	end
+
+	def load_user_from_params
+		begin
+			@user = User.find(params[:id])
+		rescue
+			redirect_to users_path, flash: {error: "Could not load user for ID '#{params[:id]}', please try a different user."}
+		end
 	end
 end

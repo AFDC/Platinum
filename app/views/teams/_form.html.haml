@@ -1,0 +1,21 @@
+= bootstrap_form_for(@team, html: { class: 'form-horizontal' }, url: team_path, method: @team.new_record? ? 'POST' : 'PUT', help: :block) do |f|
+	- if permitted_to? :modify_name, @team
+		=f.text_field :name
+	- else
+		.control-group
+			%label.control-label Name
+			.controls
+				%span.uneditable-input.span3= @team.name
+	- if permitted_to? :modify_captains, @team
+		=render partial: '/user_multiselect', locals: {form: f, fieldname: 'captains', users: @team.captains}
+	- else
+		.control-group
+			%label.control-label Captains
+			.controls
+				- @team.captains.each do |captain|
+					%div
+						%span.uneditable-input.span3= "#{captain.firstname} #{captain.lastname}"
+	=render partial: '/user_multiselect', locals: {form: f, fieldname: 'reporters', users: @team.reporters}
+	= f.file_field :avatar, label: 'Profile Picture'
+	= f.actions do 
+		= f.primary "Update", disable_with: 'Updating...'
