@@ -52,13 +52,15 @@ class UsersController < ApplicationController
 	end
 
 	def update_avatar
-		@user.update_attributes(user_params)
+		@user.attributes = params.require(:user).permit(:avatar)
+		@user.save(validate: false)
+		
 		redirect_to edit_avatar_user_path(@user), notice: 'New profile pic uploaded!'
 	end
 
 	def destroy_avatar
 		@user.avatar = nil
-		@user.save
+		@user.save(validate: false)
 		redirect_to edit_avatar_user_path(@user), notice: 'Profile pic removed'
 	end
 
