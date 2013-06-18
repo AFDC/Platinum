@@ -67,11 +67,17 @@
 							%th Opponent
 							%th Date / Time
 							%th Location
-							%th Results
+							%th{colspan: 2} Results
 					%tbody
 						- opponent_data = {}
 						- @team.games.order_by(game_time: 1).each do |game|
 							- opponent = game.opponent_for(@team)
+							- unless opponent
+								%tr
+									%td{colspan: 4} 
+										No opponent listed
+										%span.hide= "Game ID: #{game._id}"
+								- next
 							- opponent_data[opponent._id] = { name: opponent.name, rank: opponent.formatted_rank, avatar: opponent.avatar.url(:roster) }
 							- if opponent.winning_percentage
 								- opponent_data[opponent._id][:record] = "#{opponent.formatted_record} (#{opponent.winning_percentage})"
@@ -81,21 +87,27 @@
 								%td= link_to "#{game.field_site.name} (#{game.field})", field_path(game.field_site)
 								- if game.scores
 									- if game.scores['rainout']
-										%td.rainout-score
-											%i.icon-cloud
-											Rainout
+										- td_class = 'rainout-score'
+										- icon_class = 'icon-cloud'
+										- score = 'Rainout'
 									- elsif game.scores['forfeit']
-										%td.forfeit-score
-											%i.icon-remove
-											Forfeit
+										- td_class = 'forfeit-score'
+										- icon_class = 'icon-cloud'
+										- score = 'Forefeit'
 									- else
-										%td{class: game.winning_team == @team ? 'winning-score' : 'losing-score'}
-											- if permitted_to? :report_score, @team
-												=link_to "/leagues/reportScore/#{game._id}", style: "color: inherit;" do
-													%i.icon-pencil
-											= "#{game.score_for(@team)}-#{game.score_for(opponent)}"
+										- td_class = (game.winning_team == @team ? 'winning-score' : 'losing-score')
+										- score = "#{game.score_for(@team)}-#{game.score_for(opponent)}"
 								- else
-									%td -
+									- score = '-'
+
+								%td{class: td_class}
+									- if game.game_time <= Time.zone.now && permitted_to?(:report_score, @team)
+										=link_to "/leagues/reportScore/#{game._id}", style: "color: inherit;" do
+											%i.icon-pencil									
+									- if icon_class
+										%i{class: icon_class}
+									= score
+
 			.tab-pane#roster
 				- if permitted_to? :view_roster, @team									
 					.row

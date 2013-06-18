@@ -22,7 +22,9 @@ class Game
 			return nil
 		end
 
-		Team.find(self[:teams].reject{|team_id| team_id == subject_team._id}.first)
+		first_opponent_id = self[:teams].reject{|team_id| team_id == subject_team._id}.first
+
+		Team.find(first_opponent_id) if first_opponent_id
 	end
 
 	def score_for(subject_team)
