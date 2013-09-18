@@ -4,7 +4,7 @@ class Game
 	field :field
 	field :round_number
 	field :winner, type: Moped::BSON::ObjectId
-	field :scores, type: Hash
+	field :scores, type: Hash, default: {}
 	belongs_to :league
 	belongs_to :field_site, foreign_key: :fieldsite_id
 	has_and_belongs_to_many :teams, foreign_key: :teams
