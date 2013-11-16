@@ -21,6 +21,10 @@ authorization do
 			if_attribute :_id => is { user._id }
 		end
 
+		has_permission_on :leagues, :to => [:manage] do
+			if_attribute commissioners: contains { user }
+		end
+
 		has_permission_on :teams, :to => [:edit, :update, :report_score] do
 			if_attribute :captains => contains { user }
 		end
@@ -28,10 +32,14 @@ authorization do
 		has_permission_on :teams, :to => [:report_score] do
 			if_attribute :reporters => contains { user }
 		end
+
+		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score] do
+			if_permitted_to :manage, :league
+		end
 	end
 
 	role :'league-manager' do
-		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score]
+		has_permission_on :league, to: [:manage]
 	end
 
 	role :admin do
