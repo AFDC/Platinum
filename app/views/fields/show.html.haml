@@ -1,0 +1,17 @@
+- content_for :title, "AFDC Fields"
+= render partial: '/pageheader', locals: {subtitle: '', breadcrumbs: {'Fields' => fields_path, @field.name => nil}}
+
+.row
+    .span4.offset2
+        %h3{id: 'fieldsite', data: {lat: @field.latitude, lng: @field.longitude, id: @field._id}}=@field.name
+
+.row
+    .span6
+        .row
+            .span2{style: 'font-weight: bold'} Directions:
+            .span4= simple_format @field.directions
+    .span6
+        %h4#mapHeader Map to the Field
+        .google-map#map
+
+= javascript_include_tag "/js/FieldViewMap.js"

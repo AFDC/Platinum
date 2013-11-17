@@ -1,0 +1,26 @@
+- content_for :title, "AFDC Fields"
+= render partial: '/pageheader', locals: {subtitle: ''}
+
+.row{style: "margin-bottom: 10px"}
+    .span12{id: "fieldsMap", class: "google-map"}
+
+.row{id: "fieldSitesList"}
+    - @fields.each do |f|
+        .span4.fieldsite{id: "fieldsite_#{f._id}", data: {id: f._id, name: f.name, lat: f.latitude, lng: f.longitude}}
+            - if f.latitude.blank? || f.longitude.blank?
+                %i.icon-blank
+            - else
+                %i.icon-map-marker
+            = link_to f.name, field_path(f)
+            - permitted_to? :edit, f do
+                = surround '(', ')' do
+                    = link_to 'edit', edit_field_path(f)
+            .hide.info-window
+                %h2= f.name
+                %div= simple_format(f.directions)
+                %hr
+                %p{style: "text-align: right"}
+                    %i.icon-search
+                    =link_to 'View Field Page', field_path(f)
+
+= javascript_include_tag "/js/FieldsDisplayMap.js"
