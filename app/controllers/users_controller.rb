@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-	before_filter :load_user_from_params, only: [:show, :edit_avatar, ]
+	before_filter :load_user_from_params, only: [:show, :edit_avatar]
 	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
 	def index
