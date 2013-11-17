@@ -1,6 +1,12 @@
 Platinum::Application.routes.draw do
   match '/users/search' => 'users#search'
-  resources :teams, :leagues, :fields
+  resources :teams, :fields
+
+  resources :leagues do
+    member do
+      get 'register'
+    end
+  end
 
   resources :users do
     member do
