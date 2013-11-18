@@ -75,22 +75,18 @@ class RegistrationsController < ApplicationController
 
         desc = "#{@registration.user.name}'s AFDC Registration Fee for #{@registration.league.name}. Registration ID #{@registration._id}."
 
-        if @registration.payment_id
-            payment = PayPal::SDK::REST::Payment.find(@registration.payment_id)
-        else
-            payment = PayPal::SDK::REST::Payment.new({
-                intent: 'authorize',
-                payer: {payment_method: 'paypal'},
-                transactions: [{amount: {currency: 'USD', total: price}, description: desc}],
-                redirect_urls: {return_url: approved_registration_url(@registration), cancel_url: cancelled_registration_url(@registration)}
-            })
+        payment = PayPal::SDK::REST::Payment.new({
+            intent: 'authorize',
+            payer: {payment_method: 'paypal'},
+            transactions: [{amount: {currency: 'USD', total: price}, description: desc}],
+            redirect_urls: {return_url: approved_registration_url(@registration), cancel_url: cancelled_registration_url(@registration)}
+        })
 
-            payment.create
-            
-            if payment.id
-                @registration.payment_id = payment.id
-                @registration.payment_timestamps[:created] = Time.now
-            end
+        payment.create
+        
+        if payment.id
+            @registration.payment_id = payment.id
+            @registration.payment_timestamps[:created] = Time.now
         end
 
         @registration.paypal_responses.push(JSON.parse(payment.to_json()))
