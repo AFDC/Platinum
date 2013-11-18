@@ -1,0 +1,29 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'League Registration', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registration' => nil}}
+
+.row
+    .span5
+        .row
+            .span2{style: 'font-weight: bold;'} Sport:
+            .span3{style: 'text-transform: capitalize'}
+                = @league.season
+                = @league.sport
+        .row
+            .span2{style: 'font-weight: bold;'} Price:
+            .span3{style: 'text-transform: capitalize'}=number_to_currency(@league.price)
+        - if @league.start_date && @league.end_date
+            .row
+                .span2{style: 'font-weight: bold;'} Dates:
+                .span3
+                    =@league.start_date.to_date().to_formatted_s(:long)
+                    to
+                    =@league.end_date.to_date().to_formatted_s(:long)
+        - if @league.description
+            .row
+                .span2{style: 'font-weight: bold;'} Description:
+                .span3=@league.description
+
+        %h3 Your Registration
+        coming soon.
+    .span7
+        = render :partial => '/registrations/form', :locals => {registration: @registration}

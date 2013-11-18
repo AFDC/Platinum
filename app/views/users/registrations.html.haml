@@ -1,0 +1,28 @@
+- content_for :title, @user.name
+= render :partial => '/pageheader', :locals => {:subtitle => 'League Registrations'}
+
+- if @registrations.count > 0
+    %table.table.table-striped.tablesorter
+        %thead
+            %tr
+                %th{:width => '15%'} ID
+                %th League
+                %th Signup Time
+                %th Status
+        %tbody
+            - @registrations.each do |reg|
+                - next if reg.league.nil?
+                %tr{:style => 'text-transform: capitalize'}
+                    %td= reg._id
+                    %td= link_to reg.league.name, league_path(reg.league)
+                    %td= reg.signup_timestamp.to_formatted_s(:long)
+                    %td
+                        = reg.status
+                        - if reg.status == 'pending'
+                            = link_to checkout_registration_path(reg) do
+                                %i.icon-shopping-cart{title: "Checkout with PayPal!"}
+                        - if false && reg.status == 'cancelled'
+                            = link_to cancel_registration_path(reg) do
+                                %i.icon-remove-circle
+- else
+    %p{:style => 'text-align: center;'} This user has not registered for any leagues

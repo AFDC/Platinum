@@ -47,6 +47,10 @@ class User
     self.height ? "#{self.height/12}\'#{self.height%12}\"" : 'n/a'
   end
 
+  def name
+    [firstname, lastname].join(' ')
+  end
+
   def age
     begin
       dob = Date.parse(self.birthdate)

@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-	before_filter :load_user_from_params, only: [:show, :edit_avatar]
+	before_filter :load_user_from_params, only: [:show, :edit_avatar, :registrations]
 	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
 	def index
@@ -25,6 +25,10 @@ class UsersController < ApplicationController
 				render :json => results
 			end
 		end
+	end
+
+	def registrations
+		@registrations = Registration.where(user_id: @user._id).desc(:signup_timestamp)
 	end
 
 	def show
