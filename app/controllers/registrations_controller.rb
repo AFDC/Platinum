@@ -71,7 +71,7 @@ class RegistrationsController < ApplicationController
             return
         end
 
-        if @registration.user.leanil?
+        if @registration.user.nil?
             redirect_to registrations_user_path(current_user), flash: {error: "User not found for that registration."}
             return
         end
