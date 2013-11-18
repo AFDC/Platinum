@@ -9,6 +9,11 @@ class RegistrationsController < ApplicationController
         new_reg.league = League.find(reg_params[:league_id])
         new_reg.user = current_user
 
+        if (Registration.where(league_id: new_reg.league._id, user_id: current_user._id).count > 0)
+            redirect_to registrations_user_path(current_user), notice: "You've already registered for that league."
+            return
+        end
+
         unless new_reg.league
             redirect_to leagues_path, notice: 'League not found.'
             return
@@ -66,7 +71,7 @@ class RegistrationsController < ApplicationController
             return
         end
 
-        if @registration.user.nil?
+        if @registration.user.leanil?
             redirect_to registrations_user_path(current_user), flash: {error: "User not found for that registration."}
             return
         end
