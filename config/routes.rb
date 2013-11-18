@@ -2,6 +2,14 @@ Platinum::Application.routes.draw do
   match '/users/search' => 'users#search'
   resources :teams, :fields
 
+  resources :registrations do
+    member do
+      get 'checkout'
+      get 'approved'
+      get 'cancelled'
+    end
+  end
+
   resources :leagues do
     member do
       get 'register'
@@ -10,6 +18,7 @@ Platinum::Application.routes.draw do
 
   resources :users do
     member do
+      get 'registrations'
       get 'edit_avatar'
       put 'update_avatar'
       delete 'destroy_avatar'

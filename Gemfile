@@ -5,6 +5,7 @@ gem 'rails', '3.2.12'
 # Backend
 # gem 'airbrake'
 # gem 'newrelic_rpm'
+gem 'figaro'
 gem 'json'
 gem 'multi_json'
 gem 'mongoid'
@@ -13,6 +14,7 @@ gem 'mongoid-paperclip', require: 'mongoid_paperclip'
 gem 'foreman'
 gem 'strong_parameters'
 gem 'newrelic_rpm'
+gem 'paypal-sdk-rest'
 
 # Frontend
 gem 'active_link_to'
@@ -61,7 +63,6 @@ end
 group :ops do
   gem 'pry'
   gem 'unicorn'
-  gem 'figaro'
   gem 'capistrano'
 end
 
