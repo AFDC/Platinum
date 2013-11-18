@@ -4,7 +4,7 @@ class Registration
     field :status
     field :player_strength
     field :signup_timestamp, type: DateTime
-    field :payment_timestamps, type: Array
+    field :payment_timestamps, type: Hash, default: {}
     field :pair, type: Hash
     field :gender
     field :availability, type: Hash
@@ -13,6 +13,9 @@ class Registration
     field :waiver_acceptance_date, type: DateTime
     field :user_data, type: Hash
     field :notes
+
+    field :paypal_responses, type: Array, default: []
+    field :payment_id
 
     belongs_to :user
     belongs_to :league

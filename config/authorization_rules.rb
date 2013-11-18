@@ -11,6 +11,7 @@ authorization do
 		has_permission_on :users, to: [:new, :create]
 		has_permission_on :teams, to: [:show, :index, :search]
 		has_permission_on :fields, to: [:index, :show]
+		has_permission_on :registrations, to: [:approved, :cancelled]
 	end
 
 	role :user do
@@ -20,6 +21,10 @@ authorization do
 
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :registrations] do
 			if_attribute :_id => is { user._id }
+		end
+
+		has_permission_on :registrations, to: :checkout do
+			if_attribute user_id: is { user._id }
 		end
 
 		has_permission_on :registrations, to: :create

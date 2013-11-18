@@ -5,6 +5,8 @@ Platinum::Application.routes.draw do
   resources :registrations do
     member do
       get 'checkout'
+      get 'approved'
+      get 'cancelled'
     end
   end
 

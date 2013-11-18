@@ -7,6 +7,7 @@
             %tr
                 %th{:width => '15%'} ID
                 %th League
+                %th Price
                 %th Signup Time
                 %th Status
         %tbody
@@ -15,6 +16,7 @@
                 %tr{:style => 'text-transform: capitalize'}
                     %td= reg._id
                     %td= link_to reg.league.name, league_path(reg.league)
+                    %td= number_to_currency(reg.league.price)
                     %td= reg.signup_timestamp.to_formatted_s(:long)
                     %td
                         = reg.status
