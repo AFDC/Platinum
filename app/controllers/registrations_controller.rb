@@ -78,7 +78,7 @@ class RegistrationsController < ApplicationController
 
         price = '%.2f' % @registration.league.price
 
-        desc = "#{@registration.user.name}'s AFDC Registration Fee for #{@registration.league.name}. Registration ID #{@registration._id}."
+        desc = "AFDC Registration Fee for #{@registration.league.name}. [#{@registration._id}]"
 
         payment = PayPal::SDK::REST::Payment.new({
             intent: 'authorize',
@@ -87,7 +87,12 @@ class RegistrationsController < ApplicationController
             redirect_urls: {return_url: approved_registration_url(@registration), cancel_url: cancelled_registration_url(@registration)}
         })
 
-        payment.create
+        begin
+            payment.create
+        rescue 
+            redirect_to registrations_user_path(current_user), flash: {error: "There was an error talking to PayPal, please try again or contact webmaster@afdc.com."}
+            return
+        end
         
         if payment.id
             @registration.payment_id = payment.id
