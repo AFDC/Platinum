@@ -16,24 +16,23 @@ authorization do
 
 	role :user do
 		includes :guest
+
+		# Things all users can do:
 		has_permission_on :users, to: [:index, :search, :show]
 		has_permission_on :teams, to: [:index, :search, :show, :view_roster]
+		has_permission_on :registrations, to: [:create]
+		has_permission_on :leagues, to: [:register]
 
+		# Things a user can do IFF the record belongs to them:
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :registrations] do
 			if_attribute :_id => is { user._id }
 		end
 
-		has_permission_on :registrations, to: :checkout do
+		has_permission_on :registrations, to: [:checkout, :show, :edit, :update] do
 			if_attribute user_id: is { user._id }
 		end
 
-		has_permission_on :registrations, to: :create
-		has_permission_on :leagues, to: :register
-
-		has_permission_on :leagues, :to => [:manage] do
-			if_attribute commissioners: contains { user }
-		end
-
+		# User assignments (league commissioner, team captain, etc...)
 		has_permission_on :teams, :to => [:edit, :update, :report_score] do
 			if_attribute :captains => contains { user }
 		end
@@ -42,7 +41,16 @@ authorization do
 			if_attribute :reporters => contains { user }
 		end
 
+		has_permission_on :leagues, :to => [:manage] do
+			if_attribute commissioners: contains { user }
+		end
+
+		# League Manager Permissions -- this applies to both universal league managers and also comissioners of individual leagues
 		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score] do
+			if_permitted_to :manage, :league
+		end
+
+		has_permission_on :registrations, to: [:edit, :update, :show] do
 			if_permitted_to :manage, :league
 		end
 	end
