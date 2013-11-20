@@ -62,6 +62,8 @@ authorization do
 	role :admin do
 		includes :'league-manager'
 
+		has_permission_on :global, :to => [:see_debug]
+
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar]
 	end
 end

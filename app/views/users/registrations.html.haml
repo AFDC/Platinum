@@ -14,7 +14,11 @@
             - @registrations.each do |reg|
                 - next if reg.league.nil?
                 %tr{:style => 'text-transform: capitalize'}
-                    %td= reg._id
+                    %td
+                        - if permitted_to? :show
+                            = link_to reg._id, registration_path(reg)
+                        - else
+                            = reg._id
                     %td= link_to reg.league.name, league_path(reg.league)
                     %td= number_to_currency(reg.league.price)
                     %td= reg.signup_timestamp.to_formatted_s(:long)
