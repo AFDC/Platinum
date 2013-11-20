@@ -1,0 +1,53 @@
+.row
+    .span2{style: 'font-weight: bold;'} Commissioner:
+    .span3
+        - if league.commissioners
+            - league.commissioners.each do |c|
+                = link_to c.name, user_path(c)
+                %br
+        - else
+            None
+.row
+    .span2{style: 'font-weight: bold;'} Sport:
+    .span3{style: 'text-transform: capitalize'}
+        = league.season
+        = league.sport
+        = "(#{league.age_division})"
+.row
+    .span2{style: 'font-weight: bold;'} Price:
+    .span3{style: 'text-transform: capitalize'}=number_to_currency(league.price)
+
+.row
+    .span2{style: 'font-weight: bold;'} Player Limits:
+    .span3{style: 'text-transform: capitalize'}
+        - if league.player_limit
+            - league.player_limit.keys.each do |k|
+                = "#{k}: #{league.player_limit[k]}"
+                %br
+        - else
+            None
+
+%hr
+
+.row
+    .span2{style: 'font-weight: bold;'} Registration Opens:
+    .span3= league.registration_open.to_date().to_formatted_s(:long) if league.registration_open
+.row
+    .span2{style: 'font-weight: bold;'} Registration Closes:
+    .span3= league.registration_close.to_date().to_formatted_s(:long) if league.registration_close
+
+%hr
+
+.row
+    .span2{style: 'font-weight: bold;'} Play Begins:
+    .span3= league.start_date.to_date().to_formatted_s(:long) if league.start_date
+.row
+    .span2{style: 'font-weight: bold;'} Play Ends:
+    .span3= league.end_date.to_date().to_formatted_s(:long) if league.end_date
+
+- if league.description
+    %hr 
+
+    .row
+        .span2{style: 'font-weight: bold;'} Description:
+        .span3=league.description
