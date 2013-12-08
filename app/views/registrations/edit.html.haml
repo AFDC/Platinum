@@ -1,0 +1,26 @@
+- content_for :title, @registration.league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Registration', breadcrumbs: {'Leagues' => leagues_path, @registration.league.name => league_path(@registration.league), "Registration for #{@registration.user.name}" => nil}}
+
+.row
+    .span5
+        = render :partial => '/league_summary', :locals => {league: @registration.league}
+    .span7
+        %h4= @registration.user.name
+        %dl.dl-horizontal
+            %dt Gender:
+            %dd= @registration.gender
+
+            %dt Height:
+            %dd= @registration.user.height_in_feet_and_inches
+
+            %dt Weight:
+            %dd= @registration.user.weight
+
+            %dt Age:
+            %dd= @registration.user.age
+
+            %hr
+
+            %h5 League Details:
+        
+        = render :partial => '/registrations/form', :locals => {registration: @registration}

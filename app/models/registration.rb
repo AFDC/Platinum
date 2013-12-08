@@ -31,4 +31,42 @@ class Registration
     def waiver_accepted
         !waiver_acceptance_date.nil?
     end
+
+    def capture_payment
+        raise PaymentNotAuthorized if status != 'authorized'
+        raise PaymentInfoMissing unless payment_id
+
+        payment = PayPal::SDK::REST::Payment.find(payment_id)
+        transaction = payment.transactions.first
+        authorization = transaction.related_resources.first.authorization
+
+        capture = authorization.capture({
+            :amount => {
+                :currency => "USD",
+                :total => authorization.amount.total
+            },
+            :is_final_capture => true
+        })
+
+        self.paypal_responses << capture.to_json
+        unless capture.success?
+            save
+            raise PaymentNotCaptured unless capture.success?
+        end
+
+        self.payment_timestamps[:captured] = Time.now
+        self.paid = true
+        self.status = 'active'
+        save
+    end
+
+    ## Exceptions
+    class PaymentNotAuthorized < StandardError
+    end
+
+    class PaymentInfoMissing < StandardError
+    end
+
+    class PaymentNotCaptured < StandardError
+    end
 end

@@ -1,0 +1,93 @@
+- content_for :title, @registration.league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Registration', breadcrumbs: {'Leagues' => leagues_path, @registration.league.name => league_path(@registration.league), "Registration for #{@registration.user.name}" => nil}}
+
+.row
+    .span5
+        = render :partial => '/league_summary', :locals => {league: @registration.league}
+    .span7
+        .row
+            .span3
+                %h4= @registration.user.name
+            .span4
+                - if permitted_to? :edit
+                    = link_to "Edit", edit_registration_path(@registration), :class => 'btn'
+        %dl.dl-horizontal
+            %dt Gender:
+            %dd= @registration.gender
+
+            %dt Height:
+            %dd= @registration.user.height_in_feet_and_inches
+
+            %dt Weight:
+            %dd= @registration.user.weight
+
+            %dt Age:
+            %dd= @registration.user.age
+
+            %hr
+
+            %h5 League Details:
+
+            %dt Status:
+            %dd= @registration.status
+
+            %dt Paid?
+            %dd
+                - if @registration.paid
+                    %span.label.label-success Yes
+                - else
+                    %span.label.label-warning No
+
+            %dt Role:
+            %dd= @registration.player_strength
+
+            - if @registration.availability
+                %dt Availability:
+                %dd= @registration.availability['general']
+
+            - if @registration.secondary_rank_data
+                %dt Self Rank:
+                %dd= @registration.secondary_rank_data['self_rank']
+
+            %dt Signup Time:
+            %dd= @registration.signup_timestamp.to_formatted_s(:long)
+
+            - if @registration.notes
+
+                %hr
+
+                %dt Notes:
+                %dd &nbsp;
+                .well
+                    =simple_format(@registration.notes)
+
+            - if @registration.payment_timestamps && @registration.payment_timestamps.count > 0
+                %hr
+                %h5 Payment Timestamps:
+                - @registration.payment_timestamps.keys.each do |k|
+                    %dt= "#{k}:"
+                    %dd= @registration.payment_timestamps[k].to_formatted_s(:long)
+
+            - if permitted_to? :manage, @registration.league
+                %hr
+                %h5 Private League Data
+
+                %dt Payment ID:
+                %dd= @registration.payment_id
+
+                %dt Paypal Calls:
+                %dd= @registration.paypal_responses.count
+
+
+- if permitted_to? :see_debug, :global
+    %h4 @registration
+    %pre
+        %code.javascript
+            =JSON.pretty_generate(@registration.as_json)
+
+
+    - content_for :page_scripts do
+        = stylesheet_link_tag 'http://yandex.st/highlightjs/7.4/styles/default.min.css'
+        = javascript_include_tag 'http://yandex.st/highlightjs/7.4/highlight.min.js'
+        :javascript
+            hljs.initHighlightingOnLoad();

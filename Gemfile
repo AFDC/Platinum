@@ -15,6 +15,13 @@ gem 'foreman'
 gem 'strong_parameters'
 gem 'newrelic_rpm'
 gem 'paypal-sdk-rest'
+gem 'ruby_parser'
+
+# Job Processing
+gem 'sidekiq'
+gem 'kiqstand', '~> 1.1.0'
+gem 'sinatra', require: false
+gem 'slim'
 
 # Frontend
 gem 'active_link_to'

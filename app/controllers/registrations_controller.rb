@@ -1,5 +1,5 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:checkout, :approved, :cancelled]
+    before_filter :load_registration_from_params, only: [:checkout, :approved, :cancelled, :show]
 
     def create
         reg_params = params[:registration]
@@ -46,6 +46,7 @@ class RegistrationsController < ApplicationController
         new_reg.player_strength = reg_params[:player_strength]
         new_reg.secondary_rank_data = {self_rank: reg_params[:self_rank]}
         new_reg.signup_timestamp = Time.now
+        new_reg.waiver_acceptance_date = Time.now
         new_reg.payment_timestamps[:pending] = Time.now
         new_reg.status = 'pending'
         new_reg.user_data = {
@@ -63,6 +64,9 @@ class RegistrationsController < ApplicationController
         else
             redirect_to registrations_user_path(current_user), notice: new_reg.errors
         end
+    end
+
+    def show
     end
 
     def checkout

@@ -1,3 +1,5 @@
+require 'sidekiq/web'
+
 Platinum::Application.routes.draw do
   match '/users/search' => 'users#search'
   resources :teams, :fields
@@ -13,6 +15,8 @@ Platinum::Application.routes.draw do
   resources :leagues do
     member do
       get 'register'
+      get 'registrations'
+      post 'capture_payments'
     end
   end
 
@@ -25,6 +29,9 @@ Platinum::Application.routes.draw do
     end
   end
 
+  if ENV['sidekiq_path']
+    mount Sidekiq::Web => ENV['sidekiq_path']
+  end
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
