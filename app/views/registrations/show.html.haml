@@ -5,7 +5,12 @@
     .span5
         = render :partial => '/league_summary', :locals => {league: @registration.league}
     .span7
-        %h4= @registration.user.name
+        .row
+            .span3
+                %h4= @registration.user.name
+            .span4
+                - if permitted_to? :edit
+                    = link_to "Edit", edit_registration_path(@registration), :class => 'btn'
         %dl.dl-horizontal
             %dt Gender:
             %dd= @registration.gender

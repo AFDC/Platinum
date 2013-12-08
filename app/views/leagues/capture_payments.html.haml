@@ -1,0 +1,44 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Payment Capture', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registrations' => registrations_league_path(@league), 'Capture Payments' => nil}}
+
+.row
+    .span6
+        = render :partial => '/league_summary', :locals => {league: @league}
+    .span6
+        %p
+            The players listed below have authorized payments to Paypal. By confirming this list, these payments
+            will be captured and the players will be moved to "active" status in the league. Please verify that
+            the list below is accurate before proceeding.
+
+        %p
+            %strong Note:
+            Capturing payments from PayPal can take some time, so this will happen in the background and the results
+            will not be available instantly. Please check with the webmaster before re-queueing any payment capture. 
+
+        %form{action: capture_payments_league_path(@league), method: 'POST'}
+            .row
+                .span3
+                    %h4="Men (#{@men.count})"
+                    %ol
+                        - @men.each do |r|
+                            - u = r.user
+                            %li
+                                =link_to u.name, registration_path(r)
+                                %input{type: 'hidden', name: 'reg_id[]', value: r._id}
+                .span3
+                    %h4="Women (#{@women.count})"
+                    %ol
+                        - @women.each do |r|
+                            - u = r.user
+                            %li
+                                =link_to u.name, registration_path(r)
+                                %input{type: 'hidden', name: 'reg_id[]', value: r._id}
+            - if @errors.count > 0
+                %h4{style: 'color: #BD4247'} Errors:
+                %ul
+                    - @errors.each do |e|
+                        %li=e
+            .form-actions
+                %input{type: 'hidden', name: 'confirm', value: 1}
+                %button.btn.btn-primary Queue Payment Captures
+

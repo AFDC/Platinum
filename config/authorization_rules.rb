@@ -21,7 +21,7 @@ authorization do
 		has_permission_on :users, to: [:index, :search, :show]
 		has_permission_on :teams, to: [:index, :search, :show, :view_roster]
 		has_permission_on :registrations, to: [:create]
-		has_permission_on :leagues, to: [:register]
+		has_permission_on :leagues, to: [:register, :registrations]
 
 		# Things a user can do IFF the record belongs to them:
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :registrations] do
@@ -43,6 +43,10 @@ authorization do
 
 		has_permission_on :leagues, :to => [:manage] do
 			if_attribute commissioners: contains { user }
+		end
+
+		has_permission_on :leagues, :to => [:capture_payments] do
+			if_permitted_to :manage, :league
 		end
 
 		# League Manager Permissions -- this applies to both universal league managers and also comissioners of individual leagues

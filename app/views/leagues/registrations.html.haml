@@ -1,0 +1,216 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Registrations', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registrations' => nil}}
+
+- if @registrations[:active].count > 0
+    %h2 Active Participants
+    %table.table.table-striped.tablesorter
+        %thead
+            %tr
+                %th 
+                %th Gender
+                %th First
+                %th Middle
+                %th Last
+                %th Rank
+                %th Pair
+                %th Player Type
+                %th Attendance
+                %th Tourneys
+        %tbody
+            - count = {'male' => 0, 'female' => 0}
+            - @registrations[:active].each do |r|
+                - count[r.gender] += 1
+                %tr
+                    %td
+                        %i.icon-exclamation-sign{title: r._id}
+                    %td=r.gender
+                    %td=r.user_data['firstname']
+                    %td=r.user_data['middlename']
+                    %td=r.user_data['lastname']
+                    %td=r.self_rank
+                    %td ---
+                    %td=r.player_strength
+                    %td=r.availability['general']
+                    %td ---
+
+    %div{style: 'text-align: right;'}
+        %span.badge
+            Men: 
+            =count['male']
+
+        %span.badge
+            Women:
+            =count['female']
+
+        %span.badge.badge-inverse
+            Total:
+            =count['male'] + count['female']
+
+- if @registrations[:authorized].count > 0
+    %h2 Payment Authorized
+    %form{action: capture_payments_league_path(@league), method: 'POST', id: 'cnaForm'}
+        %table.table.table-striped.tablesorter
+            %thead
+                %tr
+                    %th Gender
+                    %th First
+                    %th Middle
+                    %th Last
+                    %th Rank
+                    %th Pair
+                    %th Authorization Time
+                    - if permitted_to? :manage, @league
+                        %th{width: '10%'}
+                        %th{width: '10%'}
+            %tbody
+                - count = {'male' => 0, 'female' => 0}
+                - @registrations[:authorized].each do |r|
+                    - count[r.gender] += 1
+                    %tr
+                        %td=r.gender
+                        %td=r.user_data['firstname']
+                        %td=r.user_data['middlename']
+                        %td=r.user_data['lastname']
+                        %td=r.self_rank
+                        %td ---
+                        %td=r.payment_timestamps['authorized']
+                        - if permitted_to? :manage, @league
+                            %td
+                                =link_to r._id, registration_path(r)
+                            %td
+                                %label.checkbox{style: 'font-size: 12px;'}
+                                    %input{type: 'checkbox', name: 'reg_id[]', value: r._id, class: "chkbx #{r.gender}"}
+                                    Activate
+
+    %div{style: 'text-align: right;'}
+        %span.badge
+            Men: 
+            =count['male']
+
+        %span.badge
+            Women:
+            =count['female']
+
+        %span.badge.badge-inverse
+            Total:
+            =count['male'] + count['female']
+
+    - if permitted_to? :manage, @league
+        - content_for :page_scripts do
+            :javascript
+                $(function(){
+                    $('#cnaForm').on('click', '.chkbx', function(e){
+                        if ($('#cnaForm .chkbx:checked').length > 0) {
+                            $('#cnaActions').show();
+
+                            $('#cnaMen').html($('#cnaForm .chkbx.male:checked').length);
+                            $('#cnaWomen').html($('#cnaForm .chkbx.female:checked').length);
+                        } else {
+                            $('#cnaActions').hide();
+                        }
+                    });
+
+                    $('#cnaButton').on('click', function(e){
+                        console.log("Doit!");
+                        $('#cnaButton').prop('disabled', true);
+                        $('#cnaButton').html("Working...");
+                        $('#cnaForm').submit();
+                    });
+                });
+
+    .navbar.navbar-inverse.navbar-fixed-bottom.hide#cnaActions
+        .navbar-inner
+            .container
+                %a.brand Capture Payment & Activate:
+                %ul.nav
+                    %li
+                        %p.navbar-text
+                            Men:
+                            %span#cnaMen 0
+                    %li
+                        %p.navbar-text
+                            Women:
+                            %span#cnaWomen 0
+                %button.btn.btn-primary#cnaButton Do it!
+
+- if @registrations[:pending].count > 0 
+    %h2 Pending Payment
+    %table.table.table-striped.tablesorter
+        %thead
+            %tr
+                %th 
+                %th Gender
+                %th First
+                %th Middle
+                %th Last
+                %th Rank
+                %th Pair
+                %th Registration Time
+        %tbody
+            - count = {'male' => 0, 'female' => 0}
+            - @registrations[:pending].each do |r|
+                - count[r.gender] += 1
+                %tr
+                    %td
+                        %i.icon-exclamation-sign{title: r._id}
+                    %td=r.gender
+                    %td=r.user_data['firstname']
+                    %td=r.user_data['middlename']
+                    %td=r.user_data['lastname']
+                    %td=r.self_rank
+                    %td ---
+                    %td=r.payment_timestamps['pending']
+
+    %div{style: 'text-align: right;'}
+        %span.badge
+            Men: 
+            =count['male']
+
+        %span.badge
+            Women:
+            =count['female']
+
+        %span.badge.badge-inverse
+            Total:
+            =count['male'] + count['female']
+
+
+- if @registrations[:cancelled].count > 0 
+    %h2 Cancelled Registrations
+    %table.table.table-striped.tablesorter
+        %thead
+            %tr
+                %th 
+                %th Gender
+                %th First
+                %th Middle
+                %th Last
+                %th Rank
+                %th Pair
+        %tbody
+            - count = {'male' => 0, 'female' => 0}
+            - @registrations[:cancelled].each do |r|
+                - count[r.gender] += 1
+                %tr
+                    %td
+                        %i.icon-exclamation-sign{title: r._id}
+                    %td=r.gender
+                    %td=r.user_data['firstname']
+                    %td=r.user_data['middlename']
+                    %td=r.user_data['lastname']
+                    %td=r.self_rank
+                    %td ---
+
+    %div{style: 'text-align: right;'}
+        %span.badge
+            Men: 
+            =count['male']
+
+        %span.badge
+            Women:
+            =count['female']
+
+        %span.badge.badge-inverse
+            Total:
+            =count['male'] + count['female']
+
