@@ -14,7 +14,7 @@ user_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastname,email
     - row << r.gen_availability
     - row << (r.pair ? r.pair.name : '')
     - row << r.pair_id
-    - row << '"' + r.notes + '"'
+    - row << '"' + (r.notes || '') + '"'
     - row << r.user_data['birthdate']
     - row << r.user_data['height']
     - row << 'n/a'
