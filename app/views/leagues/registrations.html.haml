@@ -35,10 +35,11 @@
                     %td= "EOS" if r.eos_availability
 
     %div{style: 'text-align: right;'}
-        %span{style: "margin-right: 20px;"}
-            =link_to registrations_league_path(@league, format: :csv) do
-                CSV
-                %i.icon.icon-cloud-download 
+        - if permitted_to? :manage, @league
+            %span{style: "margin-right: 20px;"}
+                =link_to registrations_league_path(@league, format: :csv) do
+                    CSV
+                    %i.icon.icon-cloud-download 
 
         %span.badge
             Men: 
