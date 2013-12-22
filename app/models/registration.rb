@@ -17,8 +17,22 @@ class Registration
     field :paypal_responses, type: Array, default: []
     field :payment_id
 
+    field :pair_id, type: Moped::BSON::ObjectId
+
     belongs_to :user
     belongs_to :league
+
+    def gen_availability
+        availability['general']
+    end
+
+    def eos_availability
+        availability['attend_tourney_eos']
+    end
+
+    def pair
+        User.find(pair_id) if pair_id
+    end
 
     def self_rank
         if secondary_rank_data.nil?

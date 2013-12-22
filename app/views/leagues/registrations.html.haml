@@ -22,16 +22,17 @@
                 - count[r.gender] += 1
                 %tr
                     %td
-                        %i.icon-exclamation-sign{title: r._id}
+                        - if permitted_to? :show, r
+                            =link_to 'View', registration_path(r)
                     %td=r.gender
                     %td=r.user_data['firstname']
                     %td=r.user_data['middlename']
                     %td=r.user_data['lastname']
                     %td=r.self_rank
-                    %td ---
+                    %td= r.pair.name if r.pair
                     %td=r.player_strength
                     %td=r.availability['general']
-                    %td ---
+                    %td= "EOS" if r.eos_availability
 
     %div{style: 'text-align: right;'}
         %span.badge
@@ -52,6 +53,7 @@
         %table.table.table-striped.tablesorter
             %thead
                 %tr
+                    %th
                     %th Gender
                     %th First
                     %th Middle
@@ -61,22 +63,22 @@
                     %th Authorization Time
                     - if permitted_to? :manage, @league
                         %th{width: '10%'}
-                        %th{width: '10%'}
             %tbody
                 - count = {'male' => 0, 'female' => 0}
                 - @registrations[:authorized].each do |r|
                     - count[r.gender] += 1
                     %tr
+                        %td
+                            - if permitted_to? :show, r
+                                =link_to 'View', registration_path(r)
                         %td=r.gender
                         %td=r.user_data['firstname']
                         %td=r.user_data['middlename']
                         %td=r.user_data['lastname']
                         %td=r.self_rank
-                        %td ---
+                        %td= r.pair.name if r.pair
                         %td=r.payment_timestamps['authorized']
                         - if permitted_to? :manage, @league
-                            %td
-                                =link_to r._id, registration_path(r)
                             %td
                                 %label.checkbox{style: 'font-size: 12px;'}
                                     %input{type: 'checkbox', name: 'reg_id[]', value: r._id, class: "chkbx #{r.gender}"}
@@ -152,13 +154,14 @@
                 - count[r.gender] += 1
                 %tr
                     %td
-                        %i.icon-exclamation-sign{title: r._id}
+                        - if permitted_to? :show, r
+                            =link_to 'View', registration_path(r)
                     %td=r.gender
                     %td=r.user_data['firstname']
                     %td=r.user_data['middlename']
                     %td=r.user_data['lastname']
                     %td=r.self_rank
-                    %td ---
+                    %td= r.pair.name if r.pair
                     %td=r.payment_timestamps['pending']
 
     %div{style: 'text-align: right;'}
@@ -193,13 +196,14 @@
                 - count[r.gender] += 1
                 %tr
                     %td
-                        %i.icon-exclamation-sign{title: r._id}
+                        - if permitted_to? :show, r
+                            =link_to 'View', registration_path(r)
                     %td=r.gender
                     %td=r.user_data['firstname']
                     %td=r.user_data['middlename']
                     %td=r.user_data['lastname']
                     %td=r.self_rank
-                    %td ---
+                    %td= r.pair.name if r.pair
 
     %div{style: 'text-align: right;'}
         %span.badge

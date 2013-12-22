@@ -1,69 +1,18 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:checkout, :approved, :cancelled, :show]
+    before_filter :load_registration_from_params, only: [:edit, :update, :checkout, :approved, :cancelled, :show]
+    filter_access_to [:edit, :update, :show, :checkout], attribute_check: true
 
     def create
-        reg_params = params[:registration]
+        # reg_params = params[:registration]
 
-        new_reg = Registration.new
+        populate_registration Registration.new
+    end
 
-        new_reg.league = League.find(reg_params[:league_id])
-        new_reg.user = current_user
+    def edit
+    end
 
-        if (Registration.where(league_id: new_reg.league._id, user_id: current_user._id).count > 0)
-            redirect_to registrations_user_path(current_user), notice: "You've already registered for that league."
-            return
-        end
-
-        unless new_reg.league
-            redirect_to leagues_path, notice: 'League not found.'
-            return
-        end
-
-        unless ['25%', '50%', '75%', '100%'].include?(reg_params[:availability])
-            redirect_to register_league_path(new_reg.league), notice: "You must select and attendance percentage"
-            return
-        end
-
-        unless ['1', '2', '3', '4', '5', '6', '7', '8', '9'].include?(reg_params[:self_rank])
-            redirect_to register_league_path(new_reg.league), notice: "You must select a rank for yourself"
-            return
-        end
-
-        unless ['Runner', 'Thrower', 'Both'].include?(reg_params[:player_strength])
-            redirect_to register_league_path(new_reg.league), notice: "You must select a primary role"
-            return
-        end
-
-        unless reg_params[:waiver_accepted] == '1'
-            redirect_to register_league_path(new_reg.league), notice: "You must accept the waiver to register"
-            return
-        end
-
-        # This is ugly, oh well.
-        new_reg.availability = {general: reg_params[:availability]}
-        new_reg.gender = current_user.gender
-        new_reg.paid = false
-        new_reg.player_strength = reg_params[:player_strength]
-        new_reg.secondary_rank_data = {self_rank: reg_params[:self_rank]}
-        new_reg.signup_timestamp = Time.now
-        new_reg.waiver_acceptance_date = Time.now
-        new_reg.payment_timestamps[:pending] = Time.now
-        new_reg.status = 'pending'
-        new_reg.user_data = {
-            birthdate: current_user.birthdate,
-            firstname: current_user.firstname,
-            middlename: current_user.middlename,
-            lastname: current_user.lastname,
-            gender: current_user.gender,
-            height: current_user.height,
-            weight: current_user.weight
-        }
-
-        if new_reg.save
-            redirect_to checkout_registration_path(new_reg)
-        else
-            redirect_to registrations_user_path(current_user), notice: new_reg.errors
-        end
+    def update
+        populate_registration @registration
     end
 
     def show
@@ -150,6 +99,70 @@ class RegistrationsController < ApplicationController
     end
 
     private
+
+    def populate_registration(reg)
+        reg_params = params[:registration]
+
+        unless ['25%', '50%', '75%', '100%'].include?(reg_params[:gen_availability])
+            redirect_to register_league_path(reg.league), notice: "You must select and attendance percentage"
+            return
+        end
+
+        unless ['1', '2', '3', '4', '5', '6', '7', '8', '9'].include?(reg_params[:self_rank])
+            redirect_to register_league_path(reg.league), notice: "You must select a rank for yourself"
+            return
+        end
+
+        unless ['Runner', 'Thrower', 'Both'].include?(reg_params[:player_strength])
+            redirect_to register_league_path(reg.league), notice: "You must select a primary role"
+            return
+        end
+
+        unless reg_params[:waiver_accepted] == '1' || reg.persisted?
+            redirect_to register_league_path(reg.league), notice: "You must accept the waiver to register"
+            return
+        end
+
+        if reg.new_record?
+            reg.waiver_acceptance_date = Time.now
+            reg.league = League.find(reg_params[:league_id])
+            reg.signup_timestamp = Time.now
+            reg.payment_timestamps[:pending] = Time.now
+            reg.user = current_user
+            reg.status = 'pending'
+            reg.paid = false
+        end
+
+        reg.availability = {
+            general: reg_params[:gen_availability],
+            attend_tourney_eos: (reg_params[:eos_availability] == '1')
+        }
+        reg.gender = current_user.gender
+        reg.player_strength = reg_params[:player_strength]
+        reg.secondary_rank_data = {self_rank: reg_params[:self_rank]}
+        reg.notes = reg_params[:notes]
+        reg.pair_id = reg_params[:pair_id].length >= 2 ? reg_params[:pair_id][1] : nil
+        reg.user_data = {
+            birthdate: reg.user.birthdate,
+            firstname: reg.user.firstname,
+            middlename: reg.user.middlename,
+            lastname: reg.user.lastname,
+            gender: reg.user.gender,
+            height: reg.user.height,
+            weight: reg.user.weight
+        }
+
+        if reg.save
+            if reg.status == 'active' || reg.status == 'authorized' || current_user._id != reg.user._id
+                redirect_to registrations_user_path(reg.user), notice: 'Update successful'   
+            else     
+                redirect_to checkout_registration_path(reg)
+            end
+        else
+            redirect_to registrations_user_path(reg.user), notice: new_reg.errors
+        end
+
+    end
 
     def load_registration_from_params
         begin
