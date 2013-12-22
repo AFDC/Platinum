@@ -6,6 +6,7 @@ require "action_mailer/railtie"
 require "active_resource/railtie"
 require "rails/test_unit/railtie"
 require "sprockets/railtie" # Uncomment this line for Rails 3.1+
+require "csv"
 
 LOCAL_TIMEZONE = ActiveSupport::TimeZone.new('Eastern Time (US & Canada)')
 

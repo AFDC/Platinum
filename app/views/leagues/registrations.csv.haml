@@ -1,0 +1,23 @@
+user_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastname,email,gender,availability,pair_name,pair_id,notes,birthdate,height,MST,EOST,wants_competitive,wants_social,wants_family,gRank_exp,gRank_ath,gRank_lvl,gRank_skill
+- @registrations[:active].each do |r|
+    - row = []
+    - row << r.user_id
+    - row << ''
+    - row << ''
+    - row << r.status
+    - row << r.self_rank # TODO: Allow this to be overridden
+    - row << r.self_rank
+    - row << r.user_data['firstname']
+    - row << r.user_data['lastname']
+    - row << r.user.email_address
+    - row << r.gender
+    - row << r.gen_availability
+    - row << (r.pair ? r.pair.name : '')
+    - row << r.pair_id
+    - row << '"' + r.notes + '"'
+    - row << r.user_data['birthdate']
+    - row << r.user_data['height']
+    - row << 'n/a'
+    - row << r.eos_availability
+    - row << ',,,,,,'
+    = raw row.join(',')
