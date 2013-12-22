@@ -7,7 +7,7 @@
 			.controls
 				%span.uneditable-input.span3= @team.name
 	- if permitted_to? :modify_captains, @team
-		=render partial: '/user_multiselect', locals: {form: f, fieldname: 'captains', users: @team.captains}
+		=render partial: '/user_multiselect', locals: {form: f, fieldname: 'captains', limit: 3, users: @team.captains}
 	- else
 		.control-group
 			%label.control-label Captains

@@ -9,7 +9,7 @@
             .span3
                 %h4= @registration.user.name
             .span4
-                - if permitted_to? :edit
+                - if permitted_to? :edit, @registration
                     = link_to "Edit", edit_registration_path(@registration), :class => 'btn'
         %dl.dl-horizontal
             %dt Gender:
@@ -45,9 +45,18 @@
                 %dt Availability:
                 %dd= @registration.availability['general']
 
+                %dt End of Season:
+                %dd= @registration.eos_availability ? 'Yes' : 'No'
+
             - if @registration.secondary_rank_data
                 %dt Self Rank:
                 %dd= @registration.secondary_rank_data['self_rank']
+            %dt Pair:
+            %dd
+                - if @registration.pair_id
+                    = @registration.pair.name
+                - else
+                    n/a
 
             %dt Signup Time:
             %dd= @registration.signup_timestamp.to_formatted_s(:long)
@@ -83,7 +92,8 @@
     %h4 @registration
     %pre
         %code.javascript
-            =JSON.pretty_generate(@registration.as_json)
+            - r_json = @registration.as_json
+            / =JSON.pretty_generate()
 
 
     - content_for :page_scripts do
