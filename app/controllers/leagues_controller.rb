@@ -10,6 +10,7 @@ class LeaguesController < ApplicationController
 
         @registration = Registration.new()
         @registration.league = @league
+        @registration.user = current_user;
         render "registrations/edit"
     end
 

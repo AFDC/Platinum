@@ -1,6 +1,6 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:edit, :update, :checkout, :approved, :cancelled, :show]
-    filter_access_to [:edit, :update, :show, :checkout], attribute_check: true
+    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show]
+    filter_access_to [:edit, :update, :show, :checkout, :cancel], attribute_check: true
 
     def create
         # reg_params = params[:registration]
@@ -16,6 +16,14 @@ class RegistrationsController < ApplicationController
     end
 
     def show
+    end
+
+    def cancel
+        if @registration.void_authorization
+            redirect_to registrations_user_path(@registration.user), notice: "Your registration has been cancelled." and return
+        end
+
+        redirect_to registrations_user_path(@registration.user), flash: {error: "Cancelling your registration failed."}
     end
 
     def checkout

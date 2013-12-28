@@ -23,11 +23,11 @@ class Registration
     belongs_to :league
 
     def gen_availability
-        availability['general']
+        availability['general'] if availability
     end
 
     def eos_availability
-        availability['attend_tourney_eos']
+        availability['attend_tourney_eos'] if availability
     end
 
     def pair
@@ -72,6 +72,26 @@ class Registration
         self.paid = true
         self.status = 'active'
         save
+    end
+
+    def void_authorization
+        raise PaymentNotAuthorized if status != 'authorized'
+        raise PaymentInfoMissing unless payment_id
+
+        payment = PayPal::SDK::REST::Payment.find(payment_id)
+        transaction = payment.transactions.first
+        authorization = transaction.related_resources.first.authorization
+
+        voided = authorization.void
+
+        if voided
+            self.status = 'cancelled'
+            self.payment_timestamps[:voided] = Time.now
+            self.save
+            true
+        end
+
+        voided
     end
 
     ## Exceptions

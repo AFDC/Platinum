@@ -28,7 +28,7 @@ authorization do
 			if_attribute :_id => is { user._id }
 		end
 
-		has_permission_on :registrations, to: [:checkout, :show, :edit, :update] do
+		has_permission_on :registrations, to: [:checkout, :show, :edit, :update, :cancel] do
 			if_attribute user_id: is { user._id }
 		end
 
@@ -54,7 +54,7 @@ authorization do
 			if_permitted_to :manage, :league
 		end
 
-		has_permission_on :registrations, to: [:edit, :update, :show] do
+		has_permission_on :registrations, to: [:edit, :update, :show, :cancel, :delete] do
 			if_permitted_to :manage, :league
 		end
 	end
