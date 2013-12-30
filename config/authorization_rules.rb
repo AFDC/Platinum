@@ -8,6 +8,7 @@
 
 authorization do
 	role :guest do
+		has_permission_on :leagues, to: [:index, :show]
 		has_permission_on :users, to: [:new, :create]
 		has_permission_on :teams, to: [:show, :index, :search]
 		has_permission_on :fields, to: [:index, :show]

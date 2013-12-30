@@ -1,0 +1,7 @@
+- content_for :title, 'Leagues'
+= render :partial => '/pageheader'
+
+
+= render :partial => 'league_table', locals: {title: 'Upcoming', leagues: League.future }
+= render :partial => 'league_table', locals: {title: 'Current', leagues: League.current }
+= render :partial => 'league_table', locals: {title: 'Past', leagues: League.past }
