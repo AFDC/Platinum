@@ -1,6 +1,12 @@
 class LeaguesController < ApplicationController
-    before_filter :load_league_from_params, only: [:register, :registrations, :capture_payments]
+    before_filter :load_league_from_params, only: [:register, :registrations, :capture_payments, :show]
     filter_access_to [:capture_payments], attribute_check: true
+
+    def index
+    end
+
+    def show
+    end
 
     def register
         if (Registration.where(league_id: @league._id, user_id: current_user._id).count > 0)

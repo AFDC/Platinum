@@ -15,6 +15,18 @@ class Team
     default_url: lambda {|attachment| "http://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(attachment.instance._id)}?d=identicon&s=330"},
     styles: {profile: '330x330>', roster: '160x160#', thumbnail: '64x64#'}
 
+  def point_diff
+    if stats['point_differential']
+      if stats['point_differential'] >= 0
+        "+#{stats['point_differential']}"
+      else
+        "#{stats['point_differential']}"
+      end
+    else
+      'n/a'
+    end
+  end
+
   def winning_percentage
   	if stats['wins'] && stats['losses']
   		if stats['wins']+stats['losses'] > 0

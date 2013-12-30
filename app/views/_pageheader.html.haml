@@ -1,12 +1,16 @@
 .page-header{:style => 'margin-bottom: 10px;'}
 	%h1
 		= yield(:title)
-		%small= subtitle
-	- if local_assigns.has_key?(:breadcrumbs)
+		- if local_assigns.has_key? :subtitle
+			%small= subtitle
+	- if local_assigns.has_key? :breadcrumbs
 		%ul.breadcrumb{:style => 'margin-bottom: 0px;'}
 			%li= link_to 'Home', '/'
 			- breadcrumbs.each do |crumb, link|
 				%li
 					%span.divider /
-					= link_to crumb, link
+					- if link.nil?
+						=crumb
+					- else
+						=link_to crumb, link
 

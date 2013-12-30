@@ -1,0 +1,33 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'League Details', breadcrumbs: {'Leagues' => leagues_path, @league.name => nil}}
+
+.row
+    .span5
+        = render :partial => '/league_summary', :locals => {league: @league}
+    .span7
+        %h4 Teams
+        %table.table.table-striped.table-condensed
+            %thead
+                %th Rank
+                %th Team
+                %th Captains
+                %th Record
+                %th Pt. Diff.
+            %tbody
+                - @league.teams.each do |t|
+                    %tr
+                        %td=t.formatted_rank
+                        %td=link_to t.name, team_path(t)
+                        - if permitted_to? :show, :users
+                            %td=raw t.captains.collect { |c| link_to c.name, user_path(c) }.join(', ')
+                        - else
+                            %td
+                                %i.icon.icon-exclamation-sign.hasTooltip{title: 'Please log in to view captains.'}
+                        - if t.stats.count > 0
+                            %td="#{t.formatted_record} (#{t.winning_percentage})"
+                            %td=t.point_diff
+                        - else
+                            %td{colspan: 2} Not Available
+                - if @league.teams.count == 0
+                    %tr
+                        %td{colspan: 5, style: 'text-align: center;'} This league has no teams yet.

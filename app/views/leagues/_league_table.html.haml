@@ -1,0 +1,22 @@
+
+- if leagues.count > 0
+    %h3=title
+
+    %table.table.table-striped
+        %thead
+            %tr
+                %th{width: '5%'} Action
+                %th{width: '30%'} League Name
+                %th Registration Opens
+                %th Registration Closes
+                %th Play Begins
+                %th Play Ends
+        %tbody
+            - leagues.each do |l|
+                %tr
+                    %td !
+                    %td=link_to l.name, league_path(l)
+                    %td=l.registration_open.strftime('%a %b %-d, %Y') if l.registration_open
+                    %td=l.registration_close.strftime('%a %b %-d, %Y') if l.registration_close
+                    %td=l.start_date.strftime('%a %b %-d, %Y') if l.start_date
+                    %td=l.end_date.strftime('%a %b %-d, %Y') if l.end_date 
