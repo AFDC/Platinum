@@ -17,4 +17,12 @@ class League
   scope :past,    -> { where(:end_date.lt => Date.today).order_by(start_date: :desc) }
   scope :future,  -> { where(:registration_open.gt => Date.today).order_by(start_date: :desc) }
   scope :current, -> { where(:registration_open.lte => Date.today, :end_date.gte => Date.today).order_by(start_date: :desc) }
+
+  def registration_open?
+    return false if registration_open.nil? || registration_close.nil?
+
+    open_time = registration_open.to_time.in_time_zone
+
+    registration_open.to_time.in_time_zone.change(hour: 12).past? && registration_close.to_time.in_time_zone.end_of_day.future?
+  end
 end
