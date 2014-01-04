@@ -145,7 +145,7 @@ class RegistrationsController < ApplicationController
             general: reg_params[:gen_availability],
             attend_tourney_eos: (reg_params[:eos_availability] == '1')
         }
-        reg.gender = current_user.gender
+        reg.gender = reg.user.gender
         reg.player_strength = reg_params[:player_strength]
         reg.secondary_rank_data = {self_rank: reg_params[:self_rank]}
         reg.notes = reg_params[:notes]
