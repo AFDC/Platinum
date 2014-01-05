@@ -1,0 +1,37 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Roster Management', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Roster' => manage_roster_league_path(@league), 'Setup Import' => nil}}
+
+%h3 Setup
+= form_tag import_roster_league_path(@league), method: 'POST', class: 'form-horizontal' do
+    .control-group
+        %label.control-label User ID:
+        .controls
+            = select_tag :user_id_field, options_for_select(@columns, @user_id_field_guess), prompt: 'Choose a field'
+    .control-group
+        %label.control-label Team ID:
+        .controls
+            = select_tag :team_id_field, options_for_select(@columns, @team_id_field_guess), prompt: 'Choose a field'
+    .control-group
+        .controls
+            - if false
+                %label
+                    = check_box_tag :block_intruders, 1, true
+                    Block Unregistered
+                    %i.icon.icon-question-sign.hasTooltip{title: 'If checked, attempts to import users without registrations will fail'}
+                %label
+                    = check_box_tag :overwrite_teams, 1, true
+                    Overwrite Existing Data
+                    %i.icon.icon-question-sign.hasTooltip{title: 'If checked, this import will override previous team assignments'}
+            %button.btn.btn-primary{type: "submit"} Do Import
+
+
+%h3 Data Preview
+%table.table
+    %thead
+        - @columns.each do |k|
+            %th=k
+    %tbody
+        - @sample_data.each do |row|
+            %tr
+                - @columns.each do |col|
+                    %td=row[col]
