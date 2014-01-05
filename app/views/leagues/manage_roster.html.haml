@@ -1,0 +1,38 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Roster Management', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Roster' => nil}}
+
+.row
+    .span5
+        = render :partial => '/league_summary', :locals => {league: @league}
+    .span7
+        %h4 Basic Statistics
+        %ul
+            %li
+                %span Active Registrants:
+                =@league.registrations.where(status: 'active').count
+            %li
+                %span{class: 'hasTooltip', title: 'includes cancelled and waitlisted'} Total Registrants:
+                =@league.registrations.count
+            %li
+                %span{class: 'hasTooltip', title: 'active registrants without teams'} Orphans:
+                =@orphans.count
+            %li
+                %span{class: 'hasTooltip', title: 'players on a team with no registration'} Intruders:
+                =@intruders.count
+        - if permitted_to? :upload_roster, @league
+            %h4 CSV Import
+            - if @has_roster_upload
+                .alert.alert-info
+                    You have uploaded a CSV, but haven't finished the import.
+                    =link_to "Click here", setup_roster_import_league_path(@league)
+                    to continue with your import. Uploading a new file below will over-write the old one 
+            %p
+                %strong Note:
+                This is a way to do a massive roster import. The file should be a comma-separated text file.
+                The first row of the file should be column headers. You will have a chance to choose which
+                columns map to which import values in the next step.
+            = form_tag upload_roster_league_path(@league), method: 'POST',  multipart: true do
+                %fieldset
+                    =file_field_tag 'roster'
+                    %button.btn.btn-primary{type: 'submit'} Upload
+

@@ -1,0 +1,29 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Roster Management', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Roster' => manage_roster_league_path(@league), 'Setup Import' => setup_roster_import_league_path(@league), 'Import Errors' => nil}}
+
+%ul
+    %li
+        =@successful_imports
+        imports were successful
+    %li
+        =@errors.count
+        imports failed
+
+- if @errors.count > 0
+    %h3 Failed Rows
+    - columns = @errors[0].keys
+    - csv_output = columns.join(",") + "\n"
+    %table.table
+        %thead
+            - columns.each do |k|
+                %th=k
+        %tbody
+            - @errors.each do |row|
+                - error_row = []
+                %tr
+                    - columns.each do |col|
+                        - error_row << row[col]
+                        %td=row[col]
+                - csv_output << error_row.join(",") + "\n"
+    %textarea{style: 'width: 100%', rows: [30, [10, @errors.count].max].min+2}=csv_output
+
