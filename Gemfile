@@ -16,6 +16,7 @@ gem 'strong_parameters'
 gem 'newrelic_rpm'
 gem 'paypal-sdk-rest'
 gem 'ruby_parser'
+gem 'smarter_csv'
 
 # Job Processing
 gem 'sidekiq'

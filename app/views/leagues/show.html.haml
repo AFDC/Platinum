@@ -4,6 +4,13 @@
 .row
     .span5
         = render :partial => '/league_summary', :locals => {league: @league}
+        - if permitted_to? :manage, @league
+            %h4 League Actions:
+            %div{style: 'text-align: center'}
+                - if permitted_to? :manage_roster, @league
+                    = link_to manage_roster_league_path(@league), class: 'btn btn-primary btn-small', style: 'width: 75%' do
+                        %i.icon.icon-group
+                        Manage Roster
     .span7
         %h4 Teams
         %table.table.table-striped.table-condensed
