@@ -12,6 +12,9 @@
                 - if permitted_to? :edit, @registration
                     = link_to "Edit", edit_registration_path(@registration), :class => 'btn'
         %dl.dl-horizontal
+            %dt User ID:
+            %dd= @registration.user._id
+            
             %dt Gender:
             %dd= @registration.gender
 

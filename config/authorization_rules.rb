@@ -42,8 +42,12 @@ authorization do
 			if_attribute :reporters => contains { user }
 		end
 
-		has_permission_on :leagues, :to => [:manage, :capture_payments, :edit] do
+		has_permission_on :leagues, :to => [:manage] do
 			if_attribute commissioners: contains { user }
+		end
+
+		has_permission_on :leagues, :to => [:manage_roster, :capture_payments] do
+			if_permitted_to :manage
 		end
 
 		# League Manager Permissions -- this applies to both universal league managers and also comissioners of individual leagues
@@ -57,7 +61,7 @@ authorization do
 	end
 
 	role :'league-manager' do
-		has_permission_on :leagues, to: [:manage, :capture_payments, :edit]
+		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster]
 	end
 
 	role :admin do

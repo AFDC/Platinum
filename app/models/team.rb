@@ -58,6 +58,10 @@ class Team
   def captains=(user_list)
     self['captains'] = user_list
   end
+
+  def players=(user_list)
+    self['players'] = user_list
+  end
   
   def reporters=(user_list)
     self['reporters'] = user_list
