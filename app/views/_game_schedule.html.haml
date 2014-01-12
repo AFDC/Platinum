@@ -1,0 +1,37 @@
+- page = 1 if local_assigns[:page].nil?
+- title = 'Game Schedule' if local_assigns[:title].nil?
+- content_for :page_scripts do
+    = javascript_include_tag '/js/schedules.js'
+
+%hr{style: 'margin-top: 25px'}
+
+%h3=title
+= form_tag '#', class: 'form-inline', id: 'schedule-form' do
+    - unless local_assigns[:league_id].nil?
+        = hidden_field_tag :league_id, league_id
+    - unless local_assigns[:fieldsite_id].nil?
+        = hidden_field_tag :fieldsite_id, fieldsite_id
+    - unless local_assigns[:start_date].nil?
+        = hidden_field_tag :start_date, start_date
+    = hidden_field_tag :page_num, page
+    = hidden_field_tag :sort_dir, 'ASC'
+
+#game-listing
+
+#pagination.hide
+    %ul.pager
+        %li.previous
+            %a{href: '#'}
+                %i.icon.icon-chevron-left
+                Previous
+        %li.next
+            %a{href: '#'}
+                Next
+                %i.icon.icon-chevron-right
+
+- content_for :page_scripts do
+    :javascript
+        $(function(){
+            $('#schedule-form').trigger('submit');
+        });
+

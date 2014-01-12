@@ -36,7 +36,7 @@
             %span.icon-bar
             %span.icon-bar
           %a.brand
-            AFDC League Management System
+            AFDC League Manager
           .nav-collapse
             %ul.nav
               %li= link_to 'Home', '/'
@@ -44,9 +44,13 @@
               %li= link_to 'Users', '/users'
               %li= link_to 'Teams', '/teams'
               %li= link_to 'Fields', '/fields'
+              %li= link_to 'Games', '/schedules'
             %ul.nav.pull-right
               - if current_user
-
+                %li
+                  = link_to registrations_user_path(current_user) do
+                    %span.badge
+                      %i.icon.icon-shopping-cart
                 %li#loggedInMenu.dropdown
                   = link_to '#loggedInMenu', :class => 'dropdown-toggle', 'data-toggle' => 'dropdown' do
                     = "Logged in as: #{current_user.firstname} #{current_user.lastname}"

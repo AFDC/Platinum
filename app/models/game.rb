@@ -13,6 +13,10 @@ class Game
 		self[:game_time].in_time_zone(LOCAL_TIMEZONE)
 	end
 
+	def team_ids
+		self[:teams].to_a
+	end
+
 	def winning_team
 		Team.find(self.winner) if self.winner
 	end
