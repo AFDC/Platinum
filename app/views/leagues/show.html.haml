@@ -22,7 +22,11 @@
                 %th Pt. Diff.
             %tbody
                 - @league.teams.each do |t|
-                    %tr
+                    - if current_user && current_user.teams.include?(t)
+                        - row_style = 'background-color: #a7dff1;'
+                    - else
+                        - row_style = '';
+                    %tr{style:  row_style}
                         %td=t.formatted_rank
                         %td=link_to t.name, team_path(t)
                         - if permitted_to? :show, :users
@@ -38,3 +42,5 @@
                 - if @league.teams.count == 0
                     %tr
                         %td{colspan: 5, style: 'text-align: center;'} This league has no teams yet.
+
+= render :partial => '/game_schedule', :locals => {start_date: Date.today, league_id: @league._id, title: 'Upcoming Games'}

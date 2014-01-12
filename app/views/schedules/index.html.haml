@@ -1,0 +1,74 @@
+- content_for :title, "Game Schedules"
+= render partial: '/pageheader'
+- content_for :page_scripts do
+    = javascript_include_tag '/js/schedules.js'
+
+
+= form_tag '#', class: 'form-inline', id: 'schedule-form', 'data-persist-params' => 'yes' do
+    %span{style: 'font-weight: bold; font-size: 18px; margin-right: 15px;'} Schedule Filters: 
+    = text_field_tag :on_date, '', class: 'span2', placeholder: 'Date'
+    = select_tag :league_id, options_from_collection_for_select(@leagues, '_id', 'name'), class: 'span2', prompt: 'Filter by League'
+    = select_tag :fieldsite_id, options_from_collection_for_select(@fieldsites, '_id', 'name'), class: 'span2', prompt: 'Filter by Field'
+    = hidden_field_tag :page_num, 1
+    %button.btn.btn-danger#clear-filters
+        %i.icon.icon-remove 
+        Clear
+    %button.btn.btn-primary#apply-filters
+        %i.icon.icon-bolt
+        Apply
+%hr
+
+#game-listing
+
+#pagination.hide
+    %ul.pager
+        %li.previous
+            %a{href: '#'}
+                %i.icon.icon-chevron-left
+                Previous
+        %li.next
+            %a{href: '#'}
+                Next
+                %i.icon.icon-chevron-right
+
+- content_for :page_scripts do
+    :javascript
+        var getHashParams = function() {
+            var hashParams = {};
+            var e,
+                a = /\+/g,  // Regex for replacing addition symbol with a space
+                r = /([^&;=]+)=?([^&;]*)/g,
+                d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+                q = window.location.hash.substring(1);
+
+            while (e = r.exec(q))
+               hashParams[d(e[1])] = d(e[2]);
+
+            return hashParams;
+        }
+
+        $(function(){
+            if (window.location.hash.length > 0) {
+                params = getHashParams();
+            } else {
+                params = { 'on_date': "#{@default_date}" };
+            }
+
+            if (params['on_date']) {
+                $("#on_date").val(params['on_date']);
+            }
+
+            if (params['league_id']) {
+                $("#league_id").val(params['league_id']);
+            }
+            
+            if (params['fieldsite_id']) {
+                $("#fieldsite_id").val(params['fieldsite_id']);
+            }
+
+            if (params['page_num']) {
+                $("#page_num").val(params['page_num']);
+            }
+
+            $("#schedule-form").trigger("submit");
+        });

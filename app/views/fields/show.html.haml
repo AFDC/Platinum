@@ -15,3 +15,5 @@
         .google-map#map
 
 = javascript_include_tag "/js/FieldViewMap.js"
+
+= render :partial => '/game_schedule', :locals => {start_date: Date.today, fieldsite_id: @field._id, title: 'Upcoming Games'}

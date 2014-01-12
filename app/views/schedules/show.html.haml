@@ -1,0 +1,41 @@
+- unless request.xhr?
+    - content_for :title, "Game Schedules"
+    = render partial: '/pageheader'
+
+- if @game_count == 0
+    .alert.alert-warning
+        No games matched your selection
+- else 
+    %table.table.table-striped{"data-page-num" => @page_num, "data-game-count" => @game_count, "data-page-size" => @page_size}
+        %thead
+            %th Date
+            %th League
+            %th Team 1
+            %th Score
+            %th Team 2
+            %th Score
+            %th Location
+        %tbody
+            - @games.each do |g|
+                - row_style = ''
+                - teams = []
+                - g.teams.each do |t|
+                    - teams << t
+                    - if current_user.teams.include? t
+                        - row_style = 'background-color: #a7dff1;'
+                %tr{style: row_style, id: "game_#{g._id}"}
+                    %td=g.game_time.strftime('%a, %b %e, %Y')
+                    %td=link_to g.league.name, league_path(g.league)
+                    - teams.each do |t|
+                        - if g.winner
+                            - if g.winner == t._id
+                                - outcome_style = 'background-color: #ddf0dd;'
+                            - else
+                                - outcome_style = 'background-color: #f0dddd;'
+                        %td{style: outcome_style}= link_to t.name, team_path(t)
+                        %td{style: outcome_style}=g.score_for(t)
+                    - if teams.count < 2
+                        %td{colspan: (2-teams.count)*2} &nbsp;
+                    - if g.field_site
+                        %td= link_to g.field_site.name, field_path(g.field_site)
+                    
