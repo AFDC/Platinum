@@ -39,6 +39,54 @@ class User
 
   before_save :downcase_email
 
+  def absorb(old_user)
+    raise ArgumentError.new "Must supply a user account to be absorbed" unless old_user.instance_of?(User)
+    raise ArgumentError.new "You cannot absorb a user into a new record, please save it first." if self.new_record?
+
+    backup_user = User.collection.find(_id: old_user._id).first.to_hash
+
+    # Swap old_user off of teams, place new_user on teams
+    team_ids = []
+    old_user.teams.each do |t|
+      team_ids << t._id
+    end
+    Team.collection.find(_id: {'$in' => team_ids}).update({"$pull" => {players: old_user._id}}, {multi: true})
+    Team.collection.find(_id: {'$in' => team_ids}).update({"$addToSet" => {players: self._id}}, {multi: true})
+    User.collection.find(_id: self._id).update({"$addToSet" => {teams: {"$each" => team_ids}}})
+
+    # Handle Reporters and Captains
+    reporter_for = Team.collection.find(reporters: old_user._id).map{|t| t["_id"]}
+    Team.collection.find(_id: {'$in' => reporter_for}).update({"$pull" => {reporters: old_user._id}}, {multi: true})
+    Team.collection.find(_id: {'$in' => reporter_for}).update({"$addToSet" => {reporters: self._id}}, {multi: true})
+
+    captain_for = Team.collection.find(captains: old_user._id).map{|t| t["_id"]}
+    Team.collection.find(_id: {'$in' => captain_for}).update({"$pull" => {captains: old_user._id}}, {multi: true})
+    Team.collection.find(_id: {'$in' => captain_for}).update({"$addToSet" => {captains: self._id}}, {multi: true})
+
+    # Assign old_user's registrations to new_user
+    registrations = Registration.collection.find(user_id: old_user._id).map{|r| r["_id"]}
+    Registration.collection.find(_id: {'$in' => registrations}).update({"$set" => {user_id: self._id}})
+
+    # Delete old_user identities for both users for security reasons
+    Identity.collection.find(user_id: {'$in' => [self._id, old_user._id]}).remove_all
+    
+    # Backup old_user object
+    absorb_data = {
+      teams_found: team_ids.map{|id| id.to_s},
+      reporter_for: reporter_for.map{|id| id.to_s},
+      captain_for: captain_for.map{|id| id.to_s},
+      registrations: registrations.map{|id| id.to_s}
+    }
+
+    backup_user[:absorb_data] = absorb_data
+
+    File.open("log/user_absorption.log", "a+") do |f|
+      f << "#{backup_user.to_json}\n"
+    end
+
+    User.collection.find(_id: old_user._id).remove
+  end
+
   def downcase_email
   	self.email_address = self.email_address.downcase
   end
