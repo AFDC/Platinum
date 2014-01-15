@@ -8,7 +8,7 @@
 - else 
     %table.table.table-striped{"data-page-num" => @page_num, "data-game-count" => @game_count, "data-page-size" => @page_size}
         %thead
-            %th Date
+            %th{colspan: 2} Date
             %th League
             %th Team 1
             %th Score
@@ -25,6 +25,7 @@
                         - row_style = 'background-color: #a7dff1;'
                 %tr{style: row_style, id: "game_#{g._id}"}
                     %td=g.game_time.strftime('%a, %b %e, %Y')
+                    %td=g.game_time.strftime('%l:%M %P')
                     %td=link_to g.league.name, league_path(g.league)
                     - teams.each do |t|
                         - if g.winner

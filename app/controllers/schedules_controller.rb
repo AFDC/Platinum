@@ -49,10 +49,10 @@ class SchedulesController < ApplicationController
 
         query[:league_id] = params['league_id'] if params['league_id'].present?
         query[:fieldsite_id] = params['fieldsite_id'] if params['fieldsite_id'].present?
-        if params['sort_dir'] == 'ASC'
-            sort_dir = 1
-        else
+        if params['sort_dir'] == 'DESC'
             sort_dir = -1
+        else
+            sort_dir = 1
         end
 
         @q = query
