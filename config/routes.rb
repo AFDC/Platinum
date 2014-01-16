@@ -25,6 +25,13 @@ Platinum::Application.routes.draw do
     end
   end
 
+  resources :games do
+    member do
+      get 'edit_score'
+      put 'update_score'
+    end
+  end
+
   resources :users do
     member do
       get 'registrations'

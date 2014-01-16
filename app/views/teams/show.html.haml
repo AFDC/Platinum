@@ -53,7 +53,7 @@
 						Edit Team Settings
 
 
-	.span8
+	.span8#team-data{'data-team-id' => @team._id}
 		%h3= @team.name
 		%ul.nav.nav-tabs#profile-tabs
 			%li= link_to 'Schedule', '#schedule', 'data-toggle' => 'tab'
@@ -61,7 +61,7 @@
 
 		.tab-content
 			.tab-pane#schedule
-				%table.table.table-striped.tablesorter
+				%table.table.table-striped.table-condensed
 					%thead
 						%tr
 							%th Opponent
@@ -73,7 +73,7 @@
 						- @team.games.order_by(game_time: 1).each do |game|
 							- opponent = game.opponent_for(@team)
 							- unless opponent
-								%tr
+								%tr{'id' => game._id}
 									%td{colspan: 4} 
 										No opponent listed
 										%span.hide= "Game ID: #{game._id}"
@@ -81,32 +81,33 @@
 							- opponent_data[opponent._id] = { name: opponent.name, rank: opponent.formatted_rank, avatar: opponent.avatar.url(:roster) }
 							- if opponent.winning_percentage
 								- opponent_data[opponent._id][:record] = "#{opponent.formatted_record} (#{opponent.winning_percentage})"
-							%tr
+							%tr{'data-opponent-id' => opponent._id, 'id' => game._id}
 								%td= link_to opponent.name, opponent, title: opponent.name, class: 'team', "data-team_id" => opponent._id
 								%td= game.game_time.strftime("%b %e, %Y %l:%M %P")
 								%td= link_to "#{game.field_site.name} (#{game.field})", field_path(game.field_site)
+
 								- if game.scores
 									- if game.scores['rainout']
 										- td_class = 'rainout-score'
 										- icon_class = 'icon-cloud'
 										- score = 'Rainout'
 									- elsif game.scores['forfeit']
-										- td_class = 'forfeit-score'
-										- icon_class = 'icon-cloud'
-										- score = 'Forefeit'
+										- td_class = (game.winning_team == @team ? 'winning-score' : 'forfeit-score')
+										- icon_class = 'icon-frown'
+										- score = 'Forfeit'
 									- else
-										- td_class = (game.winning_team == @team ? 'winning-score' : 'losing-score')
+										- td_class = (game.winning_team == @team ? 'winning-score' : 'losing-score') if game.winner
 										- score = "#{game.score_for(@team)}-#{game.score_for(opponent)}"
 								- else
 									- score = '-'
 
-								%td{class: td_class}
-									- if game.game_time <= Time.zone.now && permitted_to?(:report_score, @team)
-										=link_to "/leagues/reportScore/#{game._id}", style: "color: inherit;" do
-											%i.icon-pencil									
-									- if icon_class
-										%i{class: icon_class}
-									= score
+								%td{class: "results " + td_class.to_s}
+									- if game.game_time <= Time.zone.now && permitted_to?(:edit_score, game)
+										=link_to edit_score_game_path(game), style: "color: inherit;", 'data-game_id' => game._id, class: 'report-score' do
+											%i.icon-pencil
+									%i.result-icon{class: icon_class}
+									%span.score
+										= score
 
 			.tab-pane#roster
 				- if permitted_to? :view_roster, @team									
@@ -123,8 +124,92 @@
 					.alert.alert-info For privacy, league rosters are restricted to AFDC members only. Please log-in to view them.
 
 
+#score_reporter.modal.hide.fade
+	.modal-header
+		%button.close{type: 'button', 'data-dismiss' => 'modal', 'aria-hidden' => 'true'} &times;
+		%h3 Report a Game Score
+	.modal-body
+
 - content_for :page_scripts do
 	:javascript
+		$(function() {
+			$('body').on('hidden', '.modal', function () {
+				$(this).removeData('modal');
+			});
+
+			$("a.report-score").on('click', function(e){
+				e.preventDefault();
+
+				var modalDiv = $("#score_reporter");
+				$("#score_reporter .modal-body").html('<div style="text-align: center"><img src="/img/loader.gif" /></div>');
+
+				modalDiv.modal({remote: this.href});
+			});
+
+			$("#score_reporter").on('submit', 'form', function(e){
+				e.preventDefault();
+
+				var form = $(this);
+				var submit_button = $('button', this);
+				var target = form.attr('action');
+				var team_id = $("#team-data").data('team-id');
+
+				submit_button.html('Submitting result...');
+				submit_button.addClass('disabled');
+				submit_button.attr('disabled', true);
+
+				var xhr = $.ajax({
+					type: 'POST',
+					url: target,
+					data: form.serialize(),
+					dataType: 'json'
+				}).done(function(data) {
+					if (data.rainout) {
+						$("#" + data.game_id + " .results").attr('class', 'results rainout-score');
+						$("#" + data.game_id + " .results i.result-icon").attr('class', 'result-icon icon icon-cloud');
+						$("#" + data.game_id + " .results .score").html('Rainout');
+					} else if (data.forfeit) {
+						var score_class = 'forfeit-score';
+						if (data.winner == team_id) { score_class = 'winning-score'; }
+
+						$("#" + data.game_id + " .results").attr('class', 'results ' + score_class);
+						$("#" + data.game_id + " .results i.result-icon").attr('class', 'result-icon icon icon-frown');
+						$("#" + data.game_id + " .results .score").html('Forfeit');
+					} else {
+						var opponent_id = data.team_ids.filter(function(this_id) {
+							return team_id != this_id;
+						})[0];
+
+						var score_class = 'tie-score';
+						if (data.winner == team_id) {
+							score_class = 'winning-score';
+						}  else if (data.winner == opponent_id) {
+							score_class = 'losing-score';
+						}
+
+						$("#" + data.game_id + " .results").attr('class', 'results ' + score_class);
+
+						$("#" + data.game_id + " .results i.result-icon").attr('class', 'result-icon');
+
+						var team_score = '';
+						var opponent_score = '';
+						if (opponent_id) {
+							team_score = data[team_id];
+							opponent_score = data[opponent_id];
+						}
+
+						$("#" + data.game_id + " .results .score").html(team_score + '-' + opponent_score);
+					}
+
+					$('#score_reporter').modal('hide');
+				}).fail(function(data){
+					$('#score_reporter .modal-body').html('<div class="alert alert-error">There was an error updating this score, please contact the webmaster.<div>');
+					console.log("There was an error updating that score...");
+					console.log(data)
+				});
+			});
+		});
+
 		$(function() {
 			var opponent_data = #{opponent_data.to_json}
 			// Tabs

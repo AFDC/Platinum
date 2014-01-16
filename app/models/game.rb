@@ -5,9 +5,12 @@ class Game
 	field :round_number
 	field :winner, type: Moped::BSON::ObjectId
 	field :scores, type: Hash, default: {}
+	field :old_scores, type: Array, default: []
 	belongs_to :league
 	belongs_to :field_site, foreign_key: :fieldsite_id
 	has_and_belongs_to_many :teams, foreign_key: :teams
+
+	attr_accessor :reporter
 
 	def game_time
 		self[:game_time].in_time_zone(LOCAL_TIMEZONE)
@@ -19,6 +22,24 @@ class Game
 
 	def winning_team
 		Team.find(self.winner) if self.winner
+	end
+
+	def rained_out?
+		self.scores['rainout'].present?
+	end
+
+	def forfeited?
+		self.scores['forfeit'].present?
+	end
+
+	def reporter
+		unless self[:reporter]
+			if self.scores['reporter_id']
+				self[:reporter] = User.find(self.scores['reporter_id'])
+			end
+		end
+
+		self[:reporter]
 	end
 
 	def opponent_for(subject_team)
