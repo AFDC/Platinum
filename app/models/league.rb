@@ -7,9 +7,11 @@ class League
   field :start_date, type: Date
   field :end_date, type: Date
   field :needs_standings_update, type: Boolean
+  field :player_limit, type: Hash, default: {}
   field :price, type: Integer
   field :registration_open, type: Date
   field :registration_close, type: Date
+  field :description, type: String
 
   has_many :teams, order: {'stats.rank' => :asc}
   has_many :registrations
