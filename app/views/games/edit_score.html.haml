@@ -1,0 +1,57 @@
+- unless request.xhr?
+    - content_for :title, "Game Scores"
+    = render partial: '/pageheader'
+
+- if @game.teams[0] && @game.teams[1]
+    .tabbable
+        %ul.nav.nav-tabs
+            %li{class: ('active' unless (@game.forfeited? || @game.rained_out?))}
+                %a{href: '#complete', 'data-toggle' => 'tab'} Complete Game
+            %li{class: ('active' if @game.rained_out?)}
+                %a{href: '#rainout', 'data-toggle' => 'tab'} Rainout
+            %li{class: ('active' if @game.forfeited?)}
+                %a{href: '#forfeit', 'data-toggle' => 'tab'} Forfeit
+        .tab-content
+            .tab-pane#complete{class: ('active' unless (@game.forfeited? || @game.rained_out?))}
+                = form_tag update_score_game_path(@game), method: 'PUT', class: 'form-horizontal' do
+                    .row-fluid
+                        .span6{style: 'text-align: center;'}
+                            %label=link_to @game.teams[0].name, team_path(@game.teams[0])
+                            = text_field_tag "score[#{@game.teams[0]._id}]", @game.score_for(@game.teams[0])
+                        .span6{style: 'text-align: center;'}
+                            %label=link_to @game.teams[1].name, team_path(@game.teams[1])
+                            = text_field_tag "score[#{@game.teams[1]._id}]", @game.score_for(@game.teams[1])
+                    .row-fluid{style: 'margin-top: 10px;'}
+                        .span12{style: 'text-align: center;'}
+                            %button.btn.btn-primary Update Score
+
+            .tab-pane#rainout{class: ('active' if @game.rained_out?)}
+                = form_tag update_score_game_path(@game), method: 'PUT', class: 'form-horizontal' do
+                    - if @game.rained_out?
+                        .alert.alert-info This game is currently marked as a rainout
+                    = hidden_field_tag :rainout, 1
+                    .row-fluid{style: 'margin-top: 10px;'}
+                        .span12{style: 'text-align: center;'}
+                            %button.btn.btn-info Mark as a Rainout
+            .tab-pane#forfeit{class: ('active' if @game.forfeited?)}
+                = form_tag update_score_game_path(@game), method: 'PUT', class: 'form-horizontal' do
+                    - if @game.forfeited?
+                        .alert.alert-info This game is currently marked as a forfeit
+                    %p Please select the winner of the game, not the team that forfeited:
+                    .row-fluid
+                        .span6{style: 'text-align: center;'}
+                            %label=link_to @game.teams[0].name, team_path(@game.teams[0])
+                            = radio_button_tag :forfeit, @game.teams[0]._id
+                        .span6{style: 'text-align: center;'}
+                            %label=link_to @game.teams[1].name, team_path(@game.teams[1])
+                            = radio_button_tag :forfeit, @game.teams[1]._id
+                    .row-fluid{style: 'margin-top: 10px;'}
+                        .span12{style: 'text-align: center;'}
+                            %button.btn.btn-warning Mark as a Forfeit
+
+    - if @game.reporter
+        %p.muted{style: 'margin-top: 30px;'}
+            Game result reported by
+            = link_to @game.reporter.name, user_path(@game.reporter)
+- else
+    Invalid Team Listing

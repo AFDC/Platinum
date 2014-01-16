@@ -51,12 +51,20 @@ authorization do
 			if_permitted_to :manage
 		end
 
+		has_permission_on :games, to: [:edit_score, :update_score] do
+			if_permitted_to :report_score, :teams
+		end
+
 		# League Manager Permissions -- this applies to both universal league managers and also comissioners of individual leagues
 		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score] do
 			if_permitted_to :manage, :league
 		end
 
 		has_permission_on :registrations, to: [:edit, :update, :show, :cancel, :delete] do
+			if_permitted_to :manage, :league
+		end
+
+		has_permission_on :games, to: [:edit_score, :update_score] do
 			if_permitted_to :manage, :league
 		end
 	end
