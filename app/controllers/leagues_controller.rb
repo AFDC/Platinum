@@ -1,12 +1,31 @@
 class LeaguesController < ApplicationController
-    before_filter :load_league_from_params, only: [:register, :registrations, :capture_payments, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster]
+    before_filter :load_league_from_params, only: [:register, :registrations, :capture_payments, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update]
     before_filter :initialize_roster_csv, only: [:manage_roster, :upload_roster, :setup_roster_import, :import_roster]
     filter_access_to [:capture_payments], attribute_check: true
 
     def index
     end
 
-    def show
+    def new
+        @league = League.new
+    end
+
+    def create
+        @league = League.new(league_params)
+
+        if @league.save
+            redirect_to @league, notice: "League Created Successfully"
+        else
+            render :new
+        end
+    end
+
+    def update
+        if @league.update_attributes(league_params)
+            redirect_to @league, notice: "League Updated Successfully"
+        else
+            render :new
+        end
     end
 
     def register
@@ -209,5 +228,15 @@ class LeaguesController < ApplicationController
 
     def initialize_roster_csv
         session[:roster_csv] = {} unless session[:roster_csv]
+    end
+
+    def league_params
+        permitted_params = [
+            :name, :age_division, :season, :sport, :price,
+            :start_date, :end_date, :registration_open, :registration_close,
+            :description, commissioner_ids: []
+        ]
+
+        params.require(:league).permit(*permitted_params)
     end
 end

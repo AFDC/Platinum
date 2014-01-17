@@ -1,0 +1,4 @@
+- content_for :title, 'Leagues'
+= render :partial => '/pageheader', :locals => {subtitle: 'Create a League', breadcrumbs: {'Leagues' => leagues_path, 'Create League' => nil}}
+
+= render :partial => 'form', :locals => {league: @league}

@@ -47,7 +47,7 @@ authorization do
 			if_attribute commissioners: contains { user }
 		end
 
-		has_permission_on :leagues, :to => [:manage_roster, :capture_payments] do
+		has_permission_on :leagues, :to => [:manage_roster, :capture_payments, :edit, :update] do
 			if_permitted_to :manage
 		end
 
@@ -70,7 +70,7 @@ authorization do
 	end
 
 	role :'league-manager' do
-		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster]
+		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create]
 	end
 
 	role :admin do

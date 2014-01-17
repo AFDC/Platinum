@@ -1,0 +1,85 @@
+
+- if @league.errors.any?
+    - errors = @league.errors
+    .alert.alert-error
+        The league information could not be saved
+- else
+    - errors = Hash.new([])
+
+= form_for @league, html: {class: 'form-horizontal'} do |f|
+    .control-group{ class: ('error' if errors[:name].any?)}
+        %label.control-label{for: 'league_name'} League Name
+        .controls
+            =f.text_field :name
+            - if errors[:name].any?
+                %span.help-inline=errors[:name].first
+    
+    = render partial: '/user_multiselect', locals: {form: f, fieldname: 'commissioner_ids', label: "Commissioners", users: @league.commissioners}
+    
+    .control-group{ class: ('error' if errors[:age_division].any?)}
+        %label.control-label{for: 'league_age_division'} Age Division
+        .controls
+            =f.select :age_division, %w(adult juniors), prompt: true
+            - if errors[:age_division].any?
+                %span.help-inline=errors[:age_division].first
+    .control-group{ class: ('error' if errors[:season].any?)}
+        %label.control-label{for: 'league_season'} Season
+        .controls
+            =f.select :season, %w(fall winter spring summer), prompt: true
+            - if errors[:season].any?
+                %span.help-inline=errors[:season].first
+    .control-group{ class: ('error' if errors[:sport].any?)}
+        %label.control-label{for: 'league_sport'} Sport
+        .controls
+            =f.select :sport, %w(ultimate goaltimate), prompt: true
+            - if errors[:sport].any?
+                %span.help-inline=errors[:sport].first
+    .control-group{ class: ('error' if errors[:registration_open].any? || errors[:registration_close].any?)}
+        %label.control-label Registration Dates
+        .controls
+            .input-append
+                =f.text_field :registration_open, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small'}
+                %span.add-on
+                    %i.icon.icon-calendar
+            to
+            .input-append
+                =f.text_field :registration_close, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small'}
+                %span.add-on
+                    %i.icon.icon-calendar
+    .control-group{ class: ('error' if errors[:start_date].any? || errors[:end_date].any?)}
+        %label.control-label Competition Dates
+        .controls
+            .input-append
+                =f.text_field :start_date, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small'}
+                %span.add-on
+                    %i.icon.icon-calendar
+            to
+            .input-append
+                =f.text_field :end_date, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small'}
+                %span.add-on
+                    %i.icon.icon-calendar
+    .control-group{ class: ('error' if errors[:price].any?)}
+        %label.control-label Registration Price
+        .controls
+            .input-prepend
+                %span.add-on $
+                =f.text_field :price, class: 'input-small'
+            - if errors[:price].any?
+                %span.help-inline=errors[:price].first
+    .control-group{ class: ('error' if errors[:description].any?)}
+        %label.control-label Description
+        .controls
+            =f.text_area :description, class: "span4", rows: 10
+            - if errors[:description].any?
+                %span.help-inline=errors[:description].first
+    .form-actions
+        %button.btn.btn-large.btn-primary=@league.new_record? ? "Create League" : "Update League"
+
+
+
+- content_for :page_scripts do
+    =javascript_include_tag 'http://www.afdc.com/datepicker/js/bootstrap-datepicker.js'
+    :javascript
+        $(function(){
+            $(".date-field").datepicker();
+        });
