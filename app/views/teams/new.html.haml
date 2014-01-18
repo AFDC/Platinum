@@ -1,0 +1,9 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Create Team', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Create Team' => nil}}
+
+.row
+    .span4
+        %div{style: 'text-align: center'}
+            =image_tag @team.avatar.url(:profile), class: 'img-polaroid img-rounded'
+    .span8
+        = render :partial => 'form'

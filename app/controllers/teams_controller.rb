@@ -1,6 +1,7 @@
 class TeamsController < ApplicationController
 	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 	before_filter :load_team_from_params, only: [:show, :edit, :update]
+	before_filter :load_league_from_params, only: [:new, :create]
 
 	def index
 		@team_list = []
@@ -9,10 +10,20 @@ class TeamsController < ApplicationController
 		end
 	end
 
-	def show
+	def new
+		@team = Team.new
+		@team.league = @league
 	end
 
-	def edit
+	def create
+		@team = Team.new(team_params)
+		@team.league = @league
+
+		if @team.save
+			redirect_to league_path(@league), notice: "Team Created Successfully"
+		else
+			render :new
+		end
 	end
 
 	def update
@@ -23,11 +34,12 @@ class TeamsController < ApplicationController
 	private
 
 	def load_team_from_params
-		begin
-			@team = Team.find(params[:id])
-		rescue
-			redirect_to teams_path, flash: {error: "Could not load team for ID '#{params[:id]}', please try a different team."}
-		end
+		@team = Team.find(params[:id])
+		redirect_to teams_path, flash: {error: "Could not load team for ID '#{params[:id]}', please try a different team."} unless @team
+	end
+
+	def load_league_from_params	
+		@league = League.find(params[:league_id])
 	end
 
 	def team_params

@@ -2,7 +2,7 @@ require 'sidekiq/web'
 
 Platinum::Application.routes.draw do
   match '/users/search' => 'users#search'
-  resources :teams, :fields, :schedules, :comp_groups
+  resources :fields, :schedules, :comp_groups
 
   resources :registrations do
     member do
@@ -23,7 +23,12 @@ Platinum::Application.routes.draw do
       get 'setup_roster_import'
       post 'import_roster'
     end
+
+    resources :teams, only: [:new, :create]
   end
+  
+  resources :teams, except: [:new, :create]
+
 
   resources :games do
     member do
