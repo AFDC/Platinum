@@ -160,9 +160,15 @@ class RegistrationsController < ApplicationController
             weight: reg.user.weight
         }
 
+        if reg.league.comped? reg.user
+            reg.status = 'active'
+            reg.comped = true
+            flash_message = 'Your registration has been comped' if reg.new_record?
+        end
+
         if reg.save
             if reg.status == 'active' || reg.status == 'authorized' || current_user._id != reg.user._id
-                redirect_to registrations_user_path(reg.user), notice: 'Update successful'   
+                redirect_to registrations_user_path(reg.user), notice: flash_message || 'Update successful'   
             else     
                 redirect_to checkout_registration_path(reg)
             end

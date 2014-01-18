@@ -13,6 +13,7 @@ class Registration
     field :waiver_acceptance_date, type: DateTime
     field :user_data, type: Hash
     field :notes
+    field :comped, type: Boolean
 
     field :paypal_responses, type: Array, default: []
     field :payment_id

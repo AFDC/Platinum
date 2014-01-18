@@ -1,3 +1,6 @@
+-if (@registration.status != 'active') && (@registration.league.comped? (@registration.new_record? ? current_user : @registration.user))
+    .alert.alert-info This registration will be comped by the league
+
 = bootstrap_form_for(@registration, html: { class: 'form-horizontal' }, help: :block) do |f|
     = f.alert_message "Please fix the errors below."
     = f.hidden_field :league_id
