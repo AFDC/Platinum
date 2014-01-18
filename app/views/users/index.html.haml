@@ -1,10 +1,16 @@
 - content_for :title, "AFDC Players"
 = render :partial => '/pageheader', :locals => {:subtitle => 'Search'}
 
-%div{:style => 'text-align: right;'}
-	= form_tag users_path, :class => 'form-search', :method => 'GET' do
-		= search_field_tag 'query', params[:query], :class => 'input-medium search-query'
-		= button_tag 'Search', :name => nil, :type => 'submit', :class => "btn"
+%div{class: 'clearfix'}
+	%div{style: 'float: left'}
+		- if permitted_to? :index, :comp_groups
+			= link_to comp_groups_path, class: 'btn btn-info' do
+				%i.icon.icon-group
+				Manage Comp Groups
+	%div{style: 'float: right;'}
+		= form_tag users_path, :class => 'form-search', :method => 'GET' do
+			= search_field_tag 'query', params[:query], :class => 'input-medium search-query'
+			= button_tag 'Search', :name => nil, :type => 'submit', :class => "btn"
 
 - if @user_list.count > 0
 	%table.table.table-striped.tablesorter
