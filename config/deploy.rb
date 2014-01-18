@@ -3,6 +3,7 @@ set :default_stage, "staging"
 require 'capistrano/ext/multistage'
 require 'bundler/capistrano'
 require 'sidekiq/capistrano'
+require 'new_relic/recipes'
 
 load 'deploy/assets'
 
