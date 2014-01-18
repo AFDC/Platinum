@@ -1,5 +1,6 @@
 class League
   include Mongoid::Document      
+  include ActiveModel::ForbiddenAttributesProtection
   field :name
   field :age_division
   field :season
@@ -16,6 +17,8 @@ class League
   has_many :teams, order: {'stats.rank' => :asc}
   has_many :registrations
   has_and_belongs_to_many :commissioners, class_name: "User", foreign_key: :commissioner_ids, inverse_of: nil
+  has_and_belongs_to_many :comped_groups, class_name: "CompGroup", inverse_of: nil
+  has_and_belongs_to_many :comped_players, class_name: "User", inverse_of: nil
 
   validates :name, :presence => true
   validates :price, :numericality => { integer_only: true, greater_than: 0, less_than: 100, allow_blank: false  }
@@ -33,5 +36,11 @@ class League
     open_time = registration_open.to_time.in_time_zone
 
     registration_open.to_time.in_time_zone.change(hour: 12).past? && registration_close.to_time.in_time_zone.end_of_day.future?
+  end
+
+  def comped?(user)
+    return true if comped_player_ids.include? user._id
+    return true if comped_groups.collect(&:member_ids).flatten.include? user._id
+    false
   end
 end

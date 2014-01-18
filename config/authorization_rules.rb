@@ -70,7 +70,7 @@ authorization do
 	end
 
 	role :'league-manager' do
-		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create]
+		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps]
 	end
 
 	role :admin do
@@ -79,5 +79,7 @@ authorization do
 		has_permission_on :global, :to => [:see_debug]
 
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar]
+
+		has_permission_on :comp_groups, :to => [:index, :show, :new, :create, :edit, :update]
 	end
 end

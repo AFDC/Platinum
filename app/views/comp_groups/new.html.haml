@@ -1,0 +1,4 @@
+- content_for :title, 'Comp Groups'
+= render :partial => '/pageheader', :locals => {subtitle: 'New Group Creation', breadcrumbs: {'Comp Groups' => comp_groups_path, 'Create Group' => nil}}
+
+= render :partial => 'form', :locals => {league: @group}

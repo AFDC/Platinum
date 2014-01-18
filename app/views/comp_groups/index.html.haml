@@ -1,0 +1,27 @@
+- content_for :title, "Comp Groups"
+= render :partial => '/pageheader'
+
+- if permitted_to? :create, :comp_groups
+    %div{style: 'text-align: right'}
+        = link_to new_comp_group_path, class: 'btn btn-small btn-primary' do
+            %i.icon.icon-plus
+            Create a Comp Group
+
+%table.table.table-striped
+    %thead
+        %tr
+            %th Group Name
+            %th Description
+            %th Member List
+    %tbody
+        - CompGroup.all.each do |g|
+            %tr
+                %td=link_to g.name, edit_comp_group_path(g)
+                %td=g.description
+                %td
+                    - if g.member_ids.count > 0
+                        %ul
+                            - g.members.each do |m|
+                                %li=link_to m.name, m
+                    - else 
+                        No Members Assigned
