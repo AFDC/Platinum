@@ -24,7 +24,7 @@ class LeaguesController < ApplicationController
         if @league.update_attributes(league_params)
             redirect_to @league, notice: "League Updated Successfully"
         else
-            render :new
+            render :edit
         end
     end
 

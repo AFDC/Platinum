@@ -1,5 +1,6 @@
 class League
   include Mongoid::Document      
+  include ActiveModel::ForbiddenAttributesProtection
   field :name
   field :age_division
   field :season
