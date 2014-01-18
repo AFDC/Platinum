@@ -1,21 +1,32 @@
-= bootstrap_form_for(@team, html: { class: 'form-horizontal' }, url: team_path, method: @team.new_record? ? 'POST' : 'PUT', help: :block) do |f|
-	- if permitted_to? :modify_name, @team
-		=f.text_field :name
-	- else
-		.control-group
-			%label.control-label Name
-			.controls
-				%span.uneditable-input.span3= @team.name
-	- if permitted_to? :modify_captains, @team
-		=render partial: '/user_multiselect', locals: {form: f, fieldname: 'captains', limit: 3, users: @team.captains}
-	- else
-		.control-group
-			%label.control-label Captains
-			.controls
-				- @team.captains.each do |captain|
-					%div
-						%span.uneditable-input.span3= "#{captain.firstname} #{captain.lastname}"
-	=render partial: '/user_multiselect', locals: {form: f, fieldname: 'reporters', users: @team.reporters}
-	= f.file_field :avatar, label: 'Profile Picture'
-	= f.actions do 
-		= f.primary "Update", disable_with: 'Updating...'
+- if @team.errors.any?
+    - errors = @team.errors
+    .alert.alert-error
+        The team could not be saved
+- else
+    - errors = Hash.new([])
+
+
+= form_for [@league, @team], html: {class: 'form-horizontal'} do |f|
+    .control-group{ class: ('error' if errors[:name].any?)}
+        %label.control-label{for: 'comp_group_name'} Group Name
+        .controls
+            - if permitted_to? :modify_name, @team
+                =f.text_field :name
+                - if errors[:name].any?
+                    %span.help-inline=errors[:name].first
+            - else
+                %span.uneditable-input.span3= @team.name
+    - if permitted_to? :modify_captains, @team
+        =render partial: '/user_multiselect', locals: {form: f, fieldname: 'captains', limit: 3, users: @team.captains}
+    - else
+        .control-group
+            %label.control-label Captains
+            .controls
+                - @team.captains.each do |captain|
+                    %div
+                        %span.uneditable-input.span3= "#{captain.firstname} #{captain.lastname}"
+    =render partial: '/user_multiselect', locals: {form: f, fieldname: 'reporters', users: @team.reporters}
+    .controls 
+        = f.file_field :avatar, label: 'Profile Picture'
+    .form-actions
+        %button.btn.btn-large.btn-primary=@team.new_record? ? "Create Team" : "Update Team"

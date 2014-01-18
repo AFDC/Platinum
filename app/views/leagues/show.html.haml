@@ -52,5 +52,10 @@
                 - if @league.teams.count == 0
                     %tr
                         %td{colspan: 5, style: 'text-align: center;'} This league has no teams yet.
-
+        - if permitted_to? :create, :teams
+            %div{style: 'text-align: right'}
+                =link_to new_league_team_path(@league), class: 'btn btn-small btn-primary' do
+                    %i.icon.icon-plus
+                    Create Team
+                    
 = render :partial => '/game_schedule', :locals => {start_date: Date.today, league_id: @league._id, title: 'Upcoming Games'}
