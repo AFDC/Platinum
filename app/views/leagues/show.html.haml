@@ -5,6 +5,11 @@
     .span5
         = render :partial => '/league_summary', :locals => {league: @league}
         - if permitted_to? :manage, @league
+            %hr
+            %h4 League Comps
+            = render partial: 'comps', locals: {league: @league}
+
+            %hr
             %h4 League Actions:
             %div{style: 'text-align: center'}
                 - if permitted_to? :update, @league

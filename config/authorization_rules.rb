@@ -70,7 +70,7 @@ authorization do
 	end
 
 	role :'league-manager' do
-		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create]
+		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps]
 	end
 
 	role :admin do

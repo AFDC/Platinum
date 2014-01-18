@@ -237,6 +237,11 @@ class LeaguesController < ApplicationController
             :description, commissioner_ids: []
         ]
 
+        if permitted_to? :assign_comps, self
+            permitted_params << {comped_player_ids: []}
+            permitted_params << {comped_group_ids: []}
+        end
+
         params.require(:league).permit(*permitted_params)
     end
 end

@@ -1,0 +1,17 @@
+- if @league.comped_group_ids.count + @league.comped_player_ids.count > 0
+    %ul
+        - @league.comped_groups.each do |g|
+            %li{style: 'margin-bottom: 15px'}
+                %strong=g.name
+                %dash;
+                =g.description
+                %ul
+                    - g.members.each do |m|
+                        %li=link_to m.name, m
+        %li
+            %strong Individual Users
+            %ul
+                - @league.comped_players.each do |p|
+                    %li=link_to p.name, p
+- else
+    .alert.alert-info No comped users or groups
