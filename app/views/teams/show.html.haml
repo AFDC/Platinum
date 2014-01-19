@@ -102,7 +102,7 @@
 									- score = '-'
 
 								%td{class: "results " + td_class.to_s}
-									- if game.game_time <= Time.zone.now && permitted_to?(:edit_score, game)
+									- if game.game_time <= Time.zone.now && (permitted_to?(:edit_score, game) || permitted_to?(:report_score, @team))
 										=link_to edit_score_game_path(game), style: "color: inherit;", 'data-game_id' => game._id, class: 'report-score' do
 											%i.icon-pencil
 									%i.result-icon{class: icon_class}
