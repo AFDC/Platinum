@@ -39,6 +39,10 @@ class User
 
   before_save :downcase_email
 
+  def may_report_for
+    Team.where({ '$or' => [{'captains' => self._id}, {'reporters' => self._id}]})
+  end
+
   def absorb(old_user)
     raise ArgumentError.new "Must supply a user account to be absorbed" unless old_user.instance_of?(User)
     raise ArgumentError.new "You cannot absorb a user into a new record, please save it first." if self.new_record?
