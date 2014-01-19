@@ -51,6 +51,10 @@ authorization do
 			if_permitted_to :manage
 		end
 
+		has_permission_on :games, :to => [:edit_score, :update_score] do
+			if_attribute :teams => intersects_with { user.may_report_for }
+		end
+
 		# League Manager Permissions -- this applies to both universal league managers and also comissioners of individual leagues
 		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score] do
 			if_permitted_to :manage, :league
