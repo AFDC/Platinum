@@ -17,6 +17,7 @@ gem 'newrelic_rpm'
 gem 'paypal-sdk-rest'
 gem 'ruby_parser'
 gem 'smarter_csv'
+gem 'actionmailer'
 
 # Job Processing
 gem 'sidekiq'
@@ -49,6 +50,7 @@ group :development, :test do
   gem 'guard-rspec'
   gem 'guard-spork'
   gem 'rspec-rails'
+  gem 'mailcatcher'
 end
 
 group :development do
