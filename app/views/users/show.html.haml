@@ -37,7 +37,7 @@
 	%h2 
 		%i.icon-group
 		Teams
-	%table.table.table-striped.tablesorter
+	%table.table.table-striped.table-condensed
 		%thead
 			%tr
 				%th League
@@ -60,3 +60,27 @@
 					%td= stats ? stats['losses'] : '-'
 					%td= stats ? '%.3f' % (stats['wins'].to_f/(stats['wins']+stats['losses'])) : '-'
 					%td= stats ? (stats['point_differential'] ? stats['point_differential'] : '0') : '-'
+
+- unless @user.g_rank_results.empty?
+	%h2
+		%i.icon-dashboard
+		gRank History
+
+	%table.table.table-striped.table-condensed
+		%thead
+			%tr
+				%th Timestamp
+				%th Leagues
+				%th Rank
+		%tbody
+			- @user.g_rank_results.each do |grr|
+				%tr{id: grr._id}
+					%td=grr.timestamp.strftime('%a %b %-d, %Y')
+					%td
+						- league_links = []
+						- grr.registrations.each do |r|
+							- next unless r.league
+							- league_links << link_to(r.league.name, r.league)
+						=raw league_links.join(', ')
+
+					%td=grr.score

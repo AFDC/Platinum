@@ -147,7 +147,7 @@ class RegistrationsController < ApplicationController
         }
         reg.gender = reg.user.gender
         reg.player_strength = reg_params[:player_strength]
-        reg.secondary_rank_data = {self_rank: reg_params[:self_rank]}
+        reg.self_rank = reg_params[:self_rank]
         reg.notes = reg_params[:notes]
         reg.pair_id = reg_params[:pair_id].length >= 2 ? reg_params[:pair_id][1] : nil
         reg.user_data = {
