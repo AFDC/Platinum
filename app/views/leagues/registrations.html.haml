@@ -28,8 +28,8 @@
                     %td=r.user_data['firstname']
                     %td=r.user_data['middlename']
                     %td=r.user_data['lastname']
-                    %td=r.self_rank
-                    %td= r.pair.name if r.pair
+                    %td{class: 'hasTooltip', 'data-placement' => 'left', title:"self: #{r.self_rank} | gRank: #{r.g_rank} | commish: #{r.commish_rank}"}=r.rank
+                    %td=r.pair.name if r.pair
                     %td=r.player_strength
                     %td=r.availability['general']
                     %td= "EOS" if r.eos_availability

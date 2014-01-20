@@ -58,9 +58,23 @@
                 %dt End of Season:
                 %dd= @registration.eos_availability ? 'Yes' : 'No'
 
-            - if @registration.secondary_rank_data
-                %dt Self Rank:
-                %dd= @registration.secondary_rank_data['self_rank']
+            %hr
+
+            %dt Self Rank:
+            %dd= @registration.self_rank || 'n/a'
+
+            %dt gRank:
+            %dd=@registration.g_rank || 'n/a'
+
+            %dt League Rank:
+            %dd=@registration.commish_rank || 'n/a'
+
+            %dt Official Rank:
+            %dd
+                %span.label.label-info=@registration.rank || 'n/a'
+
+            %hr
+
             %dt Pair:
             %dd
                 - if @registration.pair_id

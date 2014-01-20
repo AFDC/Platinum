@@ -9,7 +9,10 @@ class Registration
     field :gender
     field :availability, type: Hash
     field :team_style_pref, type: Hash
-    field :secondary_rank_data, type: Hash
+    field :self_rank, type: Float
+    field :commish_rank, type: Float
+    field :g_rank, type: Float
+
     field :waiver_acceptance_date, type: DateTime
     field :user_data, type: Hash
     field :notes
@@ -22,6 +25,7 @@ class Registration
 
     belongs_to :user
     belongs_to :league
+    belongs_to :g_rank_result
 
     def gen_availability
         availability['general'] if availability
@@ -35,12 +39,8 @@ class Registration
         User.find(pair_id) if pair_id
     end
 
-    def self_rank
-        if secondary_rank_data.nil?
-            nil
-        else
-            secondary_rank_data['self_rank']
-        end
+    def rank
+        self.commish_rank || self.g_rank || self.self_rank
     end
 
     def waiver_accepted
