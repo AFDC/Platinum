@@ -1,0 +1,104 @@
+- content_for :title, "User Profile"
+= render :partial => '/pageheader', :locals => {subtitle: 'Edit gRank', breadcrumbs: {'Your Profile' => user_profile_path, 'Edit gRank' => nil}}
+
+.instructions.row-fluid
+    .span8.offset2
+        %h3 Purpose
+        %p 
+            The purpose of this questionaire is to gather data so we can most accurately assess your abilities.
+            These answers will be public -- please answer all questions honestly and with spirit of the game in mind.
+        %h4 When choosing your level of experience, please select <strong>CLUB</strong> if and only if:
+        %ol
+            %li You have <strong>completed</strong> 1 season on a registered USAU club team, and
+            %li You have played on a registered USAU Club team in the last three years
+        %h4 When choosing your level of experience, please select <strong>COLLEGE</strong> if and only if:
+        %ol
+            %li You have <strong>completed</strong> 1 season on a registered USAU college team, and
+            %li You have played on a registered USAU college team in the last three years
+        %button.btn.btn-block.btn-primary.continue I understand all of the above
+
+- content_for :page_scripts do
+    :javascript
+        $(function(){
+            $('.instructions .continue').on('click', function(e) {
+                $('.instructions').slideUp();
+                $('.level-of-experience').slideDown();                
+            });
+        });
+
+.level-of-experience.row-fluid.hide
+    .span8.offset2
+        %h4 What is the highest level of ultimate you have played <em>in the last 3 years</em>?
+        %form
+            - GRank.question_matrix.keys.each do |key|
+                %label.radio
+                    %input{type: 'radio', name: 'experience', value: key }
+                    =GRank.question_matrix[key]['text']
+        %button.btn.btn-block.btn-primary.continue.disabled Continue
+
+- content_for :page_scripts do
+    :javascript
+        $(function(){
+            $('.level-of-experience .continue').on('click', function(e) {
+                if ($(this).hasClass('disabled')) {
+                    return;
+                }
+                var exp = $('input[name=experience]:checked', '.level-of-experience').val();
+                
+                $('.level-of-experience').slideUp();
+                $('#questions_'+exp).slideDown();
+            });
+
+            $('.level-of-experience input').on('click', function(e) {
+                $('.level-of-experience .continue').removeClass('disabled');
+            });
+        });
+
+.row{style: 'text-align: right'}
+    .span8.offset2
+        #running-tally.hide
+            Current gRank:
+            %span.label.score 0.0
+
+- GRank.question_matrix.keys.each do |key|
+    - questions = GRank.question_matrix[key]['questions']
+    .survey.row.hide{id: "questions_#{key}"}
+        .span8.offset2
+            = form_tag update_g_rank_profile_path, method: 'PUT' do
+                = hidden_field_tag :experience, key
+                - %w(level_of_play athleticism ultimate_skills).each do |cat|
+                    - next if questions[cat].empty?
+                    %h4.question_group=cat.humanize
+                    - questions[cat].keys.each do |i|
+                        %label.radio
+                            = radio_button_tag cat, i, false, "data-score" => questions[cat][i]['score']
+                            = questions[cat][i]['text']
+                %button.btn.btn-block.btn-primary.disabled Submit Survey
+
+- content_for :page_scripts do
+    :javascript
+        $(function(){
+            $('.survey form button').on('click', function(e) {
+                var form = $(this).parent();
+                if ($('input:checked', form).length != $('h4.question_group', form).length) {
+                    e.preventDefault();
+                }
+            });
+
+            $('.survey form input').on('click', function(e) {
+                var form = $(this).parent().parent();
+                var selected_answers = $('input:checked', form);
+                var total = 0;
+
+                for (var i = 0; i < selected_answers.length; i++) {
+                    total += parseFloat($(selected_answers[i]).data('score'));
+                }
+
+                $('#running-tally').show();
+                $('#running-tally .score').html(total);
+
+                if (selected_answers.length == $('h4.question_group', form).length) {
+                    $('button', form).removeClass('disabled');
+                }
+            });
+        });

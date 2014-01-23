@@ -13,6 +13,7 @@ class League
   field :registration_open, type: Date, default: 2.weeks.from_now.to_date
   field :registration_close, type: Date, default: 4.weeks.from_now.to_date
   field :description, type: String
+  field :require_grank, type: Boolean, default: false
 
   has_many :teams, order: {'stats.rank' => :asc}
   has_many :registrations

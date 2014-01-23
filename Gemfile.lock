@@ -32,6 +32,7 @@ GEM
     annotate (2.5.0)
       rake
     arel (3.0.2)
+    bcrypt-ruby (3.0.1)
     bootstrap-sass (2.3.1.0)
       sass (~> 3.2)
     bootstrap-will_paginate (0.0.9)
@@ -322,6 +323,7 @@ DEPENDENCIES
   actionmailer
   active_link_to
   annotate
+  bcrypt-ruby (~> 3.0.0)
   bootstrap-sass
   bootstrap-will_paginate
   bootstrap_form

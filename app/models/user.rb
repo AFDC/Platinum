@@ -2,6 +2,7 @@ class User
   include Mongoid::Document
   include Mongoid::Paperclip
   include ActiveModel::ForbiddenAttributesProtection
+  include ActiveModel::SecurePassword
 
   field :address
   field :birthdate
@@ -10,7 +11,7 @@ class User
   field :firstname
   field :gender
   field :handedness
-  field :height
+  field :height, type: Integer
   field :lastname
   field :middlename
   field :occupation
@@ -18,8 +19,11 @@ class User
   field :postal_code
   field :privacy
   field :state
-  field :weight
+  field :weight, type: Integer
   field :permission_groups, type: Array, default: ['user']
+
+  field :password_digest
+  #has_secure_password
 
   has_mongoid_attached_file :avatar,
     default_url: lambda {|attachment| "http://robohash.org/#{attachment.instance._id}.png?bgset=bg2&size=330x330"},
@@ -27,6 +31,7 @@ class User
 
   has_many :identities
   has_many :g_rank_results
+  has_many :registrations
   has_and_belongs_to_many :teams, foreign_key: :teams
 
   validates :firstname, :presence => true

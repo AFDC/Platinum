@@ -4,8 +4,12 @@
 .row{style: 'margin-bottom: 25px'}
 	.span4{style: 'text-align: center'}
 		=image_tag @user.avatar.url(:profile), class: 'img-polaroid img-rounded', style: 'max-width: 330px; height: auto;'
-		- permitted_to? :edit_avatar, @user do
-			%p= link_to 'Change Profile Pic', edit_avatar_user_path(@user)
+		%hr
+		- if permitted_to? :edit_avatar, @user
+			= link_to 'Change Profile Pic', edit_avatar_user_path(@user), class: 'btn btn-block btn-small'
+		- if permitted_to? :edit, @user
+			=link_to 'Edit User Data', edit_user_path(@user), class: 'btn btn-block btn-small'
+
 	.span8
 		%h3= "#{@user.firstname} #{@user.middlename} #{@user.lastname}"
 		.row
@@ -33,6 +37,17 @@
 		.row
 			.span2{style: "font-weight: bold;"} Birthdate
 			.span6= @user.birthdate ? "#{@user.birthdate} (#{@user.age} years old)" : 'n/a'
+		.row
+			.span2{style: "font-weight: bold;"} gRank
+			.span2
+				- if last_grr = @user.g_rank_results.last
+					#{last_grr.score} (#{last_grr.timestamp.strftime('%b %Y')})
+				- else
+					n/a
+			.span4
+				- if current_user._id == @user._id
+					= link_to 'Update gRank', edit_g_rank_profile_path
+
 - unless @user.teams.empty?
 	%h2 
 		%i.icon-group

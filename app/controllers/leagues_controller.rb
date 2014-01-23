@@ -34,6 +34,11 @@ class LeaguesController < ApplicationController
             return
         end
 
+        if @league.require_grank? && current_user.g_rank_results.last.timestamp.end_of_day < 6.months.ago
+            redirect_to edit_g_rank_profile_path, notice: "Your gRank score is out of date, please complete the survey before registering."
+            return
+        end
+
         @registration = Registration.new()
         @registration.league = @league
         @registration.user = current_user;
@@ -234,7 +239,7 @@ class LeaguesController < ApplicationController
         permitted_params = [
             :name, :age_division, :season, :sport, :price,
             :start_date, :end_date, :registration_open, :registration_close,
-            :description, commissioner_ids: []
+            :description, {commissioner_ids: []}, :require_grank
         ]
 
         if permitted_to? :assign_comps, self
