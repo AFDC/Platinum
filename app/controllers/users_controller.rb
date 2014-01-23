@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-	before_filter :load_user_from_params, only: [:show, :edit_avatar, :registrations]
+	before_filter :load_user_from_params, only: [:show, :edit_avatar, :registrations, :edit, :update]
 	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
 	def index
@@ -49,6 +49,14 @@ class UsersController < ApplicationController
 			redirect_to "/auth/resetPassword/#{@user.email_address}", notice: 'You have successfully created a user account and a password has been emailed to you.'
 		else
 			render :action => 'new'
+		end
+	end
+
+	def update
+		if @user.update_attributes(user_params)
+			redirect_to user_path(@user), notice: "User Updated Successfully"
+		else
+			render :edit
 		end
 	end
 

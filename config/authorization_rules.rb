@@ -24,9 +24,10 @@ authorization do
 		has_permission_on :teams, to: [:index, :search, :show, :view_roster]
 		has_permission_on :registrations, to: [:create]
 		has_permission_on :leagues, to: [:register, :registrations]
+		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
 
 		# Things a user can do IFF the record belongs to them:
-		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :registrations] do
+		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :registrations, :edit, :update] do
 			if_attribute :_id => is { user._id }
 		end
 

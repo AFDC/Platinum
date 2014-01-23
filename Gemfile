@@ -18,6 +18,7 @@ gem 'paypal-sdk-rest'
 gem 'ruby_parser'
 gem 'smarter_csv'
 gem 'actionmailer'
+gem 'bcrypt-ruby', '~> 3.0.0'
 
 # Job Processing
 gem 'sidekiq'
@@ -77,7 +78,7 @@ group :ops do
 end
 
 # To use ActiveModel has_secure_password
-# gem 'bcrypt-ruby', '~> 3.0.0'
+
 
 # To use Jbuilder templates for JSON
 # gem 'jbuilder'
