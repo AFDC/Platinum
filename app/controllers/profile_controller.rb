@@ -20,8 +20,15 @@ class ProfileController < ApplicationController
        redirect_to edit_g_rank_profile_path, flash: {error: "Could not save result."} and return 
     end
     
-    # Update any existing registrations for leagues that haven't started yet
-    # current_user.registrations.where({'league_id' => {'$in' => League.future.map(&:_id)}})
+    # Update any existing registrations
+    current_user.registrations.where({'league_id' => {'$in' => League.current.map(&:_id)}}).each do |r|
+      next unless r.league.require_grank?
+      next unless r.league.start_date.beginning_of_day > Time.now
+
+      r.g_rank_result = grr
+      r.g_rank = grr.score
+      r.save
+    end
 
     redirect_to user_profile_path, notice: 'Your gRank has been updated successfully.'
   end
