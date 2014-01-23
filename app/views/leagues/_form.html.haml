@@ -69,6 +69,12 @@
                         =f.text_field :price, class: 'input-small'
                     - if errors[:price].any?
                         %span.help-inline=errors[:price].first
+            .control-group
+                .controls
+                    %label.checkbox
+                        = f.check_box :require_grank
+                        Require recent gRank Score?
+
             .control-group{ class: ('error' if errors[:description].any?)}
                 %label.control-label Description
                 .controls

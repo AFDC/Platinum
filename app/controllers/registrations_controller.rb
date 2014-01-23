@@ -141,6 +141,11 @@ class RegistrationsController < ApplicationController
             reg.paid = false
         end
 
+        if reg.league.require_grank?
+            reg.g_rank_result = reg.user.g_rank_results.last
+            reg.g_rank = reg.g_rank_result.score
+        end
+
         reg.availability = {
             general: reg_params[:gen_availability],
             attend_tourney_eos: (reg_params[:eos_availability] == '1')
