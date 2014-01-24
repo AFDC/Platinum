@@ -37,7 +37,9 @@ class AuthController < ApplicationController
         new_pw = @user.reset_password
         @user.save
 
-        redirect_to auth_path, notice: "Please check your email for a password reset. #{new_pw}"
+        UserMailer.delay.password_reset(@user._id, new_pw)
+
+        redirect_to auth_path, notice: "Please check your email for a password reset."
     end
 
     def logout
