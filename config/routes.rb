@@ -50,6 +50,9 @@ Platinum::Application.routes.draw do
     mount Sidekiq::Web => ENV['sidekiq_path']
   end
 
+  get 'help/login', to: 'help#login', as: 'login_help'
+  get 'help/registration', to: 'help#registration', as: 'registration_help'
+
   get 'profile', to: 'profile#index', as: 'user_profile'
   get 'profile/edit', to: 'profile#edit', as: 'edit_user_profile'
   get 'profile/gRank', to: 'profile#edit_g_rank', as: 'edit_g_rank_profile'
