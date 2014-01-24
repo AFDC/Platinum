@@ -26,7 +26,7 @@ class AuthController < ApplicationController
 
         @user.save
 
-        redirect_to auth_path, notice: 'YOU HAVE BEEN LOGGED IN!'         
+        redirect_to home_path
     end
 
     def reset_password
@@ -51,7 +51,7 @@ class AuthController < ApplicationController
 
         reset_session
 
-        redirect_to "/" 
+        redirect_to home_path
     end
 
     private
@@ -64,7 +64,7 @@ class AuthController < ApplicationController
 
     def restrict_logged_in
         if current_user
-            redirect_to users_path, flash: {error: 'You are alread logged in!'} and return
+            redirect_to home_path, flash: {error: 'You are alread logged in!'} and return
         end
     end        
 end
