@@ -1,0 +1,56 @@
+.row
+  .span12
+    %h1{:style => "text-align: center"} Registering for an AFDC League
+.row{:style => "border-bottom: 1px solid #d0d0d0"}
+  .span4
+    %h3{:style => "text-align: center; border-bottom: 1px solid #d0d0d0"} Steps to Register
+    %ol
+      %li
+        Ensure that you are
+        %a{:href => "/help/login"} logged in
+      %li
+        Click on the
+        %a{:href => "/leagues/"} leagues
+        link at the top of the page (You may have to click icon of 3 horizontal lines in the top right corner to see the header options)
+      %li
+        %span{:style => "font-weight: bold"} Upcoming Leagues
+        with open registration will have shopping cart icons (
+        %i.icon-shopping-cart
+        ) next to their entry; click on the desired league's icon.
+      %li Fill out all of the desired information as accurately as possible. For ultimate, you may be required to fill out a gRank survey.
+      %li You will be forwarded to PayPal to authorize a payment for that registration.
+      %li Repeat steps 2-5 for each upcoming league you wish to register for
+      %li Periodically during registration (or once at the end), players with authorized payments will be moved to the "active" list. This will be on a first-come, first-served basis unless otherwise noted by the commissioner.
+  .span8
+    %h3{:style => "text-align: center; border-bottom: 1px solid #d0d0d0"} Common Problems and Frequently Asked Questions
+    %dl
+      %dt I would like to change my registration information (attendance number, pair, etc.).
+      %dd
+        This functionality is temporarily disabled, but
+        %a{:href => "mailto:webmaster@afdc.com"} the webmaster
+        will be happy to make those changes for you.
+      %dt I'm listed as "inactive", what does that mean?
+      %dd
+        %p This means that your payment has not yet been processed and you are not yet guaranteed a spot in the league
+        %p Players who have authorized a payment will be moved to the active list on a first-come, first-served basis (unless otherwise noted by the commissioner) until the league is full.
+        %p Once the league is full, new players will be pulled in to replace cancellations and achieve league balance.
+      %dt Oops! I can't play any more and I'd like a refund!
+      %dd
+        Please contact
+        %a{:href => "mailto:webmaster@afdc.com"} the webmaster
+        to request a refund. Refunds are granted on a case-by-case basis and are not guaranteed.
+      %dt Who has registered for the league already?
+      %dd
+        Next to each league on the
+        = succeed "," do
+          %a{:href => "/leagues/"} leagues page
+        there is a listing icon (
+        %i.icon-list
+        ). Clicking on that icon will take you to the league's participant list.
+      %dt Why do I have to be logged in to view members, participant lists, schedules, or other information?
+      %dd We take privacy of our members very seriously and we have decided that these pieces of information do not need to be indexed by, or accessible through, search engines like Google.
+      %dt I have a question about the website that hasn't been answered yet!
+      %dd
+        Please contact
+        %a{:href => "mailto:webmaster@afdc.com"} the webmaster
+        with any questions you might have. Please try to be as descriptive as possible so we can resolve your problem quickly.

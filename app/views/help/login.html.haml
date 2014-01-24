@@ -1,0 +1,33 @@
+.row
+  .span12
+    %h1{:style => "text-align: center"} How are you trying to log in?
+.row{:style => "border-bottom: 1px solid #d0d0d0"}
+  .span6{:style => "min-height: 500px"}
+    %h3{:style => "text-align: center; border-bottom: 1px solid #d0d0d0"} E-mail Address / Password
+    %p
+      Congratulations! This is the wave of the future! While you will probably not encounter
+      many problems trying to login in this method, below is a sampling of things you may run into.
+    %ol
+      %li Your forum username / password is separate from you your leagues email / password.
+      %li If you've forgotten your password, please use the password reset form.
+      %li Please also use the password reset form if you are a former AFDC player who has never used the leagues system before.
+      %li If you aren't sure if you there is a leagues account associated with your email address, you should try the password reset form.
+      %li
+        If you receive a password reset email, but the new password appears not to work, please contact
+        %a{:href => "mailto:webmaster@afdc.com"} the webmaster
+      %li
+        If you don't have a leagues account, you will need to create one
+        = succeed "." do
+          %a{:href => "/users/new"} here
+  .span6{:style => "min-height: 500px"}
+    %h3{:style => "text-align: center; border-bottom: 1px solid #d0d0d0"} Via the Forums
+    %p
+      In order to reduce confusion for new users, we no longer support this method of authentication. Please follow the
+      email address and password login methods.
+.row
+  .span12
+    If you run into any problems not listed above attempting to log in, please contact
+    = succeed "." do
+      %a{:href => "mailto:webmaster@afdc.com"} the webmaster
+    The more descriptive you can be about your problem (error messages, things you've tried, what email address you're using, etc.), the easier
+    it will be for us to assist you.

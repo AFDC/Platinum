@@ -8,12 +8,15 @@
 
 authorization do
 	role :guest do
+		has_permission_on :dashboard, to: [:homepage]
+		has_permission_on :help, to: [:login, :registration]
 		has_permission_on :schedules, to: [:index, :show]
 		has_permission_on :leagues, to: [:index, :show]
 		has_permission_on :users, to: [:new, :create]
 		has_permission_on :teams, to: [:show, :index, :search]
 		has_permission_on :fields, to: [:index, :show]
 		has_permission_on :registrations, to: [:approved, :cancelled]
+		has_permission_on :auth, to: [:index, :login, :logout, :forgot_password, :reset_password]
 	end
 
 	role :user do

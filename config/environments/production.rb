@@ -74,4 +74,7 @@ Platinum::Application.configure do
       :authentication => 'login', # Mandrill supports 'plain' or 'login'
       :domain => 'leagues.afdc.com', # your domain to identify your server when connecting
   }
+
+  config.cache_store = :dalli_store, 'localhost', { :namespace => 'platinum', :expires_in => 1.day, :compress => true }
+  config.action_mailer.default_url_options = { :host => "leagues.afdc.com" }
 end

@@ -36,7 +36,7 @@ class UsersController < ApplicationController
 
 	def new
 		if current_user
-			redirect_to users_path, flash: {error: "You are already logged in!"}
+			redirect_to home_path, flash: {error: "You are already logged in!"}
 		else
 			@user = User.new
 		end
@@ -83,7 +83,7 @@ class UsersController < ApplicationController
 			:gender, :firstname, :lastname, :email_address, :birthdate, 
 			:avatar,
 			:middlename, :address, :city, :state, :postal_code, :height, :weight,
-			:occupation
+			:occupation, :password, :password_confirmation
 		]
 
 		params.require(:user).permit(*permitted_params)
@@ -101,10 +101,10 @@ class UsersController < ApplicationController
 		User.any_of([{email_address: /#{query}/i}, name_search])
 	end
 
-	def load_user_from_params
-		begin
-			@user = User.find(params[:id])
-		rescue
+	def load_user_from_params	
+		@user = User.find(params[:id])
+		
+		unless @user
 			redirect_to users_path, flash: {error: "Could not load user for ID '#{params[:id]}', please try a different user."}
 		end
 	end

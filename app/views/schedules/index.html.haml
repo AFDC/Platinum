@@ -1,7 +1,7 @@
 - content_for :title, "Game Schedules"
 = render partial: '/pageheader'
 - content_for :page_scripts do
-    = javascript_include_tag '/js/schedules.js'
+    = javascript_include_tag '/javascripts/schedules.js'
 
 
 = form_tag '#', class: 'form-inline', id: 'schedule-form', 'data-persist-params' => 'yes' do

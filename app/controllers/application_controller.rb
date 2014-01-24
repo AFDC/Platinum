@@ -4,12 +4,16 @@ class ApplicationController < ActionController::Base
   helper_method :current_user
 
   def current_user
-  	return unless cookies['session.id']
-  	unless @current_user
-  		identity = Identity.where("session.id" => cookies['session.id']).first
-		@current_user = identity.user if identity
-	end
+    unless @current_user
+      if session[:user_id]
+        @current_user = User.find(session[:user_id])
+      elsif cookies[:platinum_login]
+        cookie_val = cookies[:platinum_login]
+        @current_user = User.where({remember_me_cookie: cookie_val}).first
+        session[:user_id] = @current_user._id if @current_user
+      end
+    end
 
-	@current_user
+    @current_user
   end
 end
