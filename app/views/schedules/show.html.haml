@@ -21,7 +21,7 @@
                 - teams = []
                 - g.teams.each do |t|
                     - teams << t
-                    - if current_user.teams.include? t
+                    - if current_user && current_user.teams.include?(t)
                         - row_style = 'background-color: #a7dff1;'
                 %tr{style: row_style, id: "game_#{g._id}"}
                     %td=g.game_time.strftime('%a, %b %e, %Y')
