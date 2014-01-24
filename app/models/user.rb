@@ -23,7 +23,8 @@ class User
   field :permission_groups, type: Array, default: ['user']
 
   field :password_digest
-  #has_secure_password
+  field :remember_me_cookie
+  has_secure_password
 
   has_mongoid_attached_file :avatar,
     default_url: lambda {|attachment| "http://robohash.org/#{attachment.instance._id}.png?bgset=bg2&size=330x330"},
@@ -122,5 +123,13 @@ class User
 
   def role_symbols
     self.permission_groups.map(&:to_sym)
+  end
+
+  def reset_password
+    self.password = SecureRandom.hex(10)
+  end
+
+  def self.find_by_email_address(email_address)
+    User.where({email_address: /^#{Regexp.escape(email_address)}$/i}).first
   end
 end

@@ -61,7 +61,7 @@
                     %li.divider
                     %li= link_to 'Log out', '/logout'
               - else
-                %li= link_to 'Log In', '/'
+                %li= link_to 'Log In', auth_path
     - unless Rails.env.production?
       .alert.alert-success{:style => 'margin: 0 5px;'}= "Current Rails Environment: #{Rails.env}"
     .container

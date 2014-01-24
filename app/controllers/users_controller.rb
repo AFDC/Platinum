@@ -83,7 +83,7 @@ class UsersController < ApplicationController
 			:gender, :firstname, :lastname, :email_address, :birthdate, 
 			:avatar,
 			:middlename, :address, :city, :state, :postal_code, :height, :weight,
-			:occupation
+			:occupation, :password, :password_confirmation
 		]
 
 		params.require(:user).permit(*permitted_params)

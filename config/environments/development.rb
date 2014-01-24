@@ -37,4 +37,6 @@ Platinum::Application.configure do
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = { address: 'localhost', port: 1025 }
+
+  config.cache_store = :dalli_store, 'localhost', { :namespace => 'platinum', :expires_in => 1.day, :compress => true }
 end

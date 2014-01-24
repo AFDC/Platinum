@@ -14,6 +14,7 @@ authorization do
 		has_permission_on :teams, to: [:show, :index, :search]
 		has_permission_on :fields, to: [:index, :show]
 		has_permission_on :registrations, to: [:approved, :cancelled]
+		has_permission_on :auth, to: [:index, :login, :logout, :forgot_password, :reset_password]
 	end
 
 	role :user do

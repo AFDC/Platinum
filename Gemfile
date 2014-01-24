@@ -19,6 +19,7 @@ gem 'ruby_parser'
 gem 'smarter_csv'
 gem 'actionmailer'
 gem 'bcrypt-ruby', '~> 3.0.0'
+gem 'dalli'
 
 # Job Processing
 gem 'sidekiq'

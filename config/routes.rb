@@ -54,4 +54,10 @@ Platinum::Application.routes.draw do
   get 'profile/edit', to: 'profile#edit', as: 'edit_user_profile'
   get 'profile/gRank', to: 'profile#edit_g_rank', as: 'edit_g_rank_profile'
   put 'profile/gRank', to: 'profile#update_g_rank', as: 'update_g_rank_profile'
+
+  get 'login', to: 'auth#index', as: 'auth'
+  post 'login', to: 'auth#login', as: 'login'
+  get 'logout', to: 'auth#logout', as: 'logout'
+  get 'reset-password', to: 'auth#forgot_password', as: 'forgot_password'
+  post 'reset-password', to: 'auth#reset_password', as: 'reset_password'
 end

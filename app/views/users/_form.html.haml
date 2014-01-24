@@ -8,16 +8,20 @@
 			= f.text_field :lastname, label: "Last name"
 			= f.text_field :email_address
 			= f.text_field :birthdate, "data-format" => "yyyy-MM-dd", append: '<i data-date-icon="icon-calendar" data-time-icon="icon-time"></i>'.html_safe, class: "global-datepicker"
-		.span6
-			%h3 Optional Fields
-			= f.select :handedness, ['left', 'right', 'both'], prompt: true
-			= f.text_field :middlename, label: "Middle name"
-			= f.text_field :height, label: "Height (inches)"
-			= f.text_field :weight, label: "Weight (pounds)"
-			= f.text_area :address, rows: 2
-			= f.text_field :city
-			= f.text_field :state
-			= f.text_field :postal_code
+			%h3 Set your Password
+			= f.password_field :password
+			= f.password_field :password_confirmation, label: "Confirm Password"
+		- unless @user.new_record?
+			.span6
+				%h3 Optional Fields
+				= f.select :handedness, ['left', 'right', 'both'], prompt: true
+				= f.text_field :middlename, label: "Middle name"
+				= f.text_field :height, label: "Height (inches)"
+				= f.text_field :weight, label: "Weight (pounds)"
+				= f.text_area :address, rows: 2
+				= f.text_field :city
+				= f.text_field :state
+				= f.text_field :postal_code
 	= f.actions do 
 		- if @user.new_record?
 			= f.primary "Create my Account"
