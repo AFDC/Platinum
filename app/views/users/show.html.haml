@@ -9,6 +9,8 @@
 			= link_to 'Change Profile Pic', edit_avatar_user_path(@user), class: 'btn btn-block btn-small'
 		- if permitted_to? :edit, @user
 			=link_to 'Edit User Data', edit_user_path(@user), class: 'btn btn-block btn-small'
+		- if permitted_to? :login_as, @user
+			=link_to 'Login as this User', login_as_user_path(@user), class: 'btn btn-block btn-small btn-warning'
 
 	.span8
 		%h3= "#{@user.firstname} #{@user.middlename} #{@user.lastname}"
@@ -49,7 +51,7 @@
 					= link_to 'Update gRank', edit_g_rank_profile_path
 
 - unless @user.teams.empty?
-	%h2 
+	%h2
 		%i.icon-group
 		Teams
 	%table.table.table-striped.table-condensed

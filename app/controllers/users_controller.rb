@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-	before_filter :load_user_from_params, only: [:show, :edit_avatar, :registrations, :edit, :update]
+	before_filter :load_user_from_params, only: [:show, :edit_avatar, :registrations, :edit, :update, :login_as]
 	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
 	def index
@@ -25,6 +25,13 @@ class UsersController < ApplicationController
 				render :json => results
 			end
 		end
+	end
+
+	def login_as
+		session['real_user_id'] = current_user._id.to_s
+		session['user_id'] = @user._id.to_s
+
+		redirect_to home_path, notice: "You are now logged in as #{@user.name}, log out to return to your old credentials"
 	end
 
 	def registrations
@@ -66,7 +73,7 @@ class UsersController < ApplicationController
 	def update_avatar
 		@user.attributes = params.require(:user).permit(:avatar)
 		@user.save(validate: false)
-		
+
 		redirect_to edit_avatar_user_path(@user), notice: 'New profile pic uploaded!'
 	end
 
@@ -80,7 +87,7 @@ class UsersController < ApplicationController
 
 	def user_params
 		permitted_params = [
-			:gender, :firstname, :lastname, :email_address, :birthdate, 
+			:gender, :firstname, :lastname, :email_address, :birthdate,
 			:avatar,
 			:middlename, :address, :city, :state, :postal_code, :height, :weight,
 			:occupation, :password, :password_confirmation
@@ -101,9 +108,9 @@ class UsersController < ApplicationController
 		User.any_of([{email_address: /#{query}/i}, name_search])
 	end
 
-	def load_user_from_params	
+	def load_user_from_params
 		@user = User.find(params[:id])
-		
+
 		unless @user
 			redirect_to users_path, flash: {error: "Could not load user for ID '#{params[:id]}', please try a different user."}
 		end
