@@ -55,6 +55,8 @@ group :development, :test do
   gem 'guard-spork'
   gem 'rspec-rails'
   gem 'mailcatcher'
+  gem 'better_errors'
+  gem "binding_of_caller"
 end
 
 group :development do
@@ -76,7 +78,7 @@ end
 
 group :ops do
   gem 'pry'
-  gem 'unicorn'
+  gem 'unicorn-rails'
   gem 'capistrano'
 end
 
