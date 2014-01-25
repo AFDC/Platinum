@@ -82,7 +82,7 @@ authorization do
 
 		has_permission_on :global, :to => [:see_debug]
 
-		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar]
+		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :login_as]
 
 		has_permission_on :comp_groups, :to => [:index, :show, :new, :create, :edit, :update]
 	end

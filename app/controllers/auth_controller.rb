@@ -12,10 +12,10 @@ class AuthController < ApplicationController
         end
 
         unless @user.authenticate(params[:password])
-           redirect_to auth_path, flash: {error: 'That password does not match what we have on file.'} and return 
+           redirect_to auth_path, flash: {error: 'That password does not match what we have on file.'} and return
         end
 
-        session[:user_id] = @user._id
+        session[:user_id] = @user._id.to_s
 
         if params[:remember_me]
             @user.remember_me_cookie = SecureRandom.hex(32)
@@ -44,14 +44,20 @@ class AuthController < ApplicationController
 
     def logout
         @user = current_user
-        @user.remember_me_cookie = nil
-        @user.save
 
-        cookies.delete(:platinum_login)
+        unless session['real_user_id']
+            @user.remember_me_cookie = nil
+            @user.save
 
-        reset_session
+            cookies.delete(:platinum_login)
 
-        redirect_to home_path
+            reset_session
+            redirect_to home_path and return
+        end
+
+        session['user_id'] = session['real_user_id']
+        session.delete('real_user_id')
+        redirect_to home_path, notice: "You are no longer logged in as #{@user.name}."
     end
 
     private
@@ -66,5 +72,5 @@ class AuthController < ApplicationController
         if current_user
             redirect_to home_path, flash: {error: 'You are alread logged in!'} and return
         end
-    end        
+    end
 end

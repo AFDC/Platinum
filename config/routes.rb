@@ -26,7 +26,7 @@ Platinum::Application.routes.draw do
 
     resources :teams, only: [:new, :create]
   end
-  
+
   resources :teams, except: [:new, :create]
 
 
@@ -43,6 +43,7 @@ Platinum::Application.routes.draw do
       get 'edit_avatar'
       put 'update_avatar'
       delete 'destroy_avatar'
+      get 'login_as'
     end
   end
 
