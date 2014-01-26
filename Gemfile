@@ -78,7 +78,7 @@ end
 
 group :ops do
   gem 'pry'
-  gem 'unicorn-rails'
+  gem 'unicorn'
   gem 'capistrano'
 end
 
