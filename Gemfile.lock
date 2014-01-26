@@ -326,9 +326,6 @@ GEM
       kgio (~> 2.6)
       rack
       raindrops (~> 0.7)
-    unicorn-rails (1.1.0)
-      rack
-      unicorn
     uuidtools (2.1.4)
     websocket (1.0.7)
     will_paginate (3.0.4)
@@ -393,5 +390,5 @@ DEPENDENCIES
   terminal-notifier-guard
   therubyracer
   uglifier (>= 1.0.3)
-  unicorn-rails
+  unicorn
   will_paginate
