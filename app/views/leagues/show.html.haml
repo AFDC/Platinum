@@ -18,7 +18,7 @@
                         Edit League
                 - if permitted_to? :manage_roster, @league
                     = link_to manage_roster_league_path(@league), class: 'btn btn-primary btn-small', style: 'width: 75%; margin-top: 5px;' do
-                        %i.icon.icon-group 
+                        %i.icon.icon-group
                         Manage Roster
 
     .span7
@@ -45,8 +45,10 @@
                             %td
                                 %i.icon.icon-exclamation-sign.hasTooltip{title: 'Please log in to view captains.'}
                         - if t.stats.count > 0
-                            %td="#{t.formatted_record} (#{t.winning_percentage})"
-                            %td=t.point_diff
+                            %td
+                                = t.record
+                                = "(" + formatted_winning_percentage(t.winning_percentage) + ")"
+                            %td= formatted_point_diff(t.point_diff)
                         - else
                             %td{colspan: 2} Not Available
                 - if @league.teams.count == 0
@@ -57,5 +59,5 @@
                 =link_to new_league_team_path(@league), class: 'btn btn-small btn-primary' do
                     %i.icon.icon-plus
                     Create Team
-                    
+
 = render :partial => '/game_schedule', :locals => {start_date: Date.today, league_id: @league._id, title: 'Upcoming Games'}

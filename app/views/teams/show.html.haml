@@ -35,12 +35,12 @@
 			.row
 				.span1{style: 'font-weight: bold'} Record:
 				- if @team.winning_percentage
-					.span3= "#{@team.formatted_record} (#{@team.winning_percentage})"
+					.span3= "#{@team.record} (#{formatted_winning_percentage(@team.winning_percentage)})"
 				- else
 					.span3 n/a
 			.row
 				.span1{style: 'font-weight: bold'} Pt. Diff.:
-				.span3= stats['point_differential'] ? stats['point_differential'] : '0'
+				.span3= formatted_point_diff(@team.point_diff)
 		- else
 			.row
 				.span4
@@ -74,13 +74,11 @@
 							- opponent = game.opponent_for(@team)
 							- unless opponent
 								%tr{'id' => game._id}
-									%td{colspan: 4} 
+									%td{colspan: 4}
 										No opponent listed
 										%span.hide= "Game ID: #{game._id}"
 								- next
 							- opponent_data[opponent._id] = { name: opponent.name, rank: opponent.formatted_rank, avatar: opponent.avatar.url(:roster) }
-							- if opponent.winning_percentage
-								- opponent_data[opponent._id][:record] = "#{opponent.formatted_record} (#{opponent.winning_percentage})"
 							%tr{'data-opponent-id' => opponent._id, 'id' => game._id}
 								%td= link_to opponent.name, opponent, title: opponent.name, class: 'team', "data-team_id" => opponent._id
 								%td= game.game_time.strftime("%b %e, %Y %l:%M %P")
@@ -110,7 +108,7 @@
 										= score
 
 			.tab-pane#roster
-				- if permitted_to? :view_roster, @team									
+				- if permitted_to? :view_roster, @team
 					.row
 						- @team.players.each do |player|
 							.span2{style: 'margin-bottom: 10px;'}
