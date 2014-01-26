@@ -1,5 +1,5 @@
 class League
-  include Mongoid::Document      
+  include Mongoid::Document
   include ActiveModel::ForbiddenAttributesProtection
   field :name
   field :age_division
@@ -15,7 +15,7 @@ class League
   field :description, type: String
   field :require_grank, type: Boolean, default: false
 
-  has_many :teams, order: {'stats.rank' => :asc}
+  has_many :teams, order: {league_rank: :asc}
   has_many :registrations
   has_and_belongs_to_many :commissioners, class_name: "User", foreign_key: :commissioner_ids, inverse_of: nil
   has_and_belongs_to_many :comped_groups, class_name: "CompGroup", inverse_of: nil
@@ -43,5 +43,22 @@ class League
     return true if comped_player_ids.include? user._id
     return true if comped_groups.collect(&:member_ids).flatten.include? user._id
     false
+  end
+
+  def update_standings!
+    # Update stats and sort the league
+    team_cache = teams.to_a
+    team_cache.each { |t| t.update_stats }.sort!.reverse!
+
+    # Apply ranks, handle ties
+    rank = 0
+    team_cache.each_with_index do |this_team, order|
+      unless (this_team <=> team_cache[order-1]) == 0
+        rank += 1
+      end
+
+      this_team.league_rank = rank
+      this_team.save
+    end
   end
 end

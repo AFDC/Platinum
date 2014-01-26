@@ -65,6 +65,8 @@ module Platinum
 
     # Use Bootstrap style error styling
     config.action_view.field_error_proc = Proc.new { |html_tag, instance| html_tag.html_safe }
+
+    config.i18n.enforce_available_locales = false
   end
 end
 

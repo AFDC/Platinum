@@ -12,6 +12,8 @@ class Game
 
 	attr_accessor :reporter
 
+	after_save :queue_league_update
+
 	def game_time
 		self[:game_time].in_time_zone(LOCAL_TIMEZONE)
 	end
@@ -57,23 +59,16 @@ class Game
 			return nil
 		end
 
-		scores[subject_team._id.to_s]
+		score = scores[subject_team._id.to_s]
+
+		score.to_i if score
 	end
 
-			# '_id'  => array('type' => 'id'), // required for Mongo
-			# 'game_time' => array('type' => 'date'),
-			# 'league_id' => array('type' => 'id'),
-			# 'fieldsite_id' => array('type' => 'id'),
-			# 'teams' => array('type' => 'id', 'array' => true),
-			# 'field' => array('type' => 'string'),
-			# 'round_number' => array('type' => 'integer'),
-			# 'old_scores' => array('type' => 'object', 'array' => true),
-			# 'scores' => array('type' => 'object'),
-			#     'scores.report_time' => array('type' => 'date'),
-			#     'scores.forfeit' => array('type' => 'boolean'),
-			#     'scores.rainout' => array('type' => 'boolean'),
-			#     'scores.reporter_id' => array('type' => 'id'),
-			#     'scores.reporter_ip' => array('type' => 'string'),
-			# 'winner' => array('type' => 'id')
+	private
 
+	def queue_league_update
+		if scores_changed? or winner_changed?
+			LeagueStandingsUpdateWorker.perform_async(league._id.to_s)
+		end
+	end
 end
