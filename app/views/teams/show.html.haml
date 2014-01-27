@@ -27,8 +27,7 @@
 						%br
 				- else
 					None listed
-		- if @team.stats
-			- stats = @team.stats
+		- if @team.games_played > 0
 			.row{style:'border-top: 1px solid #f0f0f0'}
 				.span1{style: 'font-weight: bold'} Rank:
 				.span3= @team.formatted_rank

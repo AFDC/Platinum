@@ -44,7 +44,7 @@
                         - else
                             %td
                                 %i.icon.icon-exclamation-sign.hasTooltip{title: 'Please log in to view captains.'}
-                        - if t.stats.count > 0
+                        - if t.games_played > 0
                             %td
                                 = t.record
                                 = "(" + formatted_winning_percentage(t.winning_percentage) + ")"
