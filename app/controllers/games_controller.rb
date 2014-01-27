@@ -48,7 +48,7 @@ class GamesController < ApplicationController
                 elsif this_score == top_score
                     @game.winner = nil
                 end
-                
+
                 new_score_report[team_id]
             end
         end
@@ -57,8 +57,6 @@ class GamesController < ApplicationController
         @game.old_scores << old_score_report if old_score_report.present?
 
         @game.save
-
-        Team.collection.where({'_id' => {'$in' => @game.team_ids}}).update({'$set' => {'stats.needs_update' => true}}, {multi: true})
 
         new_score_report[:winner] = @game.winner
         new_score_report[:game_id] = @game._id
