@@ -1,0 +1,53 @@
+- registration = nil if local_assigns[:registration].nil?
+
+- content_for :page_styles do
+    :css
+        .ppc {
+            padding: 5px;
+            margin: 10px 0;
+        }
+        .ppc .header {
+            color: #669533;
+            font-weight: bold;
+            margin: 0; padding: 0;
+        }
+
+        .ppc .body {
+            border: 1px solid #669533;
+            padding: 5px;
+            border-radius: 6px;
+            background-color: #D2DDC7;
+        }
+
+        .ppc .body .no_pairing {
+            text-align: center;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+.ppc
+    .header
+        %i.icon-group
+        Pairs, Pods, and Cores
+    .body
+        - if registration.nil?
+            %p.no_pairing You are not registered for this league
+        - elsif registration.status != 'active'
+            %p.no_pairing You must be an active registrant to be paired or placed on cores or pods.
+        - else
+            - if registration.league.start_date < Date.today
+                %p This league is under way. No further changes to your pairs, pods, or cores may be made at this time.
+                - if registration.pair.present?
+                    %p You requested to pair with #{link_to registration.pair.name, registration.pair} when you registered.
+                - elsif registration.old_pair.present?
+                    %p You requested to pair with #{registration.old_pair} when you registered.
+                - else
+                    %p You did not request a pair for this league
+            - else
+                - if registration.league.allow_pairs?
+                    %div{style: 'padding: 10px'}
+                        = link_to select_pair_league_path, class: 'btn btn-block btn-success' do
+                            %i.icon-group
+                            Invite someone to be your pair
+                - else
+                    %p.no_pairing Pairs are not allowed for this league.

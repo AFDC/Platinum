@@ -26,6 +26,8 @@
 
     = yield :page_scripts
 
+    = yield :page_styles
+
     = csrf_meta_tags
   %body
     #navBar.navbar.navbar-fixed-top
@@ -71,6 +73,6 @@
       = yield
       - if Rails.env.development?
         %div{style: 'margin-top: 50px'}
-          = debug(params) 
+          = debug(params)
 
     #loginModal.modal.hide.fade

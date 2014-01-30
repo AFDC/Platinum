@@ -1,226 +1,88 @@
+:plain
+  <script type="text/x-underscore" id="registrant-row-template">
+    <li class="registrant-row" id="<%=_id%>">
+      <div class="pic"><img class="img-polaroid img-rounded" src="<%=thumbnail_img_url%>" style="max-width: 32px; height: auto;"></div>
+      <div class="userdata">
+          <div class="main col"><strong><i class="icon-<%=gender%>"></i> <%=name%></strong></div>
+          <div class="col"><strong>Status:</strong> <%=status%></div>
+          <div class="col"><strong>Rank:</strong> <%=rank%></div>
+          <div class="main col"><strong>Availability:</strong> <%=gen_availability%></div>
+          <div class="col"><strong>Role:</strong> <%=player_type%></div>
+        </div>
+      </div>
+    </li>
+  </script>
+  <script type="text/x-underscore" id="registrant-detail-template">
+    <h4><a href="<%=profile_url%>" target="_blank"><%=name%></a></h4>
+    <img class="img-polaroid img-rounded" src="<%=profile_img_url%>" style="max-width: 160px; height: auto;">
+    <ul class="unstyled">
+      <li><strong>Registration</strong>: <%=status%></li>
+      <li><hr /></li>
+      <li><strong>Rank:</strong> <%=rank%></li>
+      <li><strong>Role:</strong> <%=player_type%></li>
+      <li><strong>Gender:</strong> <%=gender%></li>
+      <li><strong>Height:</strong> <%=height%></li>
+    </ul>
+
+    <a href="<%=registration_url%>" class="btn btn-small btn-block" target="_blank">View Registration</a></li>
+  </script>
+
+- content_for :page_styles do
+  = stylesheet_link_tag('/stylesheets/cupertino/jquery-ui-1.10.4.custom.min.css')
+  = stylesheet_link_tag('/stylesheets/registrant_browser.css')
+
+
+- content_for :page_scripts do
+  = javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js')
+  = javascript_include_tag('//code.jquery.com/ui/1.10.4/jquery-ui.js')
+  = javascript_include_tag('/javascripts/registrant_browser.js')
+  :javascript
+    var registrant_list = #{@registrant_ids.to_json};
+    var filtered_registrant_list = registrant_list;
+    var registrant_data = #{@registrant_data.to_json};
+
+
+
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'Registrations', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registrations' => nil}}
 
-- if @registrations[:active].count > 0
-    %h2 Active Participants
-    %table.table.table-striped.tablesorter
-        %thead
-            %tr
-                %th 
-                %th Gender
-                %th First
-                %th Middle
-                %th Last
-                %th Rank
-                %th Pair
-                %th Player Type
-                %th Attendance
-                %th Tourneys
-        %tbody
-            - count = {'male' => 0, 'female' => 0}
-            - @registrations[:active].each do |r|
-                - count[r.gender] += 1
-                %tr
-                    %td
-                        - if permitted_to? :show, r
-                            =link_to 'View', registration_path(r)
-                    %td=r.gender
-                    %td=r.user_data['firstname']
-                    %td=r.user_data['middlename']
-                    %td=r.user_data['lastname']
-                    %td{class: 'hasTooltip', 'data-placement' => 'left', title:"self: #{r.self_rank} | gRank: #{r.g_rank} | commish: #{r.commish_rank}"}=r.rank
-                    %td=r.pair.name if r.pair
-                    %td=r.player_strength
-                    %td=r.availability['general']
-                    %td= "EOS" if r.eos_availability
+.row
+  .span3
+    %h4 Filters
+    %input.span3{id: 'search-text', type:'text', placeholder: 'Text Search'}
+    %select.span3{id: 'gender'}
+      %option{value: 'male'} Only Men
+      %option{value: 'female'} Only Women
+      %option{value: '', selected: true} Men & Women
+    %select.span3{id: 'status'}
+      %option{value: 'active'} Active
+      %option{value: 'authorized'} Authorized
+      %option{value: 'pending'} Pending
+      %option{value: 'canceled'} Canceled
+      %option{value: '', selected: true} All Statuses
+    %div{style: 'padding: 10px;'}
+      %div#rank-range
+      %p{style: 'text-align: center;'}
+        Show Ranks: <span id="rank_min">0</span>-<span id="rank_max">10</span>
 
-    %div{style: 'text-align: right;'}
-        - if permitted_to? :manage, @league
-            %span{style: "margin-right: 20px;"}
-                =link_to registrations_league_path(@league, format: :csv) do
-                    CSV
-                    %i.icon.icon-cloud-download 
+    %button.btn.btn-small.btn-block.btn-primary#apply-filters Apply Filters
+    %button.btn.btn-small.btn-block.btn-info#clear-filters Clear Filters
 
-        %span.badge
-            Men: 
-            =count['male']
-
-        %span.badge
-            Women:
-            =count['female']
-
-        %span.badge.badge-inverse
-            Total:
-            =count['male'] + count['female']
-
-- if @registrations[:authorized].count > 0
-    %h2 Payment Authorized
-    %form{action: capture_payments_league_path(@league), method: 'POST', id: 'cnaForm'}
-        %table.table.table-striped.tablesorter
-            %thead
-                %tr
-                    %th
-                    %th Gender
-                    %th First
-                    %th Middle
-                    %th Last
-                    %th Rank
-                    %th Pair
-                    %th Authorization Time
-                    - if permitted_to? :manage, @league
-                        %th{width: '10%'}
-            %tbody
-                - count = {'male' => 0, 'female' => 0}
-                - @registrations[:authorized].each do |r|
-                    - count[r.gender] += 1
-                    %tr
-                        %td
-                            - if permitted_to? :show, r
-                                =link_to 'View', registration_path(r)
-                        %td=r.gender
-                        %td=r.user_data['firstname']
-                        %td=r.user_data['middlename']
-                        %td=r.user_data['lastname']
-                        %td=r.self_rank
-                        %td= r.pair.name if r.pair
-                        %td=r.payment_timestamps['authorized']
-                        - if permitted_to? :manage, @league
-                            %td
-                                %label.checkbox{style: 'font-size: 12px;'}
-                                    %input{type: 'checkbox', name: 'reg_id[]', value: r._id, class: "chkbx #{r.gender}"}
-                                    Activate
-
-    %div{style: 'text-align: right;'}
-        %span.badge
-            Men: 
-            =count['male']
-
-        %span.badge
-            Women:
-            =count['female']
-
-        %span.badge.badge-inverse
-            Total:
-            =count['male'] + count['female']
-
-    - if permitted_to? :manage, @league
-        - content_for :page_scripts do
-            :javascript
-                $(function(){
-                    $('#cnaForm').on('click', '.chkbx', function(e){
-                        if ($('#cnaForm .chkbx:checked').length > 0) {
-                            $('#cnaActions').show();
-
-                            $('#cnaMen').html($('#cnaForm .chkbx.male:checked').length);
-                            $('#cnaWomen').html($('#cnaForm .chkbx.female:checked').length);
-                        } else {
-                            $('#cnaActions').hide();
-                        }
-                    });
-
-                    $('#cnaButton').on('click', function(e){
-                        console.log("Doit!");
-                        $('#cnaButton').prop('disabled', true);
-                        $('#cnaButton').html("Working...");
-                        $('#cnaForm').submit();
-                    });
-                });
-
-    .navbar.navbar-inverse.navbar-fixed-bottom.hide#cnaActions
-        .navbar-inner
-            .container
-                %a.brand Capture Payment & Activate:
-                %ul.nav
-                    %li
-                        %p.navbar-text
-                            Men:
-                            %span#cnaMen 0
-                    %li
-                        %p.navbar-text
-                            Women:
-                            %span#cnaWomen 0
-                %button.btn.btn-primary#cnaButton Do it!
-
-- if @registrations[:pending].count > 0 
-    %h2 Pending Payment
-    %table.table.table-striped.tablesorter
-        %thead
-            %tr
-                %th 
-                %th Gender
-                %th First
-                %th Middle
-                %th Last
-                %th Rank
-                %th Pair
-                %th Registration Time
-        %tbody
-            - count = {'male' => 0, 'female' => 0}
-            - @registrations[:pending].each do |r|
-                - count[r.gender] += 1
-                %tr
-                    %td
-                        - if permitted_to? :show, r
-                            =link_to 'View', registration_path(r)
-                    %td=r.gender
-                    %td=r.user_data['firstname']
-                    %td=r.user_data['middlename']
-                    %td=r.user_data['lastname']
-                    %td=r.self_rank
-                    %td= r.pair.name if r.pair
-                    %td=r.payment_timestamps['pending']
-
-    %div{style: 'text-align: right;'}
-        %span.badge
-            Men: 
-            =count['male']
-
-        %span.badge
-            Women:
-            =count['female']
-
-        %span.badge.badge-inverse
-            Total:
-            =count['male'] + count['female']
+    %hr
+    %h4 Sorting
+    %select.span3{id: 'sort-field'}
+      %option{value: ''} Sort By:
+      %option{value: 'availability'} Availability (Desc.)
+      %option{value: 'rank'} Rank (Desc.)
+    %button.btn.btn-small.btn-block.btn-primary#do-sort Sort Results
 
 
-- if @registrations[:cancelled].count > 0 
-    %h2 Cancelled Registrations
-    %table.table.table-striped.tablesorter
-        %thead
-            %tr
-                %th 
-                %th Gender
-                %th First
-                %th Middle
-                %th Last
-                %th Rank
-                %th Pair
-        %tbody
-            - count = {'male' => 0, 'female' => 0}
-            - @registrations[:cancelled].each do |r|
-                - count[r.gender] += 1
-                %tr
-                    %td
-                        - if permitted_to? :show, r
-                            =link_to 'View', registration_path(r)
-                    %td=r.gender
-                    %td=r.user_data['firstname']
-                    %td=r.user_data['middlename']
-                    %td=r.user_data['lastname']
-                    %td=r.self_rank
-                    %td= r.pair.name if r.pair
 
-    %div{style: 'text-align: right;'}
-        %span.badge
-            Men: 
-            =count['male']
 
-        %span.badge
-            Women:
-            =count['female']
+  .span7
+    .pagination.pagination-centered.pagination-mini{style: "margin: 0;"}
+      %ul
 
-        %span.badge.badge-inverse
-            Total:
-            =count['male'] + count['female']
-
+    %ul.unstyled#registrants
+  .span2
+    %div.affix-top#player-details

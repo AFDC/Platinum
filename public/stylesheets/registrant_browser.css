@@ -1,0 +1,44 @@
+ul#registrants {
+  height: 500px;
+  overflow: scroll;
+}
+ul#registrants li {
+  cursor: pointer;
+  overflow: hidden;
+  padding: 2px;
+}
+
+ul#registrants li div.pic {
+  float: left;
+  margin-right: 5px;
+  width: 42px;
+}
+
+ul#registrants li div.userdata {
+  float: left;
+  width: 500px;
+  margin-right: 5px;
+  overflow: hidden;
+}
+
+ul#registrants li div.userdata div.col {
+  display: inline-block;
+  width: 145px;
+  margin-right: 5px
+}
+
+ul#registrants li div.userdata div.main {
+  clear: left;
+  width: 185px;
+}
+
+ul#registrants li {
+  border-top: 1px solid #DDD;
+}
+
+ul#registrants li:nth-child(odd)  { background-color: #F9F9F9; }
+ul#registrants li:nth-child(even) { background-color: #ffffff; }
+
+ul#registrants li:hover {
+  background-color: #cdb;
+}

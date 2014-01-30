@@ -1,5 +1,5 @@
 class LeaguesController < ApplicationController
-    before_filter :load_league_from_params, only: [:register, :registrations, :capture_payments, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update]
+    before_filter :load_league_from_params, only: [:register, :registrations, :capture_payments, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update, :select_pair]
     before_filter :initialize_roster_csv, only: [:manage_roster, :upload_roster, :setup_roster_import, :import_roster]
     filter_access_to [:capture_payments], attribute_check: true
 
@@ -46,12 +46,26 @@ class LeaguesController < ApplicationController
     end
 
     def registrations
-        @registrations = {}
-
-        @registrations[:active] = Registration.where(league_id: @league._id, status: 'active')
-        @registrations[:authorized] = Registration.where(league_id: @league._id, status: 'authorized')
-        @registrations[:pending] = Registration.where(league_id: @league._id, status: 'pending')
-        @registrations[:cancelled] = Registration.where(league_id: @league._id, status: 'cancelled')
+        @registrant_ids = []
+        @registrant_data = {}
+        @league.registrations.each do |reg|
+            @registrant_ids << reg._id.to_s
+            @registrant_data[reg._id.to_s] = {
+                _id: reg._id.to_s,
+                status: reg.status,
+                name: reg.user.name,
+                profile_img_url: reg.user.avatar.url(:roster),
+                thumbnail_img_url: reg.user.avatar.url(:thumbnail),
+                profile_url: user_path(reg.user),
+                registration_url: registration_path(reg),
+                gender: reg.gender,
+                gen_availability: reg.gen_availability,
+                rank: reg.rank,
+                eos: reg.eos_availability,
+                player_type: reg.player_strength,
+                height: reg.user.height_in_feet_and_inches
+            }
+        end
     end
 
     def manage_roster
@@ -102,7 +116,7 @@ class LeaguesController < ApplicationController
     def setup_roster_import
         target_file = session[:roster_csv][@league._id]
         unless File.file?(target_file.to_s)
-           redirect_to manage_roster_league_path(@league), flash: {error: "No uploaded roster file found"} and return 
+           redirect_to manage_roster_league_path(@league), flash: {error: "No uploaded roster file found"} and return
         end
 
         SmarterCSV.process(target_file, {remove_empty_values: false, chunk_size: 10}) do |chunk|
@@ -118,7 +132,7 @@ class LeaguesController < ApplicationController
                     @user_id_field_guess = field_name
                 elsif Team.find(item)
                     @team_id_field_guess = field_name
-                end 
+                end
             end
         end
     end
@@ -127,7 +141,7 @@ class LeaguesController < ApplicationController
         team_id_list = @league.teams.map{ |t| t._id}
         target_file = session[:roster_csv][@league._id]
         unless File.file?(target_file.to_s)
-           redirect_to manage_roster_league_path(@league), flash: {error: "No uploaded roster file found"} and return 
+           redirect_to manage_roster_league_path(@league), flash: {error: "No uploaded roster file found"} and return
         end
 
         @successful_imports = 0
@@ -239,7 +253,9 @@ class LeaguesController < ApplicationController
         permitted_params = [
             :name, :age_division, :season, :sport, :price,
             :start_date, :end_date, :registration_open, :registration_close,
-            :description, {commissioner_ids: []}, :require_grank
+            :description, {commissioner_ids: []},
+            :require_grank, :allow_pairs, :allow_self_rank, :core_type,
+            :eos_tourney, :mst_tourney
         ]
 
         if permitted_to? :assign_comps, self
