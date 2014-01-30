@@ -37,7 +37,7 @@ gem 'bootstrap_form'
 gem 'haml'
 gem 'jquery-rails'
 gem 'will_paginate'
-gem "font-awesome-rails"
+gem "font-awesome-rails", '~> 3.2.1.0'
 
 
 # Gems used only for assets and not required
