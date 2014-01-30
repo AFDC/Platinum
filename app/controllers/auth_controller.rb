@@ -35,7 +35,7 @@ class AuthController < ApplicationController
         end
 
         new_pw = @user.reset_password
-        @user.save
+        @user.save(validate: false)
 
         UserMailer.delay.password_reset(@user._id, new_pw)
 
