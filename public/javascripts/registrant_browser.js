@@ -1,4 +1,4 @@
-var items_per_page = 10;
+var items_per_page = 25;
 var current_page = 1;
 var do_render;
 
@@ -59,11 +59,21 @@ $(function(){
       do_render(filtered_registrant_list[i]);
     }
 
+    if (filtered_registrant_list.length == 0) {
+      if ($('#registrants li.no-results').length > 0) {
+        $('#registrants li.no-results').show();
+      } else {
+        var no_results_li = '<li class="no-results">' + $('#no-results').html() + '</li>';
+        $('#registrants').append(no_results_li);
+      }
+    }
+
     show_pagination();
   };
 
   $('#apply-filters').on('click', function() {
     current_page = 1;
+    items_per_page = $('#items-per-page').val();
     filter_registrants();
     show_results();
   });
@@ -84,6 +94,10 @@ $(function(){
     // Empty pagination list
     $('.pagination ul').html('');
 
+    if (last_page == 0) {
+      return;
+    }
+
     // Populate first page link
     $('.pagination ul').append(pagination_link({page: current_page, active: false, disabled: (current_page==1), text: '&laquo;'}));
 
@@ -103,6 +117,7 @@ $(function(){
     e.preventDefault();
     current_page = $(this).data('page-num');
     show_results();
+    $('.page-header').ScrollTo()
   });
 
   var updateSliderLabel = function(event, ui) {
@@ -162,9 +177,30 @@ $(function(){
 $(function(){
   var registrant_profile = _.template($('#registrant-detail-template').html());
   var target_dom = $('#player-details');
-  $('#registrants').on('click', 'li', function(e){
+  $('#registrants').on('click', 'li.registrant-row', function(e){
     var id = $(this).attr('id');
+    target_dom.data('id', id);
 
     target_dom.html(registrant_profile(registrant_data[id]));
+
+    $("#player-details .details-grank").popover({
+      html: true,
+      placement: 'left',
+      trigger: 'hover',
+      title: 'gRank Answers',
+      content: function() {
+        var id = target_dom.data('id');
+        var questions = _.keys(registrant_data[id]['grank']['answers']);
+        var result = '<ul>';
+        _.each(questions, function(q){
+          var a = registrant_data[id]['grank']['answers'][q];
+          if (a) {
+            result += "<li><strong>" + q + ":</strong> " + a + "</li>";
+          }
+        });
+        result += "</ul>";
+        return result;
+      }
+    });
   });
 });

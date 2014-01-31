@@ -3,7 +3,7 @@
     <li class="registrant-row" id="<%=_id%>">
       <div class="pic"><img class="img-polaroid img-rounded" src="<%=thumbnail_img_url%>" style="max-width: 32px; height: auto;"></div>
       <div class="userdata">
-          <div class="main col"><strong><i class="icon-<%=gender%>"></i> <%=name%></strong></div>
+          <div class="main col"><strong><span class="<%=gender%> label"><% print(gender[0].toUpperCase()); %></span> <%=name%></strong></div>
           <div class="col"><strong>Status:</strong> <%=status%></div>
           <div class="col"><strong>Rank:</strong> <%=rank%></div>
           <div class="main col"><strong>Availability:</strong> <%=gen_availability%></div>
@@ -12,6 +12,7 @@
       </div>
     </li>
   </script>
+
   <script type="text/x-underscore" id="registrant-detail-template">
     <h4><a href="<%=profile_url%>" target="_blank"><%=name%></a></h4>
     <img class="img-polaroid img-rounded" src="<%=profile_img_url%>" style="max-width: 160px; height: auto;">
@@ -19,12 +20,14 @@
       <li><strong>Registration</strong>: <%=status%></li>
       <li><hr /></li>
       <li><strong>Rank:</strong> <%=rank%></li>
+      <% if (grank.score) { %>
+        <li class="details-grank"><strong>gRank</strong>: <%=grank.score%> <i class="icon-question-sign"></i></li>
+      <% } %>
       <li><strong>Role:</strong> <%=player_type%></li>
       <li><strong>Gender:</strong> <%=gender%></li>
       <li><strong>Height:</strong> <%=height%></li>
+      <li><strong>Age:</strong> <%=age%></li>
     </ul>
-
-    <a href="<%=registration_url%>" class="btn btn-small btn-block" target="_blank">View Registration</a></li>
   </script>
 
 - content_for :page_styles do
@@ -36,6 +39,7 @@
   = javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js')
   = javascript_include_tag('//code.jquery.com/ui/1.10.4/jquery-ui.js')
   = javascript_include_tag('/javascripts/registrant_browser.js')
+  = javascript_include_tag('/javascripts/jquery-scrollto.js')
   :javascript
     var registrant_list = #{@registrant_ids.to_json};
     var filtered_registrant_list = registrant_list;
@@ -60,6 +64,11 @@
       %option{value: 'pending'} Pending
       %option{value: 'canceled'} Canceled
       %option{value: '', selected: true} All Statuses
+    %select.span3{id: 'items-per-page'}
+      %option{value: '10'} 10 Players Per Page
+      %option{selected: true, value: '25'} 25 Players Per Page
+      %option{value: '50'} 50 Players Per Page
+      %option{value: '100'} 100 Players Per Page
     %div{style: 'padding: 10px;'}
       %div#rank-range
       %p{style: 'text-align: center;'}
@@ -76,13 +85,19 @@
       %option{value: 'rank'} Rank (Desc.)
     %button.btn.btn-small.btn-block.btn-primary#do-sort Sort Results
 
-
-
-
-  .span7
+  .span7#listing-column
     .pagination.pagination-centered.pagination-mini{style: "margin: 0;"}
       %ul
-
     %ul.unstyled#registrants
+    .pagination.pagination-centered.pagination-mini{style: "margin: 0;"}
+      %ul
   .span2
-    %div.affix-top#player-details
+    %div.affix-top#player-details{"data-spy" => "affix", "data-offset-top" => "150"}
+
+  .hide
+    #no-results
+      %div{style: 'text-align: center; margin-top: 20px;'}
+        %div{style: 'font-size: 128px;'}
+          %i.icon-remove-sign
+        %div{style: 'font-weight: bold;'}
+          No Results Found

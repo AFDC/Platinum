@@ -27,8 +27,8 @@ class GRank
                         'b' => {'score' => 0.5, 'text' => 'I\'m learning how to cut, throw, and play defense'},
                         'c' => {'score' => 1.0, 'text' => 'I have decent skills but I am just learning about stacks offenses, marking with a force, and defending on the force side'},
                         'd' => {'score' => 2.0, 'text' => 'I have decent skills and I understand both structured offense and defense'}
-                    }                    
-                }                
+                    }
+                }
             },
             'hs' => {
                 'text' => 'Organized High School team (i.e. your team has a coach and practices)',
@@ -52,7 +52,7 @@ class GRank
                         'c' => {'score' => 2.0, 'text' => 'I\'m strong at both offense and defense'},
                         'd' => {'score' => 2.0, 'text' => 'I am an elite high school player on offense and defense'}
                     }
-                }                
+                }
             },
             'afdc' => {
                 'text' => 'AFDC League or equivalent',
@@ -68,9 +68,9 @@ class GRank
                         'b' => {'score' => 1.0, 'text' => 'My skills are improving but I am still learning about stack offense, marking with a force, and defending on the force side'},
                         'c' => {'score' => 2.0, 'text' => 'I have decent skills and I understand both structured offense and defense'},
                         'd' => {'score' => 2.5, 'text' => 'Exclude club and college players in the league, I am GOOD at both offense and defense'},
-                        'e' => {'score' => 3.0, 'text' => 'Exclude club and college players in the league, I am VERY GOOD at both. I could play club or I have played club in the past'}                        
+                        'e' => {'score' => 3.0, 'text' => 'Exclude club and college players in the league, I am VERY GOOD at both. I could play club or I have played club in the past'}
                     }
-                }                
+                }
             },
             'college' => {
                 'text' => 'USAU registered College ultimate',
@@ -179,5 +179,21 @@ class GRank
         end
 
         running_total
+    end
+
+    def self.convert_answers_to_text(coded_answers)
+        return {} if coded_answers.empty?
+
+        relevant_matrix = self.question_matrix[coded_answers['experience']]
+
+        text_answers = {}
+        text_answers['Experience'] = relevant_matrix['text']
+
+        %w(level_of_play ultimate_skills athleticism).each do |category|
+            if coded_answers[category]
+                text_answers[category.humanize] = relevant_matrix['questions'][category][coded_answers[category]]['text']
+            end
+        end
+        return text_answers
     end
 end
