@@ -63,8 +63,14 @@ class LeaguesController < ApplicationController
                 rank: reg.rank,
                 eos: reg.eos_availability,
                 player_type: reg.player_strength,
-                height: reg.user.height_in_feet_and_inches
+                height: reg.user.height_in_feet_and_inches,
+                grank: {},
+                age: reg.user.age,
             }
+            if reg.g_rank_result
+                @registrant_data[reg._id.to_s][:grank][:score] = reg.g_rank_result.score
+                @registrant_data[reg._id.to_s][:grank][:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
+            end
         end
     end
 
