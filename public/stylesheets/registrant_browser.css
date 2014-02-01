@@ -51,3 +51,7 @@ span.label.male {
   font-family: monospace;
   background-color: #3A87AD;
 }
+
+i.collapser {
+  cursor: pointer;
+}

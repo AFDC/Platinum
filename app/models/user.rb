@@ -76,11 +76,11 @@ class User
 
     # Assign old_user's registrations to new_user
     registrations = Registration.collection.find(user_id: old_user._id).map{|r| r["_id"]}
-    Registration.collection.find(_id: {'$in' => registrations}).update({"$set" => {user_id: self._id}})
+    Registration.collection.find(_id: {'$in' => registrations}).update({"$set" => {user_id: self._id}}, {multi: true})
 
     # Delete old_user identities for both users for security reasons
     Identity.collection.find(user_id: {'$in' => [self._id, old_user._id]}).remove_all
-    
+
     # Backup old_user object
     absorb_data = {
       teams_found: team_ids.map{|id| id.to_s},

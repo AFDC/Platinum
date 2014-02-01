@@ -13,7 +13,14 @@ class League
   field :registration_open, type: Date, default: 2.weeks.from_now.to_date
   field :registration_close, type: Date, default: 4.weeks.from_now.to_date
   field :description, type: String
+
+  # Options
   field :require_grank, type: Boolean, default: false
+  field :allow_self_rank, type: Boolean, default: true
+  field :allow_pairs, type: Boolean, default: true
+  field :core_type
+  field :eos_tourney, type: Boolean, default: true
+  field :mst_tourney, type: Boolean, default: false
 
   has_many :teams, order: {league_rank: :asc}
   has_many :registrations
@@ -22,7 +29,7 @@ class League
   has_and_belongs_to_many :comped_players, class_name: "User", inverse_of: nil
 
   validates :name, :presence => true
-  validates :price, :numericality => { integer_only: true, greater_than: 0, less_than: 100, allow_blank: false  }
+  validates :price, :numericality => { integer_only: true, greater_than: 0, less_than: 250, allow_blank: false  }
   validates :age_division, :inclusion => { in: %w(adult juniors) }
   validates :season, :inclusion => { in: %w(fall winter spring summer saturday) }
   validates :sport, :inclusion => { in: %w(ultimate goaltimate) }
@@ -60,5 +67,9 @@ class League
       this_team.league_rank = rank
       this_team.save
     end
+  end
+
+  def registration_for user
+    registrations.where({user_id: user._id}).first
   end
 end

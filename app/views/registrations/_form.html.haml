@@ -8,13 +8,13 @@
     .control-group
         .controls
             = f.check_box :eos_availability, value: 1, label: "Will attend end of season tourney"
-    = f.select :self_rank, [nil, '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    - if @registration.league.allow_self_rank?
+        = f.select :self_rank, [nil, '1', '2', '3', '4', '5', '6', '7', '8', '9']
     = f.select :player_strength, [nil, 'Runner', 'Thrower', 'Both']
-    = render partial: '/user_multiselect', locals: {form: f, fieldname: 'pair_id', label: "Pair", limit: 1, users: [@registration.pair]}
     = f.text_area :notes, rows: 5
     - if @registration.new_record?
         = f.check_box :waiver_accepted, value: 1, label: raw('I have read, understand, and accept the AFDC\'s <a href="http://blog.afdc.com/wp-content/uploads/2012/05/2012-AFDC-Waiver-Minors.pdf">liability waiver</a>.')
-    = f.actions do 
+    = f.actions do
         - if @registration.new_record?
             = f.primary "Register", disable_with: 'Registering...'
         - else

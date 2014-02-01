@@ -204,3 +204,9 @@ $(function(){
     });
   });
 });
+
+$(function(){
+  $('.collapser').on('click', function(e){
+    $(this).toggleClass('icon-collapse-top icon-collapse', 100);
+  });
+});

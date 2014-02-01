@@ -45,45 +45,51 @@
     var filtered_registrant_list = registrant_list;
     var registrant_data = #{@registrant_data.to_json};
 
-
-
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'Registrations', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registrations' => nil}}
 
 .row
   .span3
-    %h4 Filters
-    %input.span3{id: 'search-text', type:'text', placeholder: 'Text Search'}
-    %select.span3{id: 'gender'}
-      %option{value: 'male'} Only Men
-      %option{value: 'female'} Only Women
-      %option{value: '', selected: true} Men & Women
-    %select.span3{id: 'status'}
-      %option{value: 'active'} Active
-      %option{value: 'authorized'} Authorized
-      %option{value: 'pending'} Pending
-      %option{value: 'canceled'} Canceled
-      %option{value: '', selected: true} All Statuses
-    %select.span3{id: 'items-per-page'}
-      %option{value: '10'} 10 Players Per Page
-      %option{selected: true, value: '25'} 25 Players Per Page
-      %option{value: '50'} 50 Players Per Page
-      %option{value: '100'} 100 Players Per Page
-    %div{style: 'padding: 10px;'}
-      %div#rank-range
-      %p{style: 'text-align: center;'}
-        Show Ranks: <span id="rank_min">0</span>-<span id="rank_max">10</span>
+    %h4
+      %i.icon-collapse-top.collapser{"data-toggle" => "collapse", "data-target" => ".filter-form"}
+      Filters
+    .filter-form.collapse.in
+      %input.span3{id: 'search-text', type:'text', placeholder: 'Text Search'}
+      %select.span3{id: 'gender'}
+        %option{value: 'male'} Only Men
+        %option{value: 'female'} Only Women
+        %option{value: '', selected: true} Men & Women
+      %select.span3{id: 'status'}
+        %option{value: 'active'} Active
+        %option{value: 'authorized'} Authorized
+        %option{value: 'pending'} Pending
+        %option{value: 'canceled'} Canceled
+        %option{value: '', selected: true} All Statuses
+      %select.span3{id: 'items-per-page'}
+        %option{value: '10'} 10 Players Per Page
+        %option{selected: true, value: '25'} 25 Players Per Page
+        %option{value: '50'} 50 Players Per Page
+        %option{value: '100'} 100 Players Per Page
+      %div{style: 'padding: 10px;'}
+        %div#rank-range
+        %p{style: 'text-align: center;'}
+          Show Ranks: <span id="rank_min">0</span>-<span id="rank_max">10</span>
 
-    %button.btn.btn-small.btn-block.btn-primary#apply-filters Apply Filters
-    %button.btn.btn-small.btn-block.btn-info#clear-filters Clear Filters
+      %button.btn.btn-small.btn-block.btn-primary#apply-filters Apply Filters
+      %button.btn.btn-small.btn-block.btn-info#clear-filters Clear Filters
+      %hr
 
-    %hr
-    %h4 Sorting
-    %select.span3{id: 'sort-field'}
-      %option{value: ''} Sort By:
-      %option{value: 'availability'} Availability (Desc.)
-      %option{value: 'rank'} Rank (Desc.)
-    %button.btn.btn-small.btn-block.btn-primary#do-sort Sort Results
+    %h4
+      %i.icon-collapse-top.collapser{"data-toggle" => "collapse", "data-target" => ".sort-form"}
+      Sorting
+    .sort-form.collapse.in
+      %select.span3{id: 'sort-field'}
+        %option{value: ''} Sort By:
+        %option{value: 'availability'} Availability (Desc.)
+        %option{value: 'rank'} Rank (Desc.)
+      %button.btn.btn-small.btn-block.btn-primary#do-sort Sort Results
+      %hr
+    %h4 Actions
 
   .span7#listing-column
     .pagination.pagination-centered.pagination-mini{style: "margin: 0;"}
