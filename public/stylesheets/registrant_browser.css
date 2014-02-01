@@ -51,3 +51,11 @@ span.label.male {
   font-family: monospace;
   background-color: #3A87AD;
 }
+
+i.collapser {
+  cursor: pointer;
+}
+
+span.grank-history {
+  background-color: #ddd;
+}

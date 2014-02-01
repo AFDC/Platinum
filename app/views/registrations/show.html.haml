@@ -13,8 +13,8 @@
                     = link_to "Edit", edit_registration_path(@registration), :class => 'btn'
         %dl.dl-horizontal
             %dt User ID:
-            %dd= @registration.user._id
-            
+            %dd= link_to @registration.user._id, @registration.user
+
             %dt Gender:
             %dd= @registration.gender
 
@@ -110,14 +110,6 @@
 
                 %dt Paypal Calls:
                 %dd= @registration.paypal_responses.count
-
-
-- if permitted_to? :see_debug, :global
-    %h4 @registration
-    %pre
-        %code.javascript
-            - r_json = @registration.as_json
-            / =JSON.pretty_generate()
 
 
     - content_for :page_scripts do

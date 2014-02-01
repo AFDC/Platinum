@@ -16,4 +16,17 @@ class ApplicationController < ActionController::Base
 
     @current_user
   end
+
+  protected
+
+  def permission_denied
+    if current_user
+      flash[:error] = "Sorry, you are not allowed to access that page."
+      redirect_to home_url and return
+    else
+      flash[:error] = "Please log in to view that page."
+      session[:login_redirect_url] = request.original_url
+      redirect_to auth_path and return
+    end
+  end
 end

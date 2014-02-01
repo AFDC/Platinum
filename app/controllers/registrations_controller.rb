@@ -50,11 +50,11 @@ class RegistrationsController < ApplicationController
 
         begin
             payment.create
-        rescue 
+        rescue
             redirect_to registrations_user_path(current_user), flash: {error: "There was an error talking to PayPal, please try again or contact webmaster@afdc.com."}
             return
         end
-        
+
         if payment.id
             @registration.payment_id = payment.id
             @registration.payment_timestamps[:created] = Time.now
@@ -67,7 +67,7 @@ class RegistrationsController < ApplicationController
         if payment.state == 'created'
             redirect_url = payment.links.find{|v| v.method == 'REDIRECT'}.href
             Rails.logger.info "Payment[#{payment.id}]"
-            Rails.logger.info "Redirect: #{redirect_url}"            
+            Rails.logger.info "Redirect: #{redirect_url}"
             redirect_to redirect_url
         elsif payment.state == 'approved'
             redirect_to registrations_user_path(current_user), notice: "That registration has already been authorized."
@@ -116,9 +116,11 @@ class RegistrationsController < ApplicationController
             return
         end
 
-        unless ['1', '2', '3', '4', '5', '6', '7', '8', '9'].include?(reg_params[:self_rank])
-            redirect_to register_league_path(reg.league), notice: "You must select a rank for yourself"
-            return
+        if reg.league.allow_self_rank?
+            unless ['1', '2', '3', '4', '5', '6', '7', '8', '9'].include?(reg_params[:self_rank])
+                redirect_to register_league_path(reg.league), notice: "You must select a rank for yourself"
+                return
+            end
         end
 
         unless ['Runner', 'Thrower', 'Both'].include?(reg_params[:player_strength])
@@ -154,7 +156,9 @@ class RegistrationsController < ApplicationController
         reg.player_strength = reg_params[:player_strength]
         reg.self_rank = reg_params[:self_rank]
         reg.notes = reg_params[:notes]
-        reg.pair_id = reg_params[:pair_id].length >= 2 ? reg_params[:pair_id][1] : nil
+        if reg_params[:pair_id]
+            reg.pair_id = reg_params[:pair_id].first
+        end
         reg.user_data = {
             birthdate: reg.user.birthdate,
             firstname: reg.user.firstname,
@@ -173,8 +177,8 @@ class RegistrationsController < ApplicationController
 
         if reg.save
             if reg.status == 'active' || reg.status == 'authorized' || current_user._id != reg.user._id
-                redirect_to registrations_user_path(reg.user), notice: flash_message || 'Update successful'   
-            else     
+                redirect_to registrations_user_path(reg.user), notice: flash_message || 'Update successful'
+            else
                 redirect_to checkout_registration_path(reg)
             end
         else

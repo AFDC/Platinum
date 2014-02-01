@@ -16,9 +16,9 @@
                     =f.text_field :name
                     - if errors[:name].any?
                         %span.help-inline=errors[:name].first
-            
+
             = render partial: '/user_multiselect', locals: {form: f, fieldname: 'commissioner_ids', label: "Commissioners", users: @league.commissioners}
-            
+
             .control-group{ class: ('error' if errors[:age_division].any?)}
                 %label.control-label{for: 'league_age_division'} Age Division
                 .controls
@@ -69,11 +69,6 @@
                         =f.text_field :price, class: 'input-small'
                     - if errors[:price].any?
                         %span.help-inline=errors[:price].first
-            .control-group
-                .controls
-                    %label.checkbox
-                        = f.check_box :require_grank
-                        Require recent gRank Score?
 
             .control-group{ class: ('error' if errors[:description].any?)}
                 %label.control-label Description
@@ -82,6 +77,42 @@
                     - if errors[:description].any?
                         %span.help-inline=errors[:description].first
         .span6
+            %h4 League Options
+            .control-group
+                %label.control-label Ranking
+                .controls
+                    %label.checkbox
+                        = f.check_box :require_grank
+                        Require recent gRank Score?
+                    %label.checkbox
+                        = f.check_box :allow_self_rank
+                        Allow Slef-Rank
+
+            .control-group
+                %label.control-label Tournaments
+                .controls
+                    %label.checkbox
+                        = f.check_box :eos_tourney
+                        End of season
+                .controls
+                    %label.checkbox
+                        = f.check_box :mst_tourney
+                        Midseason
+
+            .control-group
+                %label.control-label Grouping
+                .controls
+                    %label.checkbox
+                        = f.check_box :allow_pairs
+                        Allow Pairs
+
+            .control-group{ class: ('error' if errors[:core_type].any?)}
+                %label.control-label{for: 'core_type'} Core Type
+                .controls
+                    =f.select :core_type, %w(core pod), include_blank: "None"
+                    - if errors[:core_type].any?
+                        %span.help-inline=errors[:core_type].first
+
             %h4 Comped Users and Groups
             - if permitted_to? :assign_comps, @league
                 = render partial: '/user_multiselect', locals: {form: f, fieldname: 'comped_player_ids', label: "Comped Players", users: @league.comped_players}
@@ -94,9 +125,9 @@
                                 %strong=g.name
                                 &dash;
                                 =g.description
-            - else                                    
+            - else
                 = render partial: 'comps', locals: {league: @league}
-                
+
     .form-actions
         %button.btn.btn-large.btn-primary=@league.new_record? ? "Create League" : "Update League"
 

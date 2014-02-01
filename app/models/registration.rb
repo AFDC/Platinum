@@ -35,6 +35,12 @@ class Registration
         availability['attend_tourney_eos'] if availability
     end
 
+    def old_pair
+        if self[:pair]
+            self[:pair]['text']
+        end
+    end
+
     def pair
         User.find(pair_id) if pair_id
     end
