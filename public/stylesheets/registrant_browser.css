@@ -55,3 +55,7 @@ span.label.male {
 i.collapser {
   cursor: pointer;
 }
+
+span.grank-history {
+  background-color: #ddd;
+}

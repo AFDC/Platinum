@@ -70,6 +70,7 @@ class LeaguesController < ApplicationController
             if reg.g_rank_result
                 @registrant_data[reg._id.to_s][:grank][:score] = reg.g_rank_result.score
                 @registrant_data[reg._id.to_s][:grank][:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
+                @registrant_data[reg._id.to_s][:grank][:history] = reg.user.g_rank_results.map(&:score).slice(0,12)
             end
         end
     end

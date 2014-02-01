@@ -198,9 +198,17 @@ $(function(){
             result += "<li><strong>" + q + ":</strong> " + a + "</li>";
           }
         });
-        result += "</ul>";
+        result += '<li><strong>Score History:</strong> <span class="grank-history">' + registrant_data[id]['grank']['history'].reverse().join(",") + '</span></li>';
+        result += '</ul>';
         return result;
       }
+    }).on('shown', function(e){
+      $('.grank-history').sparkline('html', {
+        type: 'bar',
+        chartRangeMin: 0,
+        chartRangeMax: 10,
+        disableHiddenCheck: true,
+      });
     });
   });
 });

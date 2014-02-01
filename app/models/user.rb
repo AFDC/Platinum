@@ -31,7 +31,7 @@ class User
     styles: {profile: '330x330>', roster: '160x160#', thumbnail: '32x32#'}
 
   has_many :identities
-  has_many :g_rank_results
+  has_many :g_rank_results, order: :timestamp.desc
   has_many :registrations
   has_and_belongs_to_many :teams, foreign_key: :teams
 

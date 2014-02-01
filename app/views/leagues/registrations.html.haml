@@ -40,10 +40,13 @@
   = javascript_include_tag('//code.jquery.com/ui/1.10.4/jquery-ui.js')
   = javascript_include_tag('/javascripts/registrant_browser.js')
   = javascript_include_tag('/javascripts/jquery-scrollto.js')
+  = javascript_include_tag('/javascripts/jquery.sparkline.min.js')
   :javascript
     var registrant_list = #{@registrant_ids.to_json};
     var filtered_registrant_list = registrant_list;
     var registrant_data = #{@registrant_data.to_json};
+    var league_locked = #{@league.started? ? 'true' : 'false'};
+    var pairs_allowed = #{@league.allow_pairs? ? 'true' : 'false'};
 
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'Registrations', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registrations' => nil}}
@@ -89,7 +92,18 @@
         %option{value: 'rank'} Rank (Desc.)
       %button.btn.btn-small.btn-block.btn-primary#do-sort Sort Results
       %hr
-    %h4 Actions
+    %h4
+      %i.icon-collapse.collapser{"data-toggle" => "collapse", "data-target" => ".action-panel"}
+      Actions
+    .action-panel.collapse
+      - if @league.started?
+        %strong This league is now underway, no further changes may be made to your pairs, cores, or pods.
+      - else
+        - if @league.allow_pairs?
+          #pair-control
+        - else
+          %strong Pairs are disabled for this league.
+
 
   .span7#listing-column
     .pagination.pagination-centered.pagination-mini{style: "margin: 0;"}

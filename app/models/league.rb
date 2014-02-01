@@ -46,6 +46,10 @@ class League
     registration_open.to_time.in_time_zone.change(hour: 12).past? && registration_close.to_time.in_time_zone.end_of_day.future?
   end
 
+  def started?
+    start_date.beginning_of_day < Time.now
+  end
+
   def comped?(user)
     return true if comped_player_ids.include? user._id
     return true if comped_groups.collect(&:member_ids).flatten.include? user._id
