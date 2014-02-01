@@ -26,7 +26,12 @@ class AuthController < ApplicationController
 
         @user.save
 
-        redirect_to home_path
+        if session[:login_redirect_url]
+            redirect_to session[:login_redirect_url]
+            session.delete(:login_redirect_url)
+        else
+            redirect_to home_path
+        end
     end
 
     def reset_password
