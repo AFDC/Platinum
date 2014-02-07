@@ -1,6 +1,7 @@
 var items_per_page = 25;
 var current_page = 1;
 var do_render;
+var render_registrant_details;
 
 // Rendering thingy
 $(function(){
@@ -39,11 +40,18 @@ $(function(){
     return (obj.rank >= rank_range[0] && obj.rank <= rank_range[1]);
   }
 
+  var matches_paired_filter = function(obj) {
+    if ($('#show-paired:checked').length > 0) {
+      return true;
+    }
+    return (obj.pair_id == null);
+  }
+
   var filter_registrants = function() {
     filtered_registrant_list = [];
     for (var i = 0; i < registrant_list.length; i++) {
       var obj = registrant_data[registrant_list[i]];
-      if (matches_text_filter(obj) && matches_gender_filter(obj) && matches_status_filter(obj) && matches_rank_filter(obj)) {
+      if (matches_text_filter(obj) && matches_gender_filter(obj) && matches_status_filter(obj) && matches_rank_filter(obj) && matches_paired_filter(obj)) {
         filtered_registrant_list.push(registrant_list[i]);
       }
     }
@@ -176,29 +184,43 @@ $(function(){
 // Display larger details link
 $(function(){
   var registrant_profile = _.template($('#registrant-detail-template').html());
+  var pair_invite_button = _.template($('#pair-invite-button').html());
   var target_dom = $('#player-details');
-  $('#registrants').on('click', 'li.registrant-row', function(e){
-    var id = $(this).attr('id');
-    target_dom.data('id', id);
+  var user_reg = registrant_data[current_user['registration_id']];
 
-    target_dom.html(registrant_profile(registrant_data[id]));
+  render_registrant_details = function(registrant_id) {
+    var reg = registrant_data[registrant_id];
+    target_dom.data('id', registrant_id);
+    target_dom.html(registrant_profile(reg));
 
-    $("#player-details .details-grank").popover({
+    // Lots of different conditions for showing the pair button. geez.
+    if (pairs_allowed && user_reg
+        && reg['user_id'] != current_user['_id']
+        && reg['status'] == 'active'
+        && user_reg['status'] == 'active'
+        && !user_reg['pair_id']
+        && !reg['pair_id']
+        && current_user['pair_invite_count'] == 0) {
+      target_dom.append(pair_invite_button(reg));
+    }
+
+    $(".details-grank").popover({
       html: true,
       placement: 'left',
       trigger: 'hover',
       title: 'gRank Answers',
+      container: '#details-column',
       content: function() {
         var id = target_dom.data('id');
-        var questions = _.keys(registrant_data[id]['grank']['answers']);
+        var questions = _.keys(reg['grank']['answers']);
         var result = '<ul>';
         _.each(questions, function(q){
-          var a = registrant_data[id]['grank']['answers'][q];
+          var a = reg['grank']['answers'][q];
           if (a) {
             result += "<li><strong>" + q + ":</strong> " + a + "</li>";
           }
         });
-        result += '<li><strong>Score History:</strong> <span class="grank-history">' + registrant_data[id]['grank']['history'].reverse().join(",") + '</span></li>';
+        result += '<li><strong>Score History:</strong> <span class="grank-history">' + reg['grank']['history'].join(",") + '</span></li>';
         result += '</ul>';
         return result;
       }
@@ -210,11 +232,57 @@ $(function(){
         disableHiddenCheck: true,
       });
     });
+  }
+
+  $('#registrants').on('click', 'li.registrant-row', function(e){
+    render_registrant_details($(this).attr('id'));
+  });
+
+  $('.container').on('click', 'a.show-reg', function(e) {
+    e.preventDefault();
+    render_registrant_details($(this).data('registration-id'));
   });
 });
 
+// Handle Collapsing Left Sidebar Sections
 $(function(){
   $('.collapser').on('click', function(e){
     $(this).toggleClass('icon-collapse-top icon-collapse', 100);
+  });
+});
+
+// Pair Stuff
+$(function(){
+  if (pairs_allowed != true) { return; }
+
+  $("#player-details").on('click', 'button.add-pair', function(e){
+    var reg_id = $(this).data('registration-id');
+
+    var xhr = $.ajax({
+      type: 'GET',
+      url: pair_invite_path,
+      data: {target_registration_id: reg_id},
+      dataType: 'json'
+    }).done(function(data){
+      $("#player-details").append('<div class="alert alert-success">Pair invite sent!</div>');
+      current_user['pair_invite_count'] += 1;
+      $("#player-details button.add-pair").remove();
+    }).error(function(jqXHR, textStatus, errorThrown){
+      try {
+        errors = $.parseJSON(jqXHR.responseText);
+      } catch (e) {
+        errors = ['An unknown error occurred on the server.'];
+      }
+
+      var error_msg = '<div class="alert alert-error"><ul class="unstyled">';
+
+      for (var i = 0; i < errors.length; i++) {
+        error_msg += '<li>' + errors[i] + '</li>';
+      }
+
+      error_msg += '</ul></div>';
+      $("#player-details").append(error_msg);
+      $("#player-details button.add-pair").remove();
+    });
   });
 });

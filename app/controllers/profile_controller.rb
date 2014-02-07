@@ -17,9 +17,9 @@ class ProfileController < ApplicationController
     grr = GRankResult.new({answers: answers, score: score, user: current_user})
 
     unless grr.save
-       redirect_to edit_g_rank_profile_path, flash: {error: "Could not save result."} and return 
+       redirect_to edit_g_rank_profile_path, flash: {error: "Could not save result."} and return
     end
-    
+
     # Update any existing registrations
     current_user.registrations.where({'league_id' => {'$in' => League.current.map(&:_id)}}).each do |r|
       next unless r.league.require_grank?
@@ -30,6 +30,11 @@ class ProfileController < ApplicationController
       r.save
     end
 
-    redirect_to user_profile_path, notice: 'Your gRank has been updated successfully.'
+    if league_id = session[:post_grank_redirect]
+      session.delete(:post_grank_redirect)
+      redirect_to register_league_path(league_id)
+    else
+      redirect_to user_profile_path, notice: 'Your gRank has been updated successfully.'
+    end
   end
 end

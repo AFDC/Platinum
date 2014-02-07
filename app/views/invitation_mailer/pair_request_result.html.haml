@@ -1,0 +1,10 @@
+%p #{@invite.sender.name}:
+
+%p
+  Your request to pair with #{link_to(@invite.recipient.name, user_url(@invite.recipient))}
+  for #{link_to(@league.name, league_url(@league))} has been #{@invite.status}.
+
+- content_for :callout_box do
+  Click
+  =link_to "here", invitations_url
+  to manage your existing invitations

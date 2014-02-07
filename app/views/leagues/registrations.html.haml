@@ -6,6 +6,7 @@
           <div class="main col"><strong><span class="<%=gender%> label"><% print(gender[0].toUpperCase()); %></span> <%=name%></strong></div>
           <div class="col"><strong>Status:</strong> <%=status%></div>
           <div class="col"><strong>Rank:</strong> <%=rank%></div>
+          <div class="col" style="width: 100px; text-align: right;"><% if (pair_id) { print('<i class="icon-link"></i>'); } %></div>
           <div class="main col"><strong>Availability:</strong> <%=gen_availability%></div>
           <div class="col"><strong>Role:</strong> <%=player_type%></div>
         </div>
@@ -18,16 +19,18 @@
     <img class="img-polaroid img-rounded" src="<%=profile_img_url%>" style="max-width: 160px; height: auto;">
     <ul class="unstyled">
       <li><strong>Registration</strong>: <%=status%></li>
-      <li><hr /></li>
       <li><strong>Rank:</strong> <%=rank%></li>
       <% if (grank.score) { %>
         <li class="details-grank"><strong>gRank</strong>: <%=grank.score%> <i class="icon-question-sign"></i></li>
       <% } %>
       <li><strong>Role:</strong> <%=player_type%></li>
       <li><strong>Gender:</strong> <%=gender%></li>
-      <li><strong>Height:</strong> <%=height%></li>
-      <li><strong>Age:</strong> <%=age%></li>
+      <li><strong>Stats:</strong> <%=height%>, <%=age%> years old</li>
     </ul>
+  </script>
+
+  <script type="text/x-underscore" id="pair-invite-button">
+    <button class="btn btn-primary btn-small btn-block add-pair" data-registration-id="<%=_id%>">Invite to Pair</button>
   </script>
 
 - content_for :page_styles do
@@ -42,11 +45,13 @@
   = javascript_include_tag('/javascripts/jquery-scrollto.js')
   = javascript_include_tag('/javascripts/jquery.sparkline.min.js')
   :javascript
-    var registrant_list = #{@registrant_ids.to_json};
+    var registrant_list = #{@registrant_data.keys.to_json};
     var filtered_registrant_list = registrant_list;
     var registrant_data = #{@registrant_data.to_json};
     var league_locked = #{@league.started? ? 'true' : 'false'};
     var pairs_allowed = #{@league.allow_pairs? ? 'true' : 'false'};
+    var current_user = #{@user_data.to_json};
+    var pair_invite_path = "#{invite_pair_league_path(@league)}";
 
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'Registrations', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registrations' => nil}}
@@ -55,7 +60,7 @@
   .span3
     %h4
       %i.icon-collapse-top.collapser{"data-toggle" => "collapse", "data-target" => ".filter-form"}
-      Filters
+      Filters and Sorting
     .filter-form.collapse.in
       %input.span3{id: 'search-text', type:'text', placeholder: 'Text Search'}
       %select.span3{id: 'gender'}
@@ -73,6 +78,8 @@
         %option{selected: true, value: '25'} 25 Players Per Page
         %option{value: '50'} 50 Players Per Page
         %option{value: '100'} 100 Players Per Page
+      %label.checkbox
+        %input#show-paired{type: 'checkbox', value: 1, checked: true} Show Paired Players
       %div{style: 'padding: 10px;'}
         %div#rank-range
         %p{style: 'text-align: center;'}
@@ -81,17 +88,13 @@
       %button.btn.btn-small.btn-block.btn-primary#apply-filters Apply Filters
       %button.btn.btn-small.btn-block.btn-info#clear-filters Clear Filters
       %hr
-
-    %h4
-      %i.icon-collapse-top.collapser{"data-toggle" => "collapse", "data-target" => ".sort-form"}
-      Sorting
-    .sort-form.collapse.in
       %select.span3{id: 'sort-field'}
         %option{value: ''} Sort By:
         %option{value: 'availability'} Availability (Desc.)
         %option{value: 'rank'} Rank (Desc.)
       %button.btn.btn-small.btn-block.btn-primary#do-sort Sort Results
       %hr
+
     %h4
       %i.icon-collapse.collapser{"data-toggle" => "collapse", "data-target" => ".action-panel"}
       Actions
@@ -101,6 +104,22 @@
       - else
         - if @league.allow_pairs?
           #pair-control
+            - if @user_data[:pair_id]
+              %p
+                %strong Current Pair:
+                = link_to @pair_reg.user.name, @pair_reg.user
+                = link_to @pair_reg, class: "show-reg", "data-registration-id" => @pair_reg._id do
+                  %i.icon-chevron-sign-right
+              %p You may not pair with another person or join a pod or core while you are paired.
+
+              = link_to "Leave this pair", leave_pair_league_path(@league), class: 'btn btn-block btn-small btn-warning'
+            - elsif @user_data[:pair_invite_count] > 0
+              %p You have sent an invite to pair with another person. Before you can send any more, you must first cancel the existing invite.
+              %p
+                Manage your current invitations
+                = link_to "here.", invitations_path
+            - else
+              %p To pair with another player, select an active registraint on the right and click the "Invite to Pair" button.
         - else
           %strong Pairs are disabled for this league.
 
@@ -111,13 +130,9 @@
     %ul.unstyled#registrants
     .pagination.pagination-centered.pagination-mini{style: "margin: 0;"}
       %ul
-  .span2
+  .span2#details-column
     %div.affix-top#player-details{"data-spy" => "affix", "data-offset-top" => "150"}
 
   .hide
     #no-results
-      %div{style: 'text-align: center; margin-top: 20px;'}
-        %div{style: 'font-size: 128px;'}
-          %i.icon-remove-sign
-        %div{style: 'font-weight: bold;'}
-          No Results Found
+      = render partial: '/no_results'

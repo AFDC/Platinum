@@ -1,5 +1,5 @@
 class LeaguesController < ApplicationController
-    before_filter :load_league_from_params, only: [:register, :registrations, :capture_payments, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update, :select_pair]
+    before_filter :load_league_from_params, only: [:register, :registrations, :capture_payments, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update, :select_pair, :invite_pair, :leave_pair]
     before_filter :initialize_roster_csv, only: [:manage_roster, :upload_roster, :setup_roster_import, :import_roster]
     filter_access_to [:capture_payments], attribute_check: true
 
@@ -34,7 +34,8 @@ class LeaguesController < ApplicationController
             return
         end
 
-        if @league.require_grank? && current_user.g_rank_results.last.timestamp.end_of_day < 6.months.ago
+        if @league.require_grank? && (current_user.g_rank_results.first.nil? || current_user.g_rank_results.first.timestamp.end_of_day < @league.max_grank_age.months.ago)
+            session[:post_grank_redirect] = @league._id.to_s
             redirect_to edit_g_rank_profile_path, notice: "Your gRank score is out of date, please complete the survey before registering."
             return
         end
@@ -46,31 +47,141 @@ class LeaguesController < ApplicationController
     end
 
     def registrations
-        @registrant_ids = []
-        @registrant_data = {}
-        @league.registrations.each do |reg|
-            @registrant_ids << reg._id.to_s
-            @registrant_data[reg._id.to_s] = {
-                _id: reg._id.to_s,
-                status: reg.status,
-                name: reg.user.name,
-                profile_img_url: reg.user.avatar.url(:roster),
-                thumbnail_img_url: reg.user.avatar.url(:thumbnail),
-                profile_url: user_path(reg.user),
-                registration_url: registration_path(reg),
-                gender: reg.gender,
-                gen_availability: reg.gen_availability,
-                rank: reg.rank,
-                eos: reg.eos_availability,
-                player_type: reg.player_strength,
-                height: reg.user.height_in_feet_and_inches,
-                grank: {},
-                age: reg.user.age,
-            }
-            if reg.g_rank_result
-                @registrant_data[reg._id.to_s][:grank][:score] = reg.g_rank_result.score
-                @registrant_data[reg._id.to_s][:grank][:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
-                @registrant_data[reg._id.to_s][:grank][:history] = reg.user.g_rank_results.map(&:score).slice(0,12)
+        @user_data = {
+            _id: current_user._id,
+        }
+
+        if user_reg = @league.registration_for(current_user)
+            @user_data[:registration_id] = user_reg._id.to_s
+            @user_data[:pair_id] = user_reg[:pair_id]
+            @pair_reg = @league.registration_for(user_reg.pair)
+        else
+            @user_data[:registration_id] = nil
+            @user_data[:pair_id] = nil
+        end
+
+
+
+        if @pair_reg
+            @user_data[:pair_registration_id] = @pair_reg._id
+        else
+            @user_data[:pair_registration_id] = nil
+        end
+
+        @user_data[:pair_invite_count] = Invitation.outstanding.where(type: 'pair', sender: current_user, handler_id: @league._id).count
+
+        @registrant_data = Rails.cache.fetch("#{@league.cache_key}/registrant_summary", expires_in: 24.hours, race_condition_ttl: 10) do
+            rd = {}
+            @league.registrations.each do |reg|
+                rd[reg._id.to_s] = {
+                    _id: reg._id.to_s,
+                    user_id: reg.user._id.to_s,
+                    status: reg.status,
+                    name: reg.user.name,
+                    profile_img_url: reg.user.avatar.url(:roster),
+                    thumbnail_img_url: reg.user.avatar.url(:thumbnail),
+                    profile_url: user_path(reg.user),
+                    registration_url: registration_path(reg),
+                    pair_id: reg.pair_id,
+                    gender: reg.gender,
+                    gen_availability: reg.gen_availability,
+                    rank: reg.rank,
+                    eos: reg.eos_availability,
+                    player_type: reg.player_strength,
+                    height: reg.user.height_in_feet_and_inches,
+                    grank: {},
+                    age: reg.user.age,
+                }
+                if reg.g_rank_result
+                    rd[reg._id.to_s][:grank][:score] = reg.g_rank_result.score
+                    rd[reg._id.to_s][:grank][:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
+                    rd[reg._id.to_s][:grank][:history] = reg.user.g_rank_results.map(&:score).slice(0,12).reverse
+                end
+
+                if reg.pair
+                    rd[reg._id.to_s][:pair_reg_id] = @league.registration_for(reg.pair)._id
+                else
+                    rd[reg._id.to_s][:pair_reg_id] = nil
+                end
+            end
+            rd
+        end
+    end
+
+    def leave_pair
+        user_reg = @league.registration_for(current_user)
+        if user_reg.pair
+            pair_reg = @league.registration_for(user_reg.pair)
+
+            user_reg.pair = nil
+            user_reg.save!
+            pair_reg.pair = nil
+            pair_reg.save!
+
+            # TODO: Send "goodbye" email
+        end
+
+        redirect_to registrations_league_path(@league), flash: {success: "You are no longer paired."}
+    end
+
+    def invite_pair
+        errors = []
+        user_reg = @league.registration_for(current_user)
+        friend_reg = Registration.find(params[:target_registration_id])
+
+        begin
+            unless user_reg.present?
+                errors << "You're not registered for this league."
+            end
+
+            unless friend_reg.present?
+                errors << "Registration not found for that user."
+            end
+
+            raise StandardError unless user_reg.present? && friend_reg.present?
+
+            unless friend_reg.status == 'active' && user_reg.status == 'active'
+                errors << "Only active registrants may pair for a league."
+            end
+
+            if user_reg.pair.present?
+                errors << "You've already got a pair!"
+            end
+
+            if friend_reg.pair.present?
+                errors << "That user is already paired!"
+            end
+
+            if friend_reg == user_reg
+                errors << "Don't freak out -- you'll definitely be on your own team."
+            end
+
+            if Invitation.outstanding.where(type: 'pair', sender: current_user, handler_id: @league._id).count > 0
+                errors << "You have already made a pair request. You'll need to cancel that to make a new one"
+            end
+        rescue => e
+        end
+
+        if errors.empty?
+            invite = Invitation.create!(
+                type: 'pair',
+                handler: @league,
+                sender: current_user,
+                recipient: friend_reg.user
+            )
+
+            unless invite.persisted?
+                errors << "Saving the invitation failed."
+            end
+        end
+
+        respond_to do |format|
+            format.json do
+                if errors.empty?
+                    render json: invite
+                else
+                    render json: errors, status: 500
+                end
             end
         end
     end
@@ -99,9 +210,9 @@ class LeaguesController < ApplicationController
         end
 
         if session[:roster_csv][@league._id] && File.file?(session[:roster_csv][@league._id])
-            @has_roster_upload = true;
+            @has_roster_upload = true
         else
-            @has_roster_upload = false;
+            @has_roster_upload = false
             session[:roster_csv].delete(@league._id) if session[:roster_csv][@league._id]
         end
     end
@@ -134,7 +245,7 @@ class LeaguesController < ApplicationController
 
         @columns.each do |field_name|
             item = @sample_data[0][field_name]
-            if item.match /^[0-9a-fA-F]{24}$/
+            if item.match(/^[0-9a-fA-F]{24}$/)
                 if User.find(item)
                     @user_id_field_guess = field_name
                 elsif Team.find(item)
@@ -261,7 +372,7 @@ class LeaguesController < ApplicationController
             :name, :age_division, :season, :sport, :price,
             :start_date, :end_date, :registration_open, :registration_close,
             :description, {commissioner_ids: []},
-            :require_grank, :allow_pairs, :allow_self_rank, :core_type,
+            :max_grank_age, :allow_pairs, :allow_self_rank, :core_type,
             :eos_tourney, :mst_tourney
         ]
 
