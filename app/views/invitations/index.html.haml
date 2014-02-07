@@ -1,0 +1,57 @@
+- content_for :title, "Invitations"
+= render partial: '/pageheader'
+
+%h4 <i class="icon-inbox"></i> Received Invitations
+- if @received.count <= 0
+  = render partial: '/no_results'
+- else
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Date
+        %th League
+        %th Sender
+        %th Type
+        %th Status
+        %th Actions
+    %tbody
+      - @received.each do |i|
+        %tr
+          %td=i.created_at.strftime('%a, %b %e, %Y; %l:%M %P')
+          %td=link_to i.handler.name, i.handler
+          %td=link_to i.sender.name, i.sender
+          %td=i.type
+          %td=i.status
+          %td
+            - if %w(new sent).include?(i.status)
+              =link_to 'Accept', accept_invitation_path(i), class: 'btn btn-success btn-small accept-button'
+              =link_to 'Decline', decline_invitation_path(i), class: 'btn btn-danger btn-small decline-button'
+            - else
+              &nbsp;
+%hr
+%h4 <i class="icon-envelope"></i> Sent Invitations
+- if @sent.count <= 0
+  = render partial: '/no_results'
+- else
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Date
+        %th League
+        %th Recipient
+        %th Type
+        %th Status
+        %th Actions
+    %tbody
+      - @sent.each do |i|
+        %tr
+          %td=i.created_at.strftime('%a, %b %e, %Y; %l:%M %P')
+          %td=link_to i.handler.name, i.handler
+          %td=link_to i.recipient.name, i.recipient
+          %td=i.type
+          %td=i.status
+          %td
+            - if %w(new sent).include?(i.status)
+              =link_to 'Cancel Invitation', cancel_invitation_path(i), class: 'btn btn-warning btn-small cancel-button'
+            - else
+              &nbsp;

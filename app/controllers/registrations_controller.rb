@@ -111,6 +111,16 @@ class RegistrationsController < ApplicationController
     def populate_registration(reg)
         reg_params = params[:registration]
 
+        if reg.new_record?
+            reg.waiver_acceptance_date = Time.now
+            reg.league = League.find(reg_params[:league_id])
+            reg.signup_timestamp = Time.now
+            reg.payment_timestamps[:pending] = Time.now
+            reg.user = current_user
+            reg.status = 'pending'
+            reg.paid = false
+        end
+
         unless ['25%', '50%', '75%', '100%'].include?(reg_params[:gen_availability])
             redirect_to register_league_path(reg.league), notice: "You must select and attendance percentage"
             return
@@ -133,18 +143,8 @@ class RegistrationsController < ApplicationController
             return
         end
 
-        if reg.new_record?
-            reg.waiver_acceptance_date = Time.now
-            reg.league = League.find(reg_params[:league_id])
-            reg.signup_timestamp = Time.now
-            reg.payment_timestamps[:pending] = Time.now
-            reg.user = current_user
-            reg.status = 'pending'
-            reg.paid = false
-        end
-
         if reg.league.require_grank?
-            reg.g_rank_result = reg.user.g_rank_results.last
+            reg.g_rank_result = reg.user.g_rank_results.first
             reg.g_rank = reg.g_rank_result.score
         end
 

@@ -1,6 +1,7 @@
 class League
   include Mongoid::Document
   include ActiveModel::ForbiddenAttributesProtection
+  include Mongoid::Timestamps
   field :name
   field :age_division
   field :season
@@ -15,7 +16,7 @@ class League
   field :description, type: String
 
   # Options
-  field :require_grank, type: Boolean, default: false
+  field :max_grank_age, type: Integer, default: nil
   field :allow_self_rank, type: Boolean, default: true
   field :allow_pairs, type: Boolean, default: true
   field :core_type
@@ -33,6 +34,7 @@ class League
   validates :age_division, :inclusion => { in: %w(adult juniors) }
   validates :season, :inclusion => { in: %w(fall winter spring summer saturday) }
   validates :sport, :inclusion => { in: %w(ultimate goaltimate) }
+  validates :max_grank_age, :numericality => { integer_only: true, greater_than: 0, less_than: 24, allow_blank: true }
 
   scope :past,    -> { where(:end_date.lt => Date.today).order_by(start_date: :desc) }
   scope :future,  -> { where(:registration_open.gt => Date.today).order_by(start_date: :desc) }
@@ -41,13 +43,15 @@ class League
   def registration_open?
     return false if registration_open.nil? || registration_close.nil?
 
-    open_time = registration_open.to_time.in_time_zone
-
     registration_open.to_time.in_time_zone.change(hour: 12).past? && registration_close.to_time.in_time_zone.end_of_day.future?
   end
 
   def started?
     start_date.beginning_of_day < Time.now
+  end
+
+  def require_grank?
+    max_grank_age.present?
   end
 
   def comped?(user)
@@ -73,7 +77,25 @@ class League
     end
   end
 
-  def registration_for user
-    registrations.where({user_id: user._id}).first
+  def handle_accepted_invite(invitation)
+    if invitation.type == 'pair'
+      sender_reg = registration_for(invitation.sender)
+      recipient_reg = registration_for(invitation.recipient)
+
+      unless sender_reg.present? && recipient_reg.present?
+        raise "Registrations not found."
+      end
+
+      sender_reg.pair = invitation.recipient
+      recipient_reg.pair = invitation.sender
+      sender_reg.save!
+      recipient_reg.save!
+    end
+  end
+
+  def registration_for(user)
+    if user
+      registrations.where({user_id: user._id}).first
+    end
   end
 end

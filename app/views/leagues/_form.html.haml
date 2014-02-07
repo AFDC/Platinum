@@ -82,11 +82,15 @@
                 %label.control-label Ranking
                 .controls
                     %label.checkbox
-                        = f.check_box :require_grank
-                        Require recent gRank Score?
-                    %label.checkbox
                         = f.check_box :allow_self_rank
                         Allow Slef-Rank
+
+            .control-group{ class: ('error' if errors[:max_grank_age].any?)}
+                %label.control-label{for: 'max_grank_age'} Core Type
+                .controls
+                    =f.select :max_grank_age, (1..24).map{|m| ["#{m} #{'month'.pluralize(m)}",m]}, include_blank: "gRank Not Required"
+                    - if errors[:max_grank_age].any?
+                        %span.help-inline=errors[:max_grank_age].first
 
             .control-group
                 %label.control-label Tournaments

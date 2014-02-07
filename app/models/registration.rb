@@ -26,6 +26,9 @@ class Registration
     belongs_to :user
     belongs_to :league
     belongs_to :g_rank_result
+    belongs_to :pair, class_name: "User"
+
+    after_save :bust_league_cache
 
     def gen_availability
         availability['general'] if availability
@@ -35,14 +38,12 @@ class Registration
         availability['attend_tourney_eos'] if availability
     end
 
+    # Pairing Stuff:
+
     def old_pair
         if self[:pair]
             self[:pair]['text']
         end
-    end
-
-    def pair
-        User.find(pair_id) if pair_id
     end
 
     def rank
@@ -109,5 +110,11 @@ class Registration
     end
 
     class PaymentNotCaptured < StandardError
+    end
+
+    private
+
+    def bust_league_cache
+        self.league.touch
     end
 end

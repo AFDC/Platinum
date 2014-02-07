@@ -42,7 +42,7 @@
 		.row
 			.span2{style: "font-weight: bold;"} gRank
 			.span2
-				- if last_grr = @user.g_rank_results.last
+				- if last_grr = @user.g_rank_results.first
 					#{last_grr.score} (#{last_grr.timestamp.strftime('%b %Y')})
 				- else
 					n/a

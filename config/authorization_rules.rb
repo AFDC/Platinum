@@ -24,14 +24,23 @@ authorization do
 
 		# Things all users can do:
 		has_permission_on :users, to: [:index, :search, :show]
+		has_permission_on :invitations, to: [:index]
 		has_permission_on :teams, to: [:index, :search, :show, :view_roster]
 		has_permission_on :registrations, to: [:create]
-		has_permission_on :leagues, to: [:register, :registrations]
+		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair]
 		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
 
 		# Things a user can do IFF the record belongs to them:
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :registrations, :edit, :update] do
 			if_attribute :_id => is { user._id }
+		end
+
+		has_permission_on :invitations, to: [:show, :accept, :decline] do
+			if_attribute recipient_id: is { user._id }
+		end
+
+		has_permission_on :invitations, to: [:show, :cancel] do
+			if_attribute sender_id: is { user._id }
 		end
 
 		has_permission_on :registrations, to: [:checkout, :show, :edit, :update, :cancel] do

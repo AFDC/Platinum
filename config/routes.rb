@@ -4,6 +4,14 @@ Platinum::Application.routes.draw do
   match '/users/search' => 'users#search'
   resources :fields, :schedules, :comp_groups
 
+  resources :invitations do
+    member do
+      get 'accept'
+      get 'decline'
+      get 'cancel'
+    end
+  end
+
   resources :registrations do
     member do
       put 'cancel'
@@ -22,6 +30,8 @@ Platinum::Application.routes.draw do
       post 'upload_roster'
       get 'setup_roster_import'
       post 'import_roster'
+      get 'invite_pair'
+      get 'leave_pair'
     end
 
     resources :teams, only: [:new, :create]

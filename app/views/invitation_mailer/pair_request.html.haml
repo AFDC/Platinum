@@ -1,0 +1,14 @@
+%p #{@invite.recipient.name}:
+
+%p
+  You have received a request to pair with #{link_to(@invite.sender.name, user_url(@invite.sender))}
+  for #{link_to(@league.name, league_url(@league))}.
+
+%p In order for this request to be honored by the league, you must confirm that you're okay with it.
+
+%p If you'd rather not pair with this person, you can ignore or decline the invite.
+
+- content_for :callout_box do
+  Click
+  =link_to "here", invitations_url
+  to manage your existing invitations
