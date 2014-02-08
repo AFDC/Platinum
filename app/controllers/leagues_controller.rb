@@ -70,6 +70,10 @@ class LeaguesController < ApplicationController
 
         @user_data[:pair_invite_count] = Invitation.outstanding.where(type: 'pair', sender: current_user, handler_id: @league._id).count
 
+        if Invitation.outstanding.where(type: 'pair', recipient: current_user, handler_id: @league._id).count > 0
+            flash.now[:notice] = "You have invitations waiting for you in this league. #{ActionController::Base.helpers.link_to("Click here", invitations_path)} to see them.".html_safe
+        end
+
         @registrant_data = Rails.cache.fetch("#{@league.cache_key}/registrant_summary", expires_in: 24.hours, race_condition_ttl: 10) do
             rd = {}
             @league.registrations.each do |reg|

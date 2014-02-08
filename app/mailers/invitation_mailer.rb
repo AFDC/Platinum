@@ -16,6 +16,6 @@ class InvitationMailer < ActionMailer::Base
     @invite = Invitation.find(invitation_id)
     @league = @invite.handler
 
-    mail(to: @invite.sender.email_address, subject: "[AFDC] Pair request to #{@invite.recipient.name} #{@invite.status}")
+    mail(to: @invite.sender.email_address, subject: "[AFDC] #{@invite.recipient.name} #{@invite.status} your pair request")
   end
 end
