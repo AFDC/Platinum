@@ -59,6 +59,34 @@
 .row
   .span3
     %h4
+      %i.icon-collapse-top.collapser{"data-toggle" => "collapse", "data-target" => ".action-panel"}
+      Actions
+    .action-panel.collapse.in
+      - if @league.started?
+        %strong This league is now underway, no further changes may be made to your pairs, cores, or pods.
+      - else
+        - if @league.allow_pairs?
+          #pair-control
+            - if @user_data[:pair_id]
+              %p
+                %strong Current Pair:
+                = link_to @pair_reg.user.name, @pair_reg.user
+                = link_to @pair_reg, class: "show-reg", "data-registration-id" => @pair_reg._id do
+                  %i.icon-chevron-sign-right
+              %p You may not pair with another person or join a pod or core while you are paired.
+
+              = link_to "Leave this pair", leave_pair_league_path(@league), class: 'btn btn-block btn-small btn-warning'
+            - elsif @user_data[:pair_invite_count] > 0
+              %p You have sent an invite to pair with another person. Before you can send any more, you must first cancel the existing invite.
+              %p
+                Manage your current invitations
+                = link_to "here.", invitations_path
+            - else
+              %p To pair with another player, select an active registraint on the right and click the "Invite to Pair" button.
+        - else
+          %strong Pairs are disabled for this league.
+      %hr
+    %h4
       %i.icon-collapse-top.collapser{"data-toggle" => "collapse", "data-target" => ".filter-form"}
       Filters and Sorting
     .filter-form.collapse.in
@@ -94,34 +122,6 @@
         %option{value: 'rank'} Rank (Desc.)
       %button.btn.btn-small.btn-block.btn-primary#do-sort Sort Results
       %hr
-
-    %h4
-      %i.icon-collapse.collapser{"data-toggle" => "collapse", "data-target" => ".action-panel"}
-      Actions
-    .action-panel.collapse
-      - if @league.started?
-        %strong This league is now underway, no further changes may be made to your pairs, cores, or pods.
-      - else
-        - if @league.allow_pairs?
-          #pair-control
-            - if @user_data[:pair_id]
-              %p
-                %strong Current Pair:
-                = link_to @pair_reg.user.name, @pair_reg.user
-                = link_to @pair_reg, class: "show-reg", "data-registration-id" => @pair_reg._id do
-                  %i.icon-chevron-sign-right
-              %p You may not pair with another person or join a pod or core while you are paired.
-
-              = link_to "Leave this pair", leave_pair_league_path(@league), class: 'btn btn-block btn-small btn-warning'
-            - elsif @user_data[:pair_invite_count] > 0
-              %p You have sent an invite to pair with another person. Before you can send any more, you must first cancel the existing invite.
-              %p
-                Manage your current invitations
-                = link_to "here.", invitations_path
-            - else
-              %p To pair with another player, select an active registraint on the right and click the "Invite to Pair" button.
-        - else
-          %strong Pairs are disabled for this league.
 
 
   .span7#listing-column
