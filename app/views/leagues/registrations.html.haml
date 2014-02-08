@@ -75,7 +75,7 @@
   = javascript_include_tag('/javascripts/jquery-scrollto.js')
   = javascript_include_tag('/javascripts/jquery.sparkline.min.js')
   :javascript
-    var core_type = #{@league.core_type ? "\"#{@league.core_type}\"" : null};
+    var core_type = #{@league.core_type ? "\"#{@league.core_type}\"" : 'null'};
     var league_locked = #{@league.started? ? 'true' : 'false'};
     var pairs_allowed = #{@league.allow_pairs? ? 'true' : 'false'};
     var current_user = #{@user_data.to_json};
