@@ -66,12 +66,6 @@ class LeaguesController < ApplicationController
                     @user_data[:pair_id] = nil
                 end
 
-                if @pair_reg
-                    @user_data[:pair_registration_id] = @pair_reg._id
-                else
-                    @user_data[:pair_registration_id] = nil
-                end
-
                 @user_data[:pair_invite_count] = Invitation.outstanding.where(type: 'pair', sender: current_user, handler_id: @league._id).count
 
                 if Invitation.outstanding.where(type: 'pair', recipient: current_user, handler_id: @league._id).count > 0
@@ -84,9 +78,10 @@ class LeaguesController < ApplicationController
                     rd = {}
                     @league.registrations.each do |reg|
                         next unless reg.user
-                        rd[reg._id.to_s] = {
-                            _id: reg._id.to_s,
-                            user_id: reg.user._id.to_s,
+                        uid = reg.user._id.to_s
+                        rd[uid] = {
+                            registration_id: reg._id.to_s,
+                            _id: reg.user._id.to_s,
                             status: reg.status,
                             name: reg.user.name,
                             profile_img_url: reg.user.avatar.url(:roster),
@@ -104,15 +99,9 @@ class LeaguesController < ApplicationController
                             age: reg.user.age,
                         }
                         if reg.g_rank_result
-                            rd[reg._id.to_s][:grank][:score] = reg.g_rank_result.score
-                            rd[reg._id.to_s][:grank][:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
-                            rd[reg._id.to_s][:grank][:history] = reg.user.g_rank_results.map(&:score).slice(0,12).reverse
-                        end
-
-                        if reg.pair
-                            rd[reg._id.to_s][:pair_reg_id] = @league.registration_for(reg.pair)._id
-                        else
-                            rd[reg._id.to_s][:pair_reg_id] = nil
+                            rd[uid][:grank][:score] = reg.g_rank_result.score
+                            rd[uid][:grank][:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
+                            rd[uid][:grank][:history] = reg.user.g_rank_results.map(&:score).slice(0,12).reverse
                         end
                     end
                     rd
@@ -141,14 +130,15 @@ class LeaguesController < ApplicationController
     def invite_pair
         errors = []
         user_reg = @league.registration_for(current_user)
-        friend_reg = Registration.find(params[:target_registration_id])
+        friend = User.find(params[:target_user_id])
+        friend_reg = @league.registration_for(friend)
 
         begin
-            unless user_reg.present?
+            unless current_user.present? && user_reg.present?
                 errors << "You're not registered for this league."
             end
 
-            unless friend_reg.present?
+            unless friend.present? && friend_reg.present?
                 errors << "Registration not found for that user."
             end
 
@@ -173,7 +163,7 @@ class LeaguesController < ApplicationController
             if Invitation.outstanding.where(type: 'pair', sender: current_user, handler_id: @league._id).count > 0
                 errors << "You have already made a pair request. You'll need to cancel that to make a new one"
             end
-        rescue => e
+        rescue nil
         end
 
         if errors.empty?
@@ -181,7 +171,7 @@ class LeaguesController < ApplicationController
                 type: 'pair',
                 handler: @league,
                 sender: current_user,
-                recipient: friend_reg.user
+                recipient: friend
             )
 
             unless invite.persisted?

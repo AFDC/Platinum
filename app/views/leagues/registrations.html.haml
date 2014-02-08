@@ -30,7 +30,7 @@
   </script>
 
   <script type="text/x-underscore" id="pair-invite-button">
-    <button class="btn btn-primary btn-small btn-block add-pair" data-registration-id="<%=_id%>">Invite to Pair</button>
+    <button class="btn btn-primary btn-small btn-block add-pair" data-user-id="<%=_id%>">Invite to Pair</button>
   </script>
 
 - content_for :page_styles do
@@ -69,7 +69,7 @@
               %p
                 %strong Current Pair:
                 = link_to @pair_reg.user.name, @pair_reg.user
-                = link_to @pair_reg, class: "show-reg", "data-registration-id" => @pair_reg._id do
+                = link_to @pair_reg, class: "show-details", "data-user-id" => @pair_reg.user._id do
                   %i.icon-chevron-sign-right
               %p You may not pair with another person or join a pod or core while you are paired.
 

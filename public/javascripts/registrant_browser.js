@@ -198,16 +198,16 @@ $(function(){
   var registrant_profile = _.template($('#registrant-detail-template').html());
   var pair_invite_button = _.template($('#pair-invite-button').html());
   var target_dom = $('#player-details');
-  var user_reg = registrant_data[current_user['registration_id']];
 
-  render_registrant_details = function(registrant_id) {
-    var reg = registrant_data[registrant_id];
-    target_dom.data('id', registrant_id);
+  render_registrant_details = function(user_id) {
+    var user_reg = registrant_data[current_user['_id']];
+    var reg = registrant_data[user_id];
+    target_dom.data('id', user_id);
     target_dom.html(registrant_profile(reg));
 
     // Lots of different conditions for showing the pair button. geez.
     if (pairs_allowed && user_reg
-        && reg['user_id'] != current_user['_id']
+        && reg['_id'] != current_user['_id']
         && reg['status'] == 'active'
         && user_reg['status'] == 'active'
         && !user_reg['pair_id']
@@ -250,9 +250,9 @@ $(function(){
     render_registrant_details($(this).attr('id'));
   });
 
-  $('.container').on('click', 'a.show-reg', function(e) {
+  $('.container').on('click', 'a.show-details', function(e) {
     e.preventDefault();
-    render_registrant_details($(this).data('registration-id'));
+    render_registrant_details($(this).data('user-id'));
   });
 });
 
@@ -268,12 +268,12 @@ $(function(){
   if (pairs_allowed != true) { return; }
 
   $("#player-details").on('click', 'button.add-pair', function(e){
-    var reg_id = $(this).data('registration-id');
+    var pair_id = $(this).data('user-id');
 
     var xhr = $.ajax({
       type: 'GET',
       url: pair_invite_path,
-      data: {target_registration_id: reg_id},
+      data: {target_user_id: pair_id},
       dataType: 'json'
     }).done(function(data){
       $("#player-details").append('<div class="alert alert-success">Pair invite sent!</div>');
