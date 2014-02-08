@@ -6,6 +6,10 @@ class LeaguesController < ApplicationController
     def index
     end
 
+    def show
+        @registration = @league.registration_for(current_user)
+    end
+
     def new
         @league = League.new
     end
@@ -47,68 +51,67 @@ class LeaguesController < ApplicationController
     end
 
     def registrations
-        @user_data = {
-            _id: current_user._id,
-        }
-
-        if user_reg = @league.registration_for(current_user)
-            @user_data[:registration_id] = user_reg._id.to_s
-            @user_data[:pair_id] = user_reg[:pair_id]
-            @pair_reg = @league.registration_for(user_reg.pair)
-        else
-            @user_data[:registration_id] = nil
-            @user_data[:pair_id] = nil
-        end
-
-
-
-        if @pair_reg
-            @user_data[:pair_registration_id] = @pair_reg._id
-        else
-            @user_data[:pair_registration_id] = nil
-        end
-
-        @user_data[:pair_invite_count] = Invitation.outstanding.where(type: 'pair', sender: current_user, handler_id: @league._id).count
-
-        if Invitation.outstanding.where(type: 'pair', recipient: current_user, handler_id: @league._id).count > 0
-            flash.now[:notice] = "You have invitations waiting for you in this league. #{ActionController::Base.helpers.link_to("Click here", invitations_path)} to see them.".html_safe
-        end
-
-        @registrant_data = Rails.cache.fetch("#{@league.cache_key}/registrant_summary", expires_in: 24.hours, race_condition_ttl: 10) do
-            rd = {}
-            @league.registrations.each do |reg|
-                rd[reg._id.to_s] = {
-                    _id: reg._id.to_s,
-                    user_id: reg.user._id.to_s,
-                    status: reg.status,
-                    name: reg.user.name,
-                    profile_img_url: reg.user.avatar.url(:roster),
-                    thumbnail_img_url: reg.user.avatar.url(:thumbnail),
-                    profile_url: user_path(reg.user),
-                    registration_url: registration_path(reg),
-                    pair_id: reg.pair_id,
-                    gender: reg.gender,
-                    gen_availability: reg.gen_availability,
-                    rank: reg.rank,
-                    eos: reg.eos_availability,
-                    player_type: reg.player_strength,
-                    height: reg.user.height_in_feet_and_inches,
-                    grank: {},
-                    age: reg.user.age,
+        respond_to do |format|
+            format.html do
+                @user_data = {
+                    _id: current_user._id,
                 }
-                if reg.g_rank_result
-                    rd[reg._id.to_s][:grank][:score] = reg.g_rank_result.score
-                    rd[reg._id.to_s][:grank][:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
-                    rd[reg._id.to_s][:grank][:history] = reg.user.g_rank_results.map(&:score).slice(0,12).reverse
+
+                if user_reg = @league.registration_for(current_user)
+                    @user_data[:registration_id] = user_reg._id.to_s
+                    @user_data[:pair_id] = user_reg[:pair_id]
+                    @pair_reg = @league.registration_for(user_reg.pair)
+                    @reg_group = RegistrationGroup.where(league: @league, member_ids: current_user._id).first
+                else
+                    @user_data[:registration_id] = nil
+                    @user_data[:pair_id] = nil
                 end
 
-                if reg.pair
-                    rd[reg._id.to_s][:pair_reg_id] = @league.registration_for(reg.pair)._id
-                else
-                    rd[reg._id.to_s][:pair_reg_id] = nil
+                @user_data[:pair_invite_count] = Invitation.outstanding.where(type: 'pair', sender: current_user, handler_id: @league._id).count
+
+                if Invitation.outstanding.where(type: 'pair', recipient: current_user, handler_id: @league._id).count > 0
+                    flash.now[:notice] = "You have invitations waiting for you in this league. #{ActionController::Base.helpers.link_to("Click here", invitations_path)} to see them.".html_safe
                 end
             end
-            rd
+
+            format.json do
+                @registrant_data = Rails.cache.fetch("#{@league.cache_key}/registrant_summary", expires_in: 24.hours, race_condition_ttl: 10) do
+                    rd = {}
+                    @league.registrations.each do |reg|
+                        next unless reg.user
+                        uid = reg.user._id.to_s
+                        rg = RegistrationGroup.where(league: @league, member_ids: reg.user._id).first
+                        rd[uid] = {
+                            registration_id: reg._id.to_s,
+                            _id: reg.user._id.to_s,
+                            status: reg.status,
+                            name: reg.user.name,
+                            profile_img_url: reg.user.avatar.url(:roster),
+                            thumbnail_img_url: reg.user.avatar.url(:thumbnail),
+                            profile_url: user_path(reg.user),
+                            registration_url: registration_path(reg),
+                            registration_group: rg.try(:_id),
+                            pair_id: reg.pair_id,
+                            gender: reg.gender,
+                            gen_availability: reg.gen_availability,
+                            rank: reg.rank,
+                            eos: reg.eos_availability,
+                            player_type: reg.player_strength,
+                            height: reg.user.height_in_feet_and_inches,
+                            grank: {},
+                            age: reg.user.age,
+                            linked: reg.linked?
+                        }
+                        if reg.g_rank_result
+                            rd[uid][:grank][:score] = reg.g_rank_result.score
+                            rd[uid][:grank][:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
+                            rd[uid][:grank][:history] = reg.user.g_rank_results.map(&:score).slice(0,12).reverse
+                        end
+                    end
+                    rd
+                end
+                render json: {reg_data: @registrant_data, reg_list: @registrant_data.keys}
+            end
         end
     end
 
@@ -131,14 +134,15 @@ class LeaguesController < ApplicationController
     def invite_pair
         errors = []
         user_reg = @league.registration_for(current_user)
-        friend_reg = Registration.find(params[:target_registration_id])
+        friend = User.find(params[:target_user_id])
+        friend_reg = @league.registration_for(friend)
 
         begin
-            unless user_reg.present?
+            unless current_user.present? && user_reg.present?
                 errors << "You're not registered for this league."
             end
 
-            unless friend_reg.present?
+            unless friend.present? && friend_reg.present?
                 errors << "Registration not found for that user."
             end
 
@@ -163,7 +167,7 @@ class LeaguesController < ApplicationController
             if Invitation.outstanding.where(type: 'pair', sender: current_user, handler_id: @league._id).count > 0
                 errors << "You have already made a pair request. You'll need to cancel that to make a new one"
             end
-        rescue => e
+        rescue nil
         end
 
         if errors.empty?
@@ -171,7 +175,7 @@ class LeaguesController < ApplicationController
                 type: 'pair',
                 handler: @league,
                 sender: current_user,
-                recipient: friend_reg.user
+                recipient: friend
             )
 
             unless invite.persisted?

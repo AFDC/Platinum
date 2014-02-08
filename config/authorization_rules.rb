@@ -26,6 +26,7 @@ authorization do
 		has_permission_on :users, to: [:index, :search, :show]
 		has_permission_on :invitations, to: [:index]
 		has_permission_on :teams, to: [:index, :search, :show, :view_roster]
+		has_permission_on :registration_groups, to: [:index]
 		has_permission_on :registrations, to: [:create]
 		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair]
 		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
@@ -70,6 +71,10 @@ authorization do
 
 		# League Manager Permissions -- this applies to both universal league managers and also comissioners of individual leagues
 		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score] do
+			if_permitted_to :manage, :league
+		end
+
+		has_permission_on :registration_groups, to: [:new, :create, :edit, :update] do
 			if_permitted_to :manage, :league
 		end
 

@@ -9,19 +9,49 @@
             %h4 League Comps
             = render partial: 'comps', locals: {league: @league}
 
-            %hr
-            %h4 League Actions:
-            %div{style: 'text-align: center'}
-                - if permitted_to? :update, @league
-                    = link_to edit_league_path(@league), class: 'btn btn-primary btn-small', style: 'width: 75%; margin-top: 5px;' do
-                        %i.icon.icon-pencil
-                        Edit League
-                - if permitted_to? :manage_roster, @league
-                    = link_to manage_roster_league_path(@league), class: 'btn btn-primary btn-small', style: 'width: 75%; margin-top: 5px;' do
-                        %i.icon.icon-group
-                        Manage Roster
-
     .span7
+        .navbar.navbar-inverse
+            .navbar-inner
+                / %a.brand Actions
+                %ul.nav
+                    - if @league.registration_open? && permitted_to?(:register, @league)
+                        - unless @registration
+                            %li
+                                =link_to "Register", register_league_path(@league)
+                        - else
+                            %li= link_to "Update your Registration", edit_registration_path(@registration)
+                        %li.divider-vertical
+
+                    %li=link_to "Players", registrations_league_path(@league)
+                    %li.divider-vertical
+                    - if @league.core_type.present?
+                        %li=link_to @league.core_type.capitalize.pluralize, league_registration_groups_path(@league)
+                        %li.divider-vertical
+
+                %ul.nav.pull-right
+                    - if permitted_to? :manage, @league
+                        %li.dropdown
+                            = link_to "#", class: "dropdown-toggle", "data-toggle" => "dropdown" do
+                                Admin
+                                %b.caret
+                            %ul.dropdown-menu
+                                - if permitted_to? :manage, @league
+                                    %li
+                                        = link_to edit_league_path(@league) do
+                                            %i.icon.icon-pencil
+                                            Edit
+                                - if permitted_to? :create, :teams
+                                    %li
+                                        =link_to new_league_team_path(@league) do
+                                            %i.icon.icon-plus
+                                            Create Team
+                                - if permitted_to? :manage_roster, @league
+                                    %li
+                                        = link_to manage_roster_league_path(@league) do
+                                            %i.icon.icon-group
+                                            Manage Roster
+
+
         %h4 Teams
         %table.table.table-striped.table-condensed
             %thead
@@ -54,10 +84,5 @@
                 - if @league.teams.count == 0
                     %tr
                         %td{colspan: 5, style: 'text-align: center;'} This league has no teams yet.
-        - if permitted_to? :create, :teams
-            %div{style: 'text-align: right'}
-                =link_to new_league_team_path(@league), class: 'btn btn-small btn-primary' do
-                    %i.icon.icon-plus
-                    Create Team
 
 = render :partial => '/game_schedule', :locals => {start_date: Date.today, league_id: @league._id, title: 'Upcoming Games'}

@@ -25,6 +25,7 @@ class League
 
   has_many :teams, order: {league_rank: :asc}
   has_many :registrations
+  has_many :registration_groups
   has_and_belongs_to_many :commissioners, class_name: "User", foreign_key: :commissioner_ids, inverse_of: nil
   has_and_belongs_to_many :comped_groups, class_name: "CompGroup", inverse_of: nil
   has_and_belongs_to_many :comped_players, class_name: "User", inverse_of: nil
@@ -84,6 +85,10 @@ class League
 
       unless sender_reg.present? && recipient_reg.present?
         raise "Registrations not found."
+      end
+
+      if sender_reg.linked? || recipient_reg.linked?
+        return false
       end
 
       sender_reg.pair = invitation.recipient

@@ -27,9 +27,6 @@ $(function(){
     // Global Tooltips
     $(".hasTooltip").tooltip();
 
-    // Global Tablesorter
-    $(".tablesorter").tablesorter();
-
     // Global Popover
     $(".hasPopover").popover();
 

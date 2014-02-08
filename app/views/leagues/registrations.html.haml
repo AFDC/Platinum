@@ -6,12 +6,36 @@
           <div class="main col"><strong><span class="<%=gender%> label"><% print(gender[0].toUpperCase()); %></span> <%=name%></strong></div>
           <div class="col"><strong>Status:</strong> <%=status%></div>
           <div class="col"><strong>Rank:</strong> <%=rank%></div>
-          <div class="col" style="width: 100px; text-align: right;"><% if (pair_id) { print('<i class="icon-link"></i>'); } %></div>
+          <div class="col" style="width: 100px; text-align: right; text-transform: capitalize"><%
+            if (pair_id) {
+              print('<a href="#" class="show-player-details" data-user-id="' + pair_id + '"><i class="icon-link"></i> pair</a>');
+            } else if (registration_group) {
+              print('<a href="#" class="show-group-details" data-group-id="' + registration_group + '"><i class="icon-link"></i> ' + window.core_type + '</a>');
+            }
+          %></div>
           <div class="main col"><strong>Availability:</strong> <%=gen_availability%></div>
           <div class="col"><strong>Role:</strong> <%=player_type%></div>
         </div>
       </div>
     </li>
+  </script>
+
+  <script type="text/x-underscore" id="reg-group-detail-template">
+    <h4 style="text-transform: capitalize;"><%=window.core_type%> Members</h4>
+    <ul>
+    <%
+      for (var i = 0; i < members.length; i++) {
+        var uid = members[i];
+        var reg_data = window.registrant_data[uid]
+        if (reg_data) {
+          print('<li><a href="#" class="show-player-details" data-user-id="' + uid + '">');
+          print('<span class="' + reg_data.gender + ' label">' + reg_data.gender[0].toUpperCase() + '</span> ');
+          print(reg_data.name);
+          print('</a> (' + window.registrant_data[uid].rank + ')</li>');
+        }
+      }
+    %>
+    </ul>
   </script>
 
   <script type="text/x-underscore" id="registrant-detail-template">
@@ -26,11 +50,17 @@
       <li><strong>Role:</strong> <%=player_type%></li>
       <li><strong>Gender:</strong> <%=gender%></li>
       <li><strong>Stats:</strong> <%=height%>, <%=age%> years old</li>
+      <% if (pair_id) { %>
+        <li><strong>Pair:</strong> <a href="#" class="show-player-details" data-user-id="<%=pair_id%>"><%= window.registrant_data[pair_id].name %></a></li>
+      <% } %>
+      <% if (registration_group) { %>
+        <li><strong style="text-transform: capitalize"><%=window.core_type%>:</strong> <a href="#" class="show-group-details" data-group-id="<%=registration_group%>"><%= registration_group.substr(0,8) %></a></li>
+      <% } %>
     </ul>
   </script>
 
   <script type="text/x-underscore" id="pair-invite-button">
-    <button class="btn btn-primary btn-small btn-block add-pair" data-registration-id="<%=_id%>">Invite to Pair</button>
+    <button class="btn btn-primary btn-small btn-block add-pair" data-user-id="<%=_id%>">Invite to Pair</button>
   </script>
 
 - content_for :page_styles do
@@ -45,13 +75,13 @@
   = javascript_include_tag('/javascripts/jquery-scrollto.js')
   = javascript_include_tag('/javascripts/jquery.sparkline.min.js')
   :javascript
-    var registrant_list = #{@registrant_data.keys.to_json};
-    var filtered_registrant_list = registrant_list;
-    var registrant_data = #{@registrant_data.to_json};
+    var core_type = #{@league.core_type ? "\"#{@league.core_type}\"" : null};
     var league_locked = #{@league.started? ? 'true' : 'false'};
     var pairs_allowed = #{@league.allow_pairs? ? 'true' : 'false'};
     var current_user = #{@user_data.to_json};
     var pair_invite_path = "#{invite_pair_league_path(@league)}";
+    var registrant_data_path = "#{registrations_league_path(@league, :json)}";
+    var reg_groups_data_path = "#{league_registration_groups_path(@league, :json)}";
 
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'Registrations', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registrations' => nil}}
@@ -67,11 +97,14 @@
       - else
         - if @league.allow_pairs?
           #pair-control
-            - if @user_data[:pair_id]
+            - if @reg_group
+              %p You are currently assigned to a #{@league.core_type} and, therefore, cannot pair with anyone else.
+              %p Please contact the league commissioner if you'd like to leave this #{@league.core_type}.
+            - elsif @user_data[:pair_id]
               %p
                 %strong Current Pair:
                 = link_to @pair_reg.user.name, @pair_reg.user
-                = link_to @pair_reg, class: "show-reg", "data-registration-id" => @pair_reg._id do
+                = link_to @pair_reg, class: "show-player-details", "data-user-id" => @pair_reg.user._id do
                   %i.icon-chevron-sign-right
               %p You may not pair with another person or join a pod or core while you are paired.
 
@@ -107,7 +140,7 @@
         %option{value: '50'} 50 Players Per Page
         %option{value: '100'} 100 Players Per Page
       %label.checkbox
-        %input#show-paired{type: 'checkbox', value: 1, checked: true} Show Paired Players
+        %input#hide-unavailable{type: 'checkbox', value: 1} Hide Unavailable Players
       %div{style: 'padding: 10px;'}
         %div#rank-range
         %p{style: 'text-align: center;'}

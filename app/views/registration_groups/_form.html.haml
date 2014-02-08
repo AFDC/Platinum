@@ -1,0 +1,19 @@
+- if @group.errors.any?
+  - errors = @group.errors
+  .alert.alert-error
+    The #{@league.core_type} could not be saved
+- else
+  - errors = Hash.new([])
+
+= form_for [@league, @group], html: {class: 'form-horizontal'} do |f|
+  = render partial: '/user_multiselect', locals: {form: f, fieldname: 'member_ids', label: "Included Players", users: @group.members}
+
+  .control-group{ class: ('error' if errors[:notes].any?)}
+    %label.control-label Internal Notes
+    .controls
+      =f.text_area :notes, class: "span4", rows: 10
+      - if errors[:notes].any?
+        %span.help-inline=errors[:notes].first
+  .form-actions
+    %button.btn.btn-large.btn-primary=@group.new_record? ? "Create #{@league.core_type.capitalize}" : "Update #{@league.core_type.capitalize}"
+

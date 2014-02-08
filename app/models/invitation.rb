@@ -42,12 +42,11 @@ class Invitation
 
 
   def accept
-    self[:status] = 'accepted'
-    save!
-
-    handler.handle_accepted_invite(self)
-
-    InvitationMailer.delay.pair_request_result(self._id.to_s)
+    if handler.handle_accepted_invite(self)
+      self[:status] = 'accepted'
+      save!
+      InvitationMailer.delay.pair_request_result(self._id.to_s)
+    end
   end
 
   def decline

@@ -46,6 +46,10 @@ class Registration
         end
     end
 
+    def linked?
+        self.pair_id.present? || RegistrationGroup.where(league: self.league, member_ids: self[:user_id]).first.present?
+    end
+
     def rank
         self.commish_rank || self.g_rank || self.self_rank
     end

@@ -1,0 +1,44 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', locals: {subtitle: @league.core_type.capitalize.pluralize, breadcrumbs: {'Leagues' => leagues_path, @league.name => @league, @league.core_type.capitalize.pluralize => nil}}
+
+- if permitted_to? :manage, @league
+  %div{style: 'text-align: right'}
+    =link_to new_league_registration_group_path(@league), class: 'btn btn-small, btn-primary' do
+      %i.icon-plus
+      Create New #{@league.core_type.capitalize}
+
+%table.table
+  %thead
+    %th Group
+    %th Players
+  %tbody
+    - @league.registration_groups.each do |rg|
+      %tr
+        - if permitted_to? :edit, rg
+          %td=link_to rg._id, edit_league_registration_group_path(@league, rg)
+        - else
+          %td=rg._id
+        %td
+          %table.table.table-condensed.table-striped
+            %thead
+              %th Name
+              %th League Rank
+              %th #{@league.core_type.capitalize} Rank
+            %tbody
+              - totals = Hash.new(0)
+              - rg.members.each do |m|
+                - reg = @league.registration_for(m)
+                %tr{class: "#{"error" unless reg}"}
+                  %td=link_to m.name, m
+                  - unless reg
+                    %td{colspan: 2} Player not registered
+                  - else
+                    - totals[:league_rank] += reg.rank
+                    %td=reg.rank
+                    - totals[:group_rank] += reg.rank
+                    %td=reg.rank
+              - if rg.members.count > 0
+                %tr.info
+                  %td Totals:
+                  %td=totals[:league_rank]
+                  %td=totals[:group_rank]

@@ -13,3 +13,11 @@
 						%i.icon-remove{style: 'color: #555555;'}
 		%input.span3.new-user{type: 'text'}
 			%i.icon-plus
+
+
+- content_for :page_scripts do
+	= javascript_include_tag '/javascripts/jquery.autocomplete.js'
+	= javascript_include_tag '/javascripts/userSelector.js'
+
+- content_for :page_styles do
+	= stylesheet_link_tag '/stylesheets/autocomplete.css'
