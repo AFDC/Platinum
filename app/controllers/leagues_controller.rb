@@ -83,6 +83,7 @@ class LeaguesController < ApplicationController
                 @registrant_data = Rails.cache.fetch("#{@league.cache_key}/registrant_summary", expires_in: 24.hours, race_condition_ttl: 10) do
                     rd = {}
                     @league.registrations.each do |reg|
+                        next unless reg.user
                         rd[reg._id.to_s] = {
                             _id: reg._id.to_s,
                             user_id: reg.user._id.to_s,
