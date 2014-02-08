@@ -25,7 +25,7 @@ $(function(){
         var fieldDiv = $(val);
         var infoWindowDiv = fieldDiv.find(".info-window");
 
-        if (fieldDiv.data("lat") != "" && fieldDiv.data("lng") != "") {
+        if (fieldDiv.data("lat") && fieldDiv.data("lng")) {
             fieldDisplayMap.addMarker({
                 _id: fieldDiv.data("id"),
                 lat: fieldDiv.data("lat"),
@@ -34,7 +34,7 @@ $(function(){
                 infoWindow: {
                     content: infoWindowDiv.html()
                 }
-            });     
+            });
         }
     });
 

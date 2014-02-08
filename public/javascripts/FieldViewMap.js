@@ -3,7 +3,7 @@ var fieldDisplayMap;
 $(function(){
     var fieldDiv = $("#fieldsite");
 
-    if (fieldDiv.data('lat') != "" && fieldDiv.data('lng') != "") {
+    if (fieldDiv.data('lat') && fieldDiv.data('lng')) {
         centerLat = fieldDiv.data('lat');
         centerLng = fieldDiv.data('lng');
 
