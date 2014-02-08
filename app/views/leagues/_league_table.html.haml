@@ -5,32 +5,12 @@
     %table.table.table-striped
         %thead
             %tr
-                %th{width: '7%'} Action
-                %th{width: '30%'} League Name
+                %th League Name
                 %th Registration Opens
-                %th Registration Closes
                 %th Play Begins
-                %th Play Ends
         %tbody
             - leagues.each do |l|
                 %tr
-                    %td
-                        - if permitted_to? :registrations, l
-                            =link_to registrations_league_path(l) do
-                                %i.icon.icon-list.hasTooltip{title: 'Participant list'}
-                        - else 
-                            %i.icon.icon-list.hasTooltip{title: 'Please log in to see registrants'}
-                        - if l.registration_open?
-                            - if permitted_to? :register, l
-                                =link_to register_league_path(l) do
-                                    %i.icon.icon-shopping-cart.hasTooltip{title: 'Register'}
-                            - else
-                                %i.icon.icon-shopping-cart.hasTooltip{title: 'Please log in to register'}
-                        - if permitted_to? :edit, l
-                            =link_to edit_league_path(l) do
-                                %i.icon.icon-pencil
                     %td=link_to l.name, league_path(l)
                     %td=l.registration_open.strftime('%a %b %-d, %Y') if l.registration_open
-                    %td=l.registration_close.strftime('%a %b %-d, %Y') if l.registration_close
                     %td=l.start_date.strftime('%a %b %-d, %Y') if l.start_date
-                    %td=l.end_date.strftime('%a %b %-d, %Y') if l.end_date 

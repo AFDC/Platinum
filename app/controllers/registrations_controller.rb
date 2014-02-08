@@ -95,7 +95,7 @@ class RegistrationsController < ApplicationController
             @registration.status = 'authorized'
             @registration.save()
 
-            redirect_to registrations_user_path(@registration.user), notice: "Authorization successful!"
+            redirect_to league_path(@registration.league), notice: "Authorization successful!"
         else
             redirect_to registrations_user_path(current_user), flash: {error: payment.errors.inspect}
         end
@@ -177,7 +177,7 @@ class RegistrationsController < ApplicationController
 
         if reg.save
             if reg.status == 'active' || reg.status == 'authorized' || current_user._id != reg.user._id
-                redirect_to registrations_user_path(reg.user), notice: flash_message || 'Update successful'
+                redirect_to league_path(reg.league), notice: flash_message || 'Update successful'
             else
                 redirect_to checkout_registration_path(reg)
             end

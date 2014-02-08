@@ -6,6 +6,10 @@ class LeaguesController < ApplicationController
     def index
     end
 
+    def show
+        @registration = @league.registration_for(current_user)
+    end
+
     def new
         @league = League.new
     end
