@@ -4,7 +4,8 @@ var do_render;
 var render_registrant_details;
 var registrant_list = [];
 var filtered_registrant_list = [];
-var registrant_data = [];
+var registrant_data = {};
+var reg_group_data = {};
 
 var refresh_registrant_data = function(path) {
     return $.ajax({
@@ -56,10 +57,10 @@ $(function(){
   }
 
   var matches_paired_filter = function(obj) {
-    if ($('#show-paired:checked').length > 0) {
+    if ($('#hide-unavailable:checked').length == 0) {
       return true;
     }
-    return (obj.pair_id == null);
+    return !obj.linked
   }
 
   var filter_registrants = function() {
@@ -210,8 +211,8 @@ $(function(){
         && reg['_id'] != current_user['_id']
         && reg['status'] == 'active'
         && user_reg['status'] == 'active'
-        && !user_reg['pair_id']
-        && !reg['pair_id']
+        && !user_reg['linked']
+        && !reg['linked']
         && current_user['pair_invite_count'] == 0) {
       target_dom.append(pair_invite_button(reg));
     }
@@ -250,7 +251,7 @@ $(function(){
     render_registrant_details($(this).attr('id'));
   });
 
-  $('.container').on('click', 'a.show-details', function(e) {
+  $('.container').on('click', 'a.show-player-details', function(e) {
     e.preventDefault();
     render_registrant_details($(this).data('user-id'));
   });
@@ -299,11 +300,30 @@ $(function(){
   });
 });
 
+// Reg Group Stuff
+$(function(){
+  var target_dom = $('#player-details');
+  var reg_group_profile = _.template($('#reg-group-detail-template').html());
+  $('.container').on('click', 'a.show-group-details', function(e) {
+    e.preventDefault();
+    var group_data = reg_group_data[$(this).data('group-id')];
+    target_dom.html(reg_group_profile(group_data));
+  });
+});
+
 // Page Start Logic
 $(function(){
   $("#registrants").html('<div style="text-align: center; margin: 20px 10px; font-size: 128px;"><i class="icon-spinner icon-spin"></i></div>');
   refresh_registrant_data(registrant_data_path).done(function () {
     $("#registrants").html('');
     $('#apply-filters').trigger('click');
+  });
+
+  return $.ajax({
+    type: 'GET',
+    url: reg_groups_data_path,
+    dataType: 'json'
+  }).done(function(data){
+    reg_group_data = data;
   });
 });

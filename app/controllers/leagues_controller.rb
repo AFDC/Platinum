@@ -61,6 +61,7 @@ class LeaguesController < ApplicationController
                     @user_data[:registration_id] = user_reg._id.to_s
                     @user_data[:pair_id] = user_reg[:pair_id]
                     @pair_reg = @league.registration_for(user_reg.pair)
+                    @reg_group = RegistrationGroup.where(league: @league, member_ids: current_user._id).first
                 else
                     @user_data[:registration_id] = nil
                     @user_data[:pair_id] = nil
@@ -79,6 +80,7 @@ class LeaguesController < ApplicationController
                     @league.registrations.each do |reg|
                         next unless reg.user
                         uid = reg.user._id.to_s
+                        rg = RegistrationGroup.where(league: @league, member_ids: reg.user._id).first
                         rd[uid] = {
                             registration_id: reg._id.to_s,
                             _id: reg.user._id.to_s,
@@ -88,6 +90,7 @@ class LeaguesController < ApplicationController
                             thumbnail_img_url: reg.user.avatar.url(:thumbnail),
                             profile_url: user_path(reg.user),
                             registration_url: registration_path(reg),
+                            registration_group: rg.try(:_id),
                             pair_id: reg.pair_id,
                             gender: reg.gender,
                             gen_availability: reg.gen_availability,
@@ -97,6 +100,7 @@ class LeaguesController < ApplicationController
                             height: reg.user.height_in_feet_and_inches,
                             grank: {},
                             age: reg.user.age,
+                            linked: reg.linked?
                         }
                         if reg.g_rank_result
                             rd[uid][:grank][:score] = reg.g_rank_result.score

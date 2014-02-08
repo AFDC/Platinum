@@ -14,7 +14,10 @@
   %tbody
     - @league.registration_groups.each do |rg|
       %tr
-        %td=link_to rg._id, edit_league_registration_group_path(@league, rg)
+        - if permitted_to? :edit, rg
+          %td=link_to rg._id, edit_league_registration_group_path(@league, rg)
+        - else
+          %td=rg._id
         %td
           %table.table.table-condensed.table-striped
             %thead

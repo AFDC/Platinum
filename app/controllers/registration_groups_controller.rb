@@ -1,6 +1,22 @@
 class RegistrationGroupsController < ApplicationController
     before_filter :load_league_from_params
     before_filter :load_group_from_params, only: [:show, :edit, :update]
+    filter_access_to [:edit, :update, :show], attribute_check: true
+
+    def index
+      respond_to do |format|
+        format.json do
+          reg_groups = {}
+          @league.registration_groups.each do |rg|
+            reg_groups[rg._id] = {_id: rg[:_id], members: rg[:member_ids]}
+          end
+
+          render json: reg_groups
+        end
+        format.html do
+        end
+      end
+    end
 
     def new
       @group = RegistrationGroup.new

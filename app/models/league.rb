@@ -87,6 +87,10 @@ class League
         raise "Registrations not found."
       end
 
+      if sender_reg.linked? || recipient_reg.linked?
+        return false
+      end
+
       sender_reg.pair = invitation.recipient
       recipient_reg.pair = invitation.sender
       sender_reg.save!
