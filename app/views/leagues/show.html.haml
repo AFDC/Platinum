@@ -22,7 +22,12 @@
                             %li= link_to "Update your Registration", edit_registration_path(@registration)
                         %li.divider-vertical
 
-                    %li=link_to "See Players", registrations_league_path(@league)
+                    %li=link_to "Players", registrations_league_path(@league)
+                    %li.divider-vertical
+                    - if @league.core_type.present?
+                        %li=link_to @league.core_type.capitalize.pluralize, league_registration_groups_path(@league)
+                        %li.divider-vertical
+
                 %ul.nav.pull-right
                     - if permitted_to? :manage, @league
                         %li.dropdown

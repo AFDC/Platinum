@@ -35,6 +35,7 @@ Platinum::Application.routes.draw do
     end
 
     resources :teams, only: [:new, :create]
+    resources :registration_groups
   end
 
   resources :teams, except: [:new, :create]
