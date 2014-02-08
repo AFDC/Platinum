@@ -2,6 +2,21 @@ var items_per_page = 25;
 var current_page = 1;
 var do_render;
 var render_registrant_details;
+var registrant_list = [];
+var filtered_registrant_list = [];
+var registrant_data = [];
+
+var refresh_registrant_data = function(path) {
+    return $.ajax({
+      type: 'GET',
+      url: path,
+      dataType: 'json'
+    }).done(function(data){
+      registrant_data = data['reg_data'];
+      registrant_list = data['reg_list'];
+      filtered_registrant_list = registrant_list;
+    });
+}
 
 // Rendering thingy
 $(function(){
@@ -141,8 +156,6 @@ $(function(){
     slide: updateSliderLabel,
     change: updateSliderLabel
   });
-
-  show_results();
 });
 
 // Do sorting
@@ -178,7 +191,6 @@ $(function(){
 
     $('#apply-filters').trigger('click');
   });
-
 });
 
 // Display larger details link
@@ -284,5 +296,14 @@ $(function(){
       $("#player-details").append(error_msg);
       $("#player-details button.add-pair").remove();
     });
+  });
+});
+
+// Page Start Logic
+$(function(){
+  $("#registrants").html('<div style="text-align: center; margin: 20px 10px; font-size: 128px;"><i class="icon-spinner icon-spin"></i></div>');
+  refresh_registrant_data(registrant_data_path).done(function () {
+    $("#registrants").html('');
+    $('#apply-filters').trigger('click');
   });
 });
