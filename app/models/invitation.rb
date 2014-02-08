@@ -46,11 +46,15 @@ class Invitation
     save!
 
     handler.handle_accepted_invite(self)
+
+    InvitationMailer.delay.pair_request_result(self._id.to_s)
   end
 
   def decline
     self[:status] = 'declined'
     save!
+
+    InvitationMailer.delay.pair_request_result(self._id.to_s)
   end
 
   def cancel
