@@ -2,25 +2,26 @@
 = render :partial => '/pageheader', :locals => {subtitle: 'League Management System'}
 
 .row
-    .span4{style: 'background-color: #f0f0f0; min-height: 240px;'}
-        %div{style: 'padding: 10px;'}
-            %h4 Welcome!
-            %p
-                You're looking at the early stages of a re-write of the leauges portion of our website. We've been working 
-                hard over the past months to improve the consistency and performance of the site.
-            %p
-                We hope that the site will be intuitive and simple to use, but in the event that you have problems or
-                questions, please do not hesitate to contact <a href="mailto:webmaster@afdc.com">the webmaster</a> for
-                assistance.
+    - unless @leagues_registering.count + @leagues_running.count + @your_teams.count > 0
+        .span4
+            %div{style: 'padding: 10px;'}
+                %h4 Welcome!
+                %p
+                    You're looking at the early stages of a re-write of the leauges portion of our website. We've been working
+                    hard over the past months to improve the consistency and performance of the site.
+                %p
+                    We hope that the site will be intuitive and simple to use, but in the event that you have problems or
+                    questions, please do not hesitate to contact <a href="mailto:webmaster@afdc.com">the webmaster</a> for
+                    assistance.
 
-    .span4{style: 'background-color: #f0f0f0; min-height: 240px;'}
+    .span4
         %div{style: 'padding: 10px;'}
             %h4 Getting Started
             %p
-                If you're new around here, things might be a bit confusing the first time you register. 
-                Rest assured that any problem you are facing, someone has likely experienced before. 
+                If you're new around here, things might be a bit confusing the first time you register.
+                Rest assured that any problem you are facing, someone has likely experienced before.
             %ul.unstyled
-                %li 
+                %li
                     Please read both of the following
                     %ul
                         %li= link_to 'Help: Logging In to the Leagues Site', '/help/login'
@@ -28,7 +29,29 @@
             %p Just remember . . .
             %div{style: 'text-align: center; font-weight: bold; margin-bottom: 15px;'} Don't Freak Out!
 
-    .span4{style: 'background-color: #f0f0f0; min-height: 240px;'}
+    - if @leagues_registering.count + @leagues_running.count + @your_teams.count > 0
+        .span4
+            %div{style: 'padding: 10px; border: 1px solid #ddd; background-color: #f8f8f8; min-height: 240px;'}
+                - unless @leagues_registering.empty?
+                    %h4 Registration Open:
+                    %ul{style: 'margin-bottom: 20px;'}
+                        - @leagues_registering.each do |l|
+                            %li=link_to l.name, l
+
+                - unless @leagues_running.empty?
+                    %h4 Leagues Underway:
+                    %ul{style: 'margin-bottom: 20px;'}
+                        - @leagues_running.each do |l|
+                            %li=link_to l.name, l
+
+                - unless @your_teams.empty?
+                    %h4 Your Teams:
+                    %ul{style: 'margin-bottom: 20px;'}
+                        - @your_teams.each do |t|
+                            %li=link_to t.name, t
+
+
+    .span4
         %div{style: 'padding: 10px;'}
             %h4 Partners, Sponsors, and Friends
             %ul
