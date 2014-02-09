@@ -72,7 +72,7 @@
               - else
                 %li= link_to 'Log In', auth_path
     - unless Rails.env.production?
-      .alert.alert-success{:style => 'margin: 0 5px;'}= "Current Rails Environment: #{Rails.env}"
+      / .alert.alert-success{:style => 'margin: 0 5px;'}= "Current Rails Environment: #{Rails.env}"
     .container
       - if flash[:notice]
         .alert.alert-info= flash[:notice]
