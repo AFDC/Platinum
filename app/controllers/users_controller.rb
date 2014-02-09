@@ -53,7 +53,7 @@ class UsersController < ApplicationController
 		@user = User.new(user_params)
 
 		if @user.save
-			redirect_to "/auth/resetPassword/#{@user.email_address}", notice: 'You have successfully created a user account and a password has been emailed to you.'
+			redirect_to '/', notice: 'You have successfully created a new user account.'
 		else
 			render :action => 'new'
 		end
