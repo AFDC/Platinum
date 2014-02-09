@@ -4,7 +4,7 @@ class DashboardController < ApplicationController
     @leagues_running = League.current.to_a.select{|l| l.started? }
     @your_teams = []
 
-    if current_user
+    if current_user && current_user[:teams].present?
       team_ids = League.current.collect(&:team_ids).flatten & current_user[:teams]
 
       team_ids.each do |tid|
