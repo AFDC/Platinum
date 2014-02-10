@@ -8,6 +8,8 @@
       %dd #{@league.core_options.male_limit || 'n/a'}
       %dt Female Limit:
       %dd #{@league.core_options.female_limit || 'n/a'}
+      %dt Rank Limit:
+      %dd #{@league.core_options.rank_limit || 'n/a'}
   .span6
     - if permitted_to? :manage, @league
       %div{style: 'text-align: right'}
@@ -57,3 +59,6 @@
                   %td Totals:
                   %td=totals[:league_rank]
                   %td=totals[:group_rank]
+                - if @league.core_options.rank_limit && totals[:group_rank] > @league.core_options.rank_limit
+                  %tr.error
+                    %td{colspan: 3} #{@league.core_options.type.capitalize} rank is #{totals[:group_rank] - @league.core_options.rank_limit} points over the limit.
