@@ -19,9 +19,11 @@ class League
   field :max_grank_age, type: Integer, default: nil
   field :allow_self_rank, type: Boolean, default: true
   field :allow_pairs, type: Boolean, default: true
-  field :core_type
   field :eos_tourney, type: Boolean, default: true
   field :mst_tourney, type: Boolean, default: false
+  embeds_one :core_options, class_name: 'LeagueCoreOptions'
+
+  after_initialize :build_options_if_nil
 
   has_many :teams, order: {league_rank: :asc}
   has_many :registrations
@@ -102,5 +104,11 @@ class League
     if user
       registrations.where({user_id: user._id}).first
     end
+  end
+
+  private
+
+  def build_options_if_nil
+    build_core_options if core_options.nil?
   end
 end

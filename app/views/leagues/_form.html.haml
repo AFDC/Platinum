@@ -77,60 +77,95 @@
                     - if errors[:description].any?
                         %span.help-inline=errors[:description].first
         .span6
-            %h4 League Options
-            .control-group
-                %label.control-label Ranking
-                .controls
-                    %label.checkbox
-                        = f.check_box :allow_self_rank
-                        Allow Slef-Rank
-
-            .control-group{ class: ('error' if errors[:max_grank_age].any?)}
-                %label.control-label{for: 'max_grank_age'} Core Type
-                .controls
-                    =f.select :max_grank_age, (1..24).map{|m| ["#{m} #{'month'.pluralize(m)}",m]}, include_blank: "gRank Not Required"
-                    - if errors[:max_grank_age].any?
-                        %span.help-inline=errors[:max_grank_age].first
-
-            .control-group
-                %label.control-label Tournaments
-                .controls
-                    %label.checkbox
-                        = f.check_box :eos_tourney
-                        End of season
-                .controls
-                    %label.checkbox
-                        = f.check_box :mst_tourney
-                        Midseason
-
-            .control-group
-                %label.control-label Grouping
-                .controls
-                    %label.checkbox
-                        = f.check_box :allow_pairs
-                        Allow Pairs
-
-            .control-group{ class: ('error' if errors[:core_type].any?)}
-                %label.control-label{for: 'core_type'} Core Type
-                .controls
-                    =f.select :core_type, %w(core pod), include_blank: "None"
-                    - if errors[:core_type].any?
-                        %span.help-inline=errors[:core_type].first
-
-            %h4 Comped Users and Groups
-            - if permitted_to? :assign_comps, @league
-                = render partial: '/user_multiselect', locals: {form: f, fieldname: 'comped_player_ids', label: "Comped Players", users: @league.comped_players}
-                .control-group
-                    %label.control-label Comped Groups
-                    .controls
-                        - CompGroup.all.each do |g|
+            %ul.nav.nav-tabs
+                %li.active=link_to 'League Config', '#config', 'data-toggle' => "tab"
+                %li=link_to 'Comped Players', '#comped', 'data-toggle' => "tab"
+            .tab-content
+                .tab-pane.active#config
+                    %h4 League Options
+                    .control-group
+                        %label.control-label Ranking
+                        .controls
                             %label.checkbox
-                                =check_box_tag "league[comped_group_ids][]", g._id, @league.comped_group_ids.include?(g._id)
-                                %strong=g.name
-                                &dash;
-                                =g.description
-            - else
-                = render partial: 'comps', locals: {league: @league}
+                                = f.check_box :allow_self_rank
+                                Allow Slef-Rank
+
+                    .control-group{ class: ('error' if errors[:max_grank_age].any?)}
+                        %label.control-label{for: 'max_grank_age'} Max gRank Age
+                        .controls
+                            =f.select :max_grank_age, (1..24).map{|m| ["#{m} #{'month'.pluralize(m)}",m]}, include_blank: "gRank Not Required"
+                            - if errors[:max_grank_age].any?
+                                %span.help-inline=errors[:max_grank_age].first
+
+                    .control-group
+                        %label.control-label Tournaments
+                        .controls
+                            %label.checkbox
+                                = f.check_box :eos_tourney
+                                End of season
+                        .controls
+                            %label.checkbox
+                                = f.check_box :mst_tourney
+                                Midseason
+
+                    .control-group
+                        %label.control-label Grouping
+                        .controls
+                            %label.checkbox
+                                = f.check_box :allow_pairs
+                                Allow Pairs
+                    %h4 Core/Pod Options
+                    = f.fields_for :core_options do |co|
+                        - core_options = @league.core_options
+                        - co_errors = core_options.errors
+                        .control-group{ class: ('error' if co_errors[:type].any?)}
+                            %label.control-label Core Type
+                            .controls
+                                =co.select :type, %w(core pod), selected: core_options.type, include_blank: "None"
+                                - if co_errors[:type].any?
+                                    %span.help-inline=co_errors[:type].first
+                        .control-group{ class: ('error' if co_errors[:male_limit].any? || co_errors[:female_limit].any?)}
+                            %label.control-label Gender Limit
+                            .controls
+                                M:
+                                =co.text_field :male_limit, value: core_options.male_limit, class: 'span1'
+                                F:
+                                =co.text_field :female_limit, value: core_options.female_limit, class: 'span1'
+
+                                - if co_errors[:male_limit].any?
+                                    %span.help-inline=co_errors[:male_limit].first
+                                - if co_errors[:female_limit].any?
+                                    %span.help-inline=co_errors[:female_limit].first
+
+                        .control-group{ class: ('error' if co_errors[:male_rank_constant].any? || co_errors[:female_rank_constant].any?)}
+                            %label.control-label Rank Modifier
+                            .controls
+                                M:
+                                =co.text_field :male_rank_constant, value: core_options.male_rank_constant, class: 'span1'
+                                F:
+                                =co.text_field :female_rank_constant, value: core_options.female_rank_constant, class: 'span1'
+
+                                - if co_errors[:male_rank_constant].any?
+                                    %span.help-inline=co_errors[:male_rank_constant].first
+                                - if co_errors[:female_rank_constant].any?
+                                    %span.help-inline=co_errors[:female_rank_constant].first
+
+
+                .tab-pane#comped
+                    %h4 Comped Users and Groups
+                    - if permitted_to? :assign_comps, @league
+                        = render partial: '/user_multiselect', locals: {form: f, fieldname: 'comped_player_ids', label: "Comped Players", users: @league.comped_players}
+                        .control-group
+                            %label.control-label Comped Groups
+                            .controls
+                                - CompGroup.all.each do |g|
+                                    %label.checkbox
+                                        =check_box_tag "league[comped_group_ids][]", g._id, @league.comped_group_ids.include?(g._id)
+                                        %strong=g.name
+                                        &dash;
+                                        =g.description
+                    - else
+                        = render partial: 'comps', locals: {league: @league}
 
     .form-actions
         %button.btn.btn-large.btn-primary=@league.new_record? ? "Create League" : "Update League"

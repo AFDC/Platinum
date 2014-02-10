@@ -35,7 +35,7 @@ class RegistrationGroupsController < ApplicationController
 
     def update
       if @group.update_attributes(group_params)
-        redirect_to league_registration_groups_path(@league), notice: "#{@league.core_type.capitalize} Updated Successfully"
+        redirect_to league_registration_groups_path(@league), notice: "#{@league.core_options.type.capitalize} Updated Successfully"
       else
         render :edit
       end
@@ -47,7 +47,7 @@ class RegistrationGroupsController < ApplicationController
       @league = League.find(params[:league_id])
 
       redirect_to(leagues_path, flash: {error: "League not found."}) unless @league
-      redirect_to(leagues_path, flash: {error: "Cores and pods are not enabled for #{@league.name}"}) unless @league.core_type.present?
+      redirect_to(leagues_path, flash: {error: "Cores and pods are not enabled for #{@league.name}"}) unless @league.core_options.type.present?
     end
 
     def load_group_from_params

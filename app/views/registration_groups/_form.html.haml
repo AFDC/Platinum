@@ -1,7 +1,7 @@
 - if @group.errors.any?
   - errors = @group.errors
   .alert.alert-error
-    The #{@league.core_type} could not be saved
+    The #{@league.core_options.type} could not be saved
 - else
   - errors = Hash.new([])
 
@@ -15,5 +15,5 @@
       - if errors[:notes].any?
         %span.help-inline=errors[:notes].first
   .form-actions
-    %button.btn.btn-large.btn-primary=@group.new_record? ? "Create #{@league.core_type.capitalize}" : "Update #{@league.core_type.capitalize}"
+    %button.btn.btn-large.btn-primary=@group.new_record? ? "Create #{@league.core_options.type.capitalize}" : "Update #{@league.core_options.type.capitalize}"
 

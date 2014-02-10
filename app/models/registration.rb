@@ -54,6 +54,15 @@ class Registration
         self.commish_rank || self.g_rank || self.self_rank
     end
 
+    def core_rank
+        return nil unless self.league.core_options.type
+
+        constant = self.league.core_options["#{self.gender}_rank_constant"] || 0.0
+        coefficient = self.league.core_options["#{self.gender}_rank_coefficient"] || 1.0
+
+        (coefficient*self.rank)+constant
+    end
+
     def waiver_accepted
         !waiver_acceptance_date.nil?
     end
