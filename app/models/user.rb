@@ -30,7 +30,6 @@ class User
     default_url: lambda {|attachment| "http://robohash.org/#{attachment.instance._id}.png?bgset=bg2&size=330x330"},
     styles: {profile: '330x330>', roster: '160x160#', thumbnail: '32x32#'}
 
-  has_many :identities
   has_many :g_rank_results, order: :timestamp.desc
   has_many :registrations
   has_and_belongs_to_many :teams, foreign_key: :teams
@@ -77,9 +76,6 @@ class User
     # Assign old_user's registrations to new_user
     registrations = Registration.collection.find(user_id: old_user._id).map{|r| r["_id"]}
     Registration.collection.find(_id: {'$in' => registrations}).update({"$set" => {user_id: self._id}}, {multi: true})
-
-    # Delete old_user identities for both users for security reasons
-    Identity.collection.find(user_id: {'$in' => [self._id, old_user._id]}).remove_all
 
     # Backup old_user object
     absorb_data = {
