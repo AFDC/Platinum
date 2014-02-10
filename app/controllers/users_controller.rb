@@ -88,7 +88,7 @@ class UsersController < ApplicationController
 	def user_params
 		permitted_params = [
 			:gender, :firstname, :lastname, :email_address, :birthdate,
-			:avatar,
+			:avatar, :handedness,
 			:middlename, :address, :city, :state, :postal_code, :height, :weight,
 			:occupation, :password, :password_confirmation
 		]
