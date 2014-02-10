@@ -77,12 +77,17 @@ class User
     registrations = Registration.collection.find(user_id: old_user._id).map{|r| r["_id"]}
     Registration.collection.find(_id: {'$in' => registrations}).update({"$set" => {user_id: self._id}}, {multi: true})
 
+    # Assign old_user's gRanks to new_user
+    grr = GRankResult.collection.find(user_id: old_user._id).map{|r| r["_id"]}
+    GRankResult.collection.find(_id: {'$in' => grr}).update({"$set" => {user_id: self._id}}, {multi: true})
+
     # Backup old_user object
     absorb_data = {
       teams_found: team_ids.map{|id| id.to_s},
       reporter_for: reporter_for.map{|id| id.to_s},
       captain_for: captain_for.map{|id| id.to_s},
-      registrations: registrations.map{|id| id.to_s}
+      registrations: registrations.map{|id| id.to_s},
+      grank_results: grr.map{|id| id.to_s}
     }
 
     backup_user[:absorb_data] = absorb_data
