@@ -124,6 +124,14 @@
                                 =co.select :type, %w(core pod), selected: core_options.type, include_blank: "None"
                                 - if co_errors[:type].any?
                                     %span.help-inline=co_errors[:type].first
+
+                        .control-group{ class: ('error' if co_errors[:rank_limit].any?)}
+                            %label.control-label Rank Cap
+                            .controls
+                                =co.text_field :rank_limit, value: core_options.rank_limit
+                                - if co_errors[:rank_limit].any?
+                                    %span.help-inline=co_errors[:rank_limit].first
+
                         .control-group{ class: ('error' if co_errors[:male_limit].any? || co_errors[:female_limit].any?)}
                             %label.control-label Gender Limit
                             .controls
@@ -149,7 +157,6 @@
                                     %span.help-inline=co_errors[:male_rank_constant].first
                                 - if co_errors[:female_rank_constant].any?
                                     %span.help-inline=co_errors[:female_rank_constant].first
-
 
                 .tab-pane#comped
                     %h4 Comped Users and Groups
