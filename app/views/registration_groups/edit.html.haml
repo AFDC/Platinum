@@ -1,4 +1,4 @@
 - content_for :title, @league.name
-= render :partial => '/pageheader', locals: {subtitle: "Edit #{@league.core_type.capitalize}", breadcrumbs: {'Leagues' => leagues_path, @league.name => @league, @league.core_type.capitalize.pluralize => league_registration_groups_path, 'Edit Group' => nil}}
+= render :partial => '/pageheader', locals: {subtitle: "Edit #{@league.core_options.type.capitalize}", breadcrumbs: {'Leagues' => leagues_path, @league.name => @league, @league.core_options.type.capitalize.pluralize => league_registration_groups_path, 'Edit Group' => nil}}
 
 = render :partial => 'form'

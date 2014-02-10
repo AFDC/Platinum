@@ -1,11 +1,19 @@
 - content_for :title, @league.name
-= render :partial => '/pageheader', locals: {subtitle: @league.core_type.capitalize.pluralize, breadcrumbs: {'Leagues' => leagues_path, @league.name => @league, @league.core_type.capitalize.pluralize => nil}}
+= render :partial => '/pageheader', locals: {subtitle: @league.core_options.type.capitalize.pluralize, breadcrumbs: {'Leagues' => leagues_path, @league.name => @league, @league.core_options.type.capitalize.pluralize => nil}}
 
-- if permitted_to? :manage, @league
-  %div{style: 'text-align: right'}
-    =link_to new_league_registration_group_path(@league), class: 'btn btn-small, btn-primary' do
-      %i.icon-plus
-      Create New #{@league.core_type.capitalize}
+.row
+  .span6
+    %dl.dl-horizontal{style: 'margin: 0;'}
+      %dt Male Limit:
+      %dd #{@league.core_options.male_limit || 'n/a'}
+      %dt Female Limit:
+      %dd #{@league.core_options.female_limit || 'n/a'}
+  .span6
+    - if permitted_to? :manage, @league
+      %div{style: 'text-align: right'}
+        =link_to new_league_registration_group_path(@league), class: 'btn btn-small, btn-primary' do
+          %i.icon-plus
+          Create New #{@league.core_options.type.capitalize}
 
 %table.table
   %thead
@@ -14,16 +22,23 @@
   %tbody
     - @league.registration_groups.each do |rg|
       %tr
-        - if permitted_to? :edit, rg
-          %td=link_to rg._id, edit_league_registration_group_path(@league, rg)
-        - else
-          %td=rg._id
+
+        %td
+          %div
+            - if permitted_to? :edit, rg
+              =link_to rg._id, edit_league_registration_group_path(@league, rg)
+            - else
+              =rg._id
+          - if @league.core_options.male_limit && rg.members.where({gender: 'male'}).count > @league.core_options.male_limit
+            .alert.alert-error Too many men
+          - if @league.core_options.female_limit && rg.members.where({gender: 'female'}).count > @league.core_options.female_limit
+            .alert-error Too many women
         %td
           %table.table.table-condensed.table-striped
             %thead
               %th Name
               %th League Rank
-              %th #{@league.core_type.capitalize} Rank
+              %th #{@league.core_options.type.capitalize} Rank
             %tbody
               - totals = Hash.new(0)
               - rg.members.each do |m|
@@ -35,8 +50,8 @@
                   - else
                     - totals[:league_rank] += reg.rank
                     %td=reg.rank
-                    - totals[:group_rank] += reg.rank
-                    %td=reg.rank
+                    - totals[:group_rank] += reg.core_rank
+                    %td=reg.core_rank
               - if rg.members.count > 0
                 %tr.info
                   %td Totals:
