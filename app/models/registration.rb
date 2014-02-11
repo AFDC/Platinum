@@ -55,6 +55,7 @@ class Registration
     end
 
     def core_rank
+        return nil unless self.rank
         return nil unless self.league.core_options.type
 
         constant = self.league.core_options["#{self.gender}_rank_constant"] || 0.0

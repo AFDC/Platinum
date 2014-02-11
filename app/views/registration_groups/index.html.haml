@@ -50,9 +50,9 @@
                   - unless reg
                     %td{colspan: 2} Player not registered
                   - else
-                    - totals[:league_rank] += reg.rank
+                    - totals[:league_rank] += reg.rank || 0
                     %td=reg.rank
-                    - totals[:group_rank] += reg.core_rank
+                    - totals[:group_rank] += reg.core_rank || 0
                     %td=reg.core_rank
               - if rg.members.count > 0
                 %tr.info
