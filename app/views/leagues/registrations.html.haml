@@ -1,5 +1,5 @@
-:plain
-  <script type="text/x-underscore" id="registrant-row-template">
+%script#registrant-row-template{type: "text/x-underscore"}
+  :plain
     <li class="registrant-row" id="<%=_id%>">
       <div class="pic"><img class="img-polaroid img-rounded" src="<%=thumbnail_img_url%>" style="max-width: 32px; height: auto;"></div>
       <div class="userdata">
@@ -18,9 +18,9 @@
         </div>
       </div>
     </li>
-  </script>
 
-  <script type="text/x-underscore" id="reg-group-detail-template">
+%script#reg-group-detail-template{type: "text/x-underscore"}
+  :plain
     <h4 style="text-transform: capitalize;"><%=window.core_type%> Members</h4>
     <ul>
     <%
@@ -36,9 +36,9 @@
       }
     %>
     </ul>
-  </script>
 
-  <script type="text/x-underscore" id="registrant-detail-template">
+%script#registrant-detail-template{type: "text/x-underscore"}
+  :plain
     <h4><a href="<%=profile_url%>" target="_blank"><%=name%></a></h4>
     <img class="img-polaroid img-rounded" src="<%=profile_img_url%>" style="max-width: 160px; height: auto;">
     <ul class="unstyled">
@@ -57,11 +57,12 @@
         <li><strong style="text-transform: capitalize"><%=window.core_type%>:</strong> <a href="#" class="show-group-details" data-group-id="<%=registration_group%>"><%= registration_group.substr(0,8) %></a></li>
       <% } %>
     </ul>
-  </script>
+  - if permitted_to? :manage, @league
+    = link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '<%=registration_id%>').html_safe, class: 'btn btn-block btn-small btn-info'
 
-  <script type="text/x-underscore" id="pair-invite-button">
+%script#pair-invite-button{type: "text/x-underscore"}
+  :plain
     <button class="btn btn-primary btn-small btn-block add-pair" data-user-id="<%=_id%>">Invite to Pair</button>
-  </script>
 
 - content_for :page_styles do
   = stylesheet_link_tag('/stylesheets/cupertino/jquery-ui-1.10.4.custom.min.css')

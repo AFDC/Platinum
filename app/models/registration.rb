@@ -23,6 +23,8 @@ class Registration
 
     field :pair_id, type: Moped::BSON::ObjectId
 
+    validates :commish_rank, :numericality => { integer_only: false, greater_than: 0, less_than: 10, allow_blank: true }
+
     belongs_to :user
     belongs_to :league
     belongs_to :g_rank_result
