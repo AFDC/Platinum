@@ -9,9 +9,9 @@
         %div{style: "padding: 5px 10px"}
             - if permitted_to?(:cancel, @registration) && !@registration.new_record?
                 %div{style: "margin-bottom: 5px;"}
-                    %button#cancel_button{class: 'btn btn-block btn-warning'} 
+                    %button#cancel_button{class: 'btn btn-block btn-warning'}
                         %i.icon.icon-remove-circle
-                        Cancel Registration 
+                        Cancel Registration
                         - content_for :page_scripts do
                             :javascript
                                 $(function() {
@@ -32,7 +32,7 @@
                                 .alert.alert-info
                                     If you cancel your registration, you will lose your spot in line.
 
-                            Cancelling your registration will remove you from the authorized or active list. If you have an outstanding 
+                            Cancelling your registration will remove you from the authorized or active list. If you have an outstanding
                             authorization, it will be cancelled as well. Once this is done, if you change your mind, you will need to
                             speak with an administrator to get your registration reset.
 
@@ -44,7 +44,7 @@
         %h4= @registration.user.name
         %dl.dl-horizontal
             %dt Gender:
-            %dd= @registration.gender
+            %dd= @registration.user.gender
 
             %dt Height:
             %dd= @registration.user.height_in_feet_and_inches
@@ -58,5 +58,5 @@
             %hr
 
             %h5 League Details:
-        
+
         = render :partial => '/registrations/form', :locals => {registration: @registration}

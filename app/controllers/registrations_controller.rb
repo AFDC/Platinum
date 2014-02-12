@@ -169,6 +169,10 @@ class RegistrationsController < ApplicationController
             weight: reg.user.weight
         }
 
+        if permitted_to? :manage, reg.league
+            reg.commish_rank = reg_params[:commish_rank]
+        end
+
         if reg.league.comped? reg.user
             reg.status = 'active'
             reg.comped = true
@@ -176,13 +180,17 @@ class RegistrationsController < ApplicationController
         end
 
         if reg.save
-            if reg.status == 'active' || reg.status == 'authorized' || current_user._id != reg.user._id
-                redirect_to league_path(reg.league), notice: flash_message || 'Update successful'
+            if reg.user != current_user
+                redirect_to registrations_league_path(reg.league), notice: "Update successful"
             else
-                redirect_to checkout_registration_path(reg)
+                if reg.status == 'active' || reg.status == 'authorized' || current_user._id != reg.user._id
+                    redirect_to league_path(reg.league), notice: flash_message || 'Update successful'
+                else
+                    redirect_to checkout_registration_path(reg)
+                end
             end
         else
-            redirect_to registrations_user_path(reg.user), notice: new_reg.errors
+            render :edit
         end
 
     end
