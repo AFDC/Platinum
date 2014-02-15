@@ -49,6 +49,37 @@
                                             Manage Roster
 
 
+        - if @league.registration_open?
+            %h4 Registration Details
+            - %w(male female).each do |gender|
+                - limit = @league["#{gender}_limit"]
+                .row
+                    .span2
+                        %strong #{gender.capitalize} Limit:
+                        #{limit || 'None'}
+                    .span2
+                        %strong Total Registered:
+                        =Registration.where(league: @league, gender: gender).count
+                    .span2
+                        %strong Active or Authorized:
+                        - active = Registration.where(league: @league, status: 'active', gender: gender).count
+                        - authorized = Registration.where(league: @league, status: 'authorized', gender: gender).count
+                        =authorized + active
+                .row{style: 'margin-bottom: 30px'}
+                    .span7
+                        - if limit
+                            - active_pct = [(active.to_f / limit.to_f), 0].max * 100
+                            - auth_pct = [[limit-active,authorized].min.to_f / limit.to_f, 0].max * 100
+                            .progress.progress-striped.active
+                                .bar.bar-success{style: "width: #{number_to_percentage(active_pct)}"}
+                                .bar.bar-warning{style: "width: #{number_to_percentage(auth_pct)}"}
+            - if false && permitted_to?(:register, @league)
+                - unless @registration
+                    =link_to "Register Now!", register_league_path(@league), class: 'btn btn-block btn-primary'
+                - else
+                    =link_to "Update your Registration", edit_registration_path(@registration), class: 'btn btn-block btn-primary'
+            %hr
+
         %h4 Teams
         %table.table.table-striped.table-condensed
             %thead
@@ -80,6 +111,6 @@
                             %td{colspan: 2} Not Available
                 - if @league.teams.count == 0
                     %tr
-                        %td{colspan: 5, style: 'text-align: center;'} This league has no teams yet.
+                        %td{colspan:5}= render partial: '/no_results', locals: {msg: 'This league has no teams yet.'}
 
 = render :partial => '/game_schedule', :locals => {start_date: Date.today, league_id: @league._id, title: 'Upcoming Games'}

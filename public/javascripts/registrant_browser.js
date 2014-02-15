@@ -135,6 +135,8 @@ $(function(){
     $('.pagination ul').append(pagination_link({page: last_page, active: false, disabled: (current_page==last_page), text: '&raquo;'}));
 
     $('.pagination').show();
+
+    $('.page-count-info').html("Page " + current_page + " of " + last_page + " (Total: " + filtered_registrant_list.length + ")");
   }
 
   $('.pagination ul').on('click', 'a', function(e) {

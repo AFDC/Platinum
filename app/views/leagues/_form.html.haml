@@ -37,6 +37,19 @@
                     =f.select :sport, %w(ultimate goaltimate), prompt: true
                     - if errors[:sport].any?
                         %span.help-inline=errors[:sport].first
+            .control-group{ class: ('error' if errors[:male_limit].any? || errors[:female_limit].any?)}
+                %label.control-label Gender Limit
+                .controls
+                    M:
+                    =f.text_field :male_limit, class: 'span1'
+                    F:
+                    =f.text_field :female_limit, class: 'span1'
+
+                    - if errors[:male_limit].any?
+                        %span.help-block=errors[:male_limit].first
+                    - if errors[:female_limit].any?
+                        %span.help-block=errors[:female_limit].first
+
             .control-group{ class: ('error' if errors[:registration_open].any? || errors[:registration_close].any?)}
                 %label.control-label Registration Dates
                 .controls

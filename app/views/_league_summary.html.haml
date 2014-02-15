@@ -20,12 +20,11 @@
 .row
     .span2{style: 'font-weight: bold;'} Player Limits:
     .span3{style: 'text-transform: capitalize'}
-        - if league.player_limit
-            - league.player_limit.keys.each do |k|
-                = "#{k}: #{league.player_limit[k]}"
-                %br
-        - else
-            None
+        - %w(male female).each do |gender|
+            - limit = league["#{gender}_limit"] || "None"
+            %strong #{gender.capitalize}:
+            #{limit}
+            %br
 
 %hr
 
@@ -46,7 +45,7 @@
     .span3= league.end_date.to_date().to_formatted_s(:long) if league.end_date
 
 - if league.description
-    %hr 
+    %hr
 
     .row
         .span2{style: 'font-weight: bold;'} Description:
