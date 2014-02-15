@@ -9,7 +9,8 @@ class League
   field :start_date, type: Date, default: 5.weeks.from_now.to_date
   field :end_date, type: Date, default: 15.weeks.from_now.to_date
   field :needs_standings_update, type: Boolean
-  field :player_limit, type: Hash, default: {}
+  field :female_limit, type: Integer
+  field :male_limit, type: Integer
   field :price, type: Integer
   field :registration_open, type: Date, default: 2.weeks.from_now.to_date
   field :registration_close, type: Date, default: 4.weeks.from_now.to_date
@@ -38,6 +39,8 @@ class League
   validates :season, :inclusion => { in: %w(fall winter spring summer saturday) }
   validates :sport, :inclusion => { in: %w(ultimate goaltimate) }
   validates :max_grank_age, :numericality => { integer_only: true, greater_than: 0, less_than: 24, allow_blank: true }
+  validates :female_limit, :numericality => { integer_only: true, greater_than: 0, allow_blank: true }
+  validates :male_limit, :numericality => { integer_only: true, greater_than: 0, allow_blank: true }
 
   scope :past,    -> { where(:end_date.lt => Date.today).order_by(start_date: :desc) }
   scope :future,  -> { where(:registration_open.gt => Date.today).order_by(start_date: :desc) }

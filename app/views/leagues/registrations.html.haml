@@ -159,11 +159,19 @@
 
 
   .span7#listing-column
-    .pagination.pagination-centered.pagination-mini{style: "margin: 0;"}
-      %ul
-    %ul.unstyled#registrants
-    .pagination.pagination-centered.pagination-mini{style: "margin: 0;"}
-      %ul
+    .row
+      .span3.page-count-info
+      .span4
+        .pagination.pagination-right.pagination-mini{style: "margin: 0;"}
+          %ul
+    .row
+      .span7
+        %ul.unstyled#registrants
+    .row
+      .span3.page-count-info
+      .span4
+        .pagination.pagination-right.pagination-mini{style: "margin: 0;"}
+          %ul
   .span2#details-column
     %div.affix-top#player-details{"data-spy" => "affix", "data-offset-top" => "150"}
 
