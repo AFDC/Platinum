@@ -102,6 +102,10 @@ class LeaguesController < ApplicationController
                             age: reg.user.age,
                             linked: reg.linked?
                         }
+                        rd[uid][:timestamps] = {}
+                        reg.payment_timestamps.each do |key,ts|
+                            rd[uid][:timestamps][key] = ts.to_i
+                        end
                         if reg.g_rank_result
                             rd[uid][:grank][:score] = reg.g_rank_result.score
                             rd[uid][:grank][:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)

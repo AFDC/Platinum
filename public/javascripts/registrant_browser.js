@@ -6,6 +6,7 @@ var registrant_list = [];
 var filtered_registrant_list = [];
 var registrant_data = {};
 var reg_group_data = {};
+var current_sort = "";
 
 var refresh_registrant_data = function(path) {
     return $.ajax({
@@ -73,6 +74,49 @@ $(function(){
     }
   };
 
+  var sort_registrants = function(){
+    var sort_type = $('#sort-field').val();
+    if (sort_type == current_sort) { return; }
+
+    current_sort = sort_type;
+    if (current_sort == '') { return; }
+
+    var dir = -1;
+
+    switch(current_sort) {
+      case 'availability':
+        registrant_list.sort(function(a,b){
+          var a_obj = registrant_data[a];
+          var b_obj = registrant_data[b];
+
+          return dir * (parseInt(a_obj['gen_availability']) - parseInt(b_obj['gen_availability']));
+        });
+        break;
+      case 'rank':
+        registrant_list.sort(function(a,b){
+          var a_obj = registrant_data[a];
+          var b_obj = registrant_data[b];
+
+          return dir * (a_obj['rank'] - b_obj['rank']);
+        });
+        break;
+      case 'paypal_auth_asc':
+        dir = 1;
+        // Break intentionally omitted
+      case 'paypal_auth_desc':
+        var default_time = moment().unix() * (dir + 1);
+        registrant_list.sort(function(a,b){
+          var a_obj = registrant_data[a];
+          var b_obj = registrant_data[b];
+
+          return dir * ((a_obj['timestamps']['authorized'] || default_time) - (b_obj['timestamps']['authorized'] || default_time));
+        });
+        break;
+    }
+
+    $('#registrants').html('');
+  };
+
   var show_results = function() {
     $('#registrants li').hide();
     var rendered = 0;
@@ -98,6 +142,7 @@ $(function(){
   $('#apply-filters').on('click', function() {
     current_page = 1;
     items_per_page = $('#items-per-page').val();
+    sort_registrants();
     filter_registrants();
     show_results();
   });
@@ -158,41 +203,6 @@ $(function(){
     values: [0,10],
     slide: updateSliderLabel,
     change: updateSliderLabel
-  });
-});
-
-// Do sorting
-$(function(){
-  $('#do-sort').on('click', function(e){
-    var sort_type = $('#sort-field').val();
-
-    if (sort_type == '') {
-      return;
-    }
-
-    switch(sort_type) {
-      case 'availability':
-        registrant_list.sort(function(a,b){
-          var a_obj = registrant_data[a];
-          var b_obj = registrant_data[b];
-
-          return (parseInt(b_obj['gen_availability']) - parseInt(a_obj['gen_availability']));
-        });
-        break;
-      case 'rank':
-        registrant_list.sort(function(a,b){
-          var a_obj = registrant_data[a];
-          var b_obj = registrant_data[b];
-
-          return (b_obj['rank'] - a_obj['rank']);
-        });
-        break;
-    }
-
-    // Blank out cache of rendered registrants
-    $('#registrants').html('');
-
-    $('#apply-filters').trigger('click');
   });
 });
 

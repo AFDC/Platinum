@@ -4,7 +4,7 @@
       <div class="pic"><img class="img-polaroid img-rounded" src="<%=thumbnail_img_url%>" style="max-width: 32px; height: auto;"></div>
       <div class="userdata">
           <div class="main col"><strong><span class="<%=gender%> label"><% print(gender[0].toUpperCase()); %></span> <%=name%></strong></div>
-          <div class="col"><strong>Status:</strong> <%=status%></div>
+          <div class="col"><strong>Role:</strong> <%=player_type%></div>
           <div class="col"><strong>Rank:</strong> <%=rank%></div>
           <div class="col" style="width: 100px; text-align: right; text-transform: capitalize"><%
             if (pair_id) {
@@ -14,7 +14,14 @@
             }
           %></div>
           <div class="main col"><strong>Availability:</strong> <%=gen_availability%></div>
-          <div class="col"><strong>Role:</strong> <%=player_type%></div>
+          <div class="col"><strong>Status:</strong> <%=status%></div>
+          <div class="col">
+            <% if (timestamps['authorized']) { %>
+              <span class="label"><i class="icon-usd"></i></span> <%=moment.unix(timestamps['authorized']).format('MMM Do, h:mma')%>
+            <% } else { %>
+              Didn't Authorize
+            <% } %>
+          </div>
         </div>
       </div>
     </li>
@@ -56,6 +63,11 @@
       <% if (registration_group) { %>
         <li><strong style="text-transform: capitalize"><%=window.core_type%>:</strong> <a href="#" class="show-group-details" data-group-id="<%=registration_group%>"><%= registration_group.substr(0,8) %></a></li>
       <% } %>
+      <% if (timestamps['authorized']) { %>
+        <li><strong>Paid:</strong> <%=moment.unix(timestamps['authorized']).format('MMM Do, h:mm a')%></li>
+      <% } else if (timestamps['pending']) { %>
+        <li><strong>Reg:</strong> <%=moment.unix(timestamps['pending']).format('MMM Do, h:mm a')%></li>
+      <% } %>
     </ul>
   - if permitted_to? :manage, @league
     = link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '<%=registration_id%>').html_safe, class: 'btn btn-block btn-small btn-info'
@@ -72,6 +84,7 @@
 - content_for :page_scripts do
   = javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js')
   = javascript_include_tag('//code.jquery.com/ui/1.10.4/jquery-ui.js')
+  = javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js')
   = javascript_include_tag('/javascripts/registrant_browser.js')
   = javascript_include_tag('/javascripts/jquery-scrollto.js')
   = javascript_include_tag('/javascripts/jquery.sparkline.min.js')
@@ -146,15 +159,14 @@
         %div#rank-range
         %p{style: 'text-align: center;'}
           Show Ranks: <span id="rank_min">0</span>-<span id="rank_max">10</span>
-
-      %button.btn.btn-small.btn-block.btn-primary#apply-filters Apply Filters
-      %button.btn.btn-small.btn-block.btn-info#clear-filters Clear Filters
-      %hr
       %select.span3{id: 'sort-field'}
         %option{value: ''} Sort By:
         %option{value: 'availability'} Availability (Desc.)
         %option{value: 'rank'} Rank (Desc.)
-      %button.btn.btn-small.btn-block.btn-primary#do-sort Sort Results
+        %option{value: 'paypal_auth_asc'} PayPal Authorization (Asc.)
+        %option{value: 'paypal_auth_desc'} PayPal Authorization (Desc.)
+      %button.btn.btn-small.btn-block.btn-primary#apply-filters Apply Filters
+      %button.btn.btn-small.btn-block.btn-info#clear-filters Clear Filters
       %hr
 
 
