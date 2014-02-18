@@ -116,6 +116,14 @@ class LeaguesController < ApplicationController
                 end
                 render json: {reg_data: @registrant_data, reg_list: @registrant_data.keys}
             end
+
+            format.csv do
+                if params[:registration_ids]
+                    @registrations = User.find(params[:registration_ids])
+                else
+                    @registrations = @league.registrations
+                end
+            end
         end
     end
 

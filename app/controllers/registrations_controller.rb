@@ -4,7 +4,9 @@ class RegistrationsController < ApplicationController
 
     def create
         # reg_params = params[:registration]
-
+        if League.find(params[:registration][:league_id]).registration_for(current_user)
+            redirect_to registrations_user_path(current_user), flash: {error: "You have already registered for this league. Please be patient. There is no need to submitt he same form multiple times. Thank you."} and return
+        end
         populate_registration Registration.new
     end
 

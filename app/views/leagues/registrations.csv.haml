@@ -1,11 +1,17 @@
-user_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastname,email,gender,availability,pair_name,pair_id,notes,birthdate,height,MST,EOST,wants_competitive,wants_social,wants_family,gRank_exp,gRank_ath,gRank_lvl,gRank_skill
-- @registrations[:active].each do |r|
+user_id,pair_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastname,email,gender,availability,pair_name,pair_id,notes,birthdate,height,MST,EOST,wants_competitive,wants_social,wants_family,gRank_exp,gRank_ath,gRank_lvl,gRank_skill
+- @registrations.each do |reg_item|
+    - if reg_item.is_a? Registration
+        - r = reg_item
+    - else
+        - r = Registraiton.find(reg_item)
+    - next unless r
     - row = []
     - row << r.user_id
+    - row << '' # Pair ID
     - row << ''
     - row << ''
     - row << r.status
-    - row << r.self_rank # TODO: Allow this to be overridden
+    - row << r.rank
     - row << r.self_rank
     - row << r.user_data['firstname']
     - row << r.user_data['lastname']
