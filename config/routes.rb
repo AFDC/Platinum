@@ -25,6 +25,7 @@ Platinum::Application.routes.draw do
     member do
       get 'register'
       get 'registrations'
+      post 'registrations'
       post 'capture_payments'
       get 'manage_roster'
       post 'upload_roster'
