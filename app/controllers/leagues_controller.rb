@@ -1,7 +1,7 @@
 class LeaguesController < ApplicationController
-    before_filter :load_league_from_params, only: [:register, :registrations, :capture_payments, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update, :select_pair, :invite_pair, :leave_pair]
+    before_filter :load_league_from_params, only: [:register, :registrations, :preview_capture, :capture_payments, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update, :select_pair, :invite_pair, :leave_pair]
     before_filter :initialize_roster_csv, only: [:manage_roster, :upload_roster, :setup_roster_import, :import_roster]
-    filter_access_to [:capture_payments], attribute_check: true
+    filter_access_to [:capture_payments, :preview_capture], attribute_check: true
 
     def index
     end
@@ -341,13 +341,18 @@ class LeaguesController < ApplicationController
         end
     end
 
+    def preview_capture
+    end
+
     def capture_payments
         @men = []
         @women = []
         @errors = []
         good_ids = []
 
-        params[:reg_id].each do |reg_id|
+        submitted_ids = params[:reg_id] || []
+
+        submitted_ids.each do |reg_id|
             r = Registration.find(reg_id)
 
             if r
@@ -363,13 +368,14 @@ class LeaguesController < ApplicationController
             end
         end
 
-        flash[:error] = "Errors were found in your submission, see below" if @errors.count > 0
-
-        if params[:confirm] == '1' && @errors.count == 0
+        if @errors.count > 0
+            flash[:error] = "Errors were found in your submission, see below"
+            render 'league/preview_capture' and return
+        else
             good_ids.each do |reg_id|
                 PaymentCaptureWorker.perform_async(reg_id)
             end
-            redirect_to registrations_league_path(@league), notice: "#{@men.count + @women.count} registrations queued for capture, this may take some time."
+            redirect_to league_path(@league), notice: "#{@men.count + @women.count} registrations queued for capture, this may take some time."
         end
     end
 

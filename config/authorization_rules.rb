@@ -61,7 +61,7 @@ authorization do
 			if_attribute commissioners: contains { user }
 		end
 
-		has_permission_on :leagues, :to => [:manage_roster, :capture_payments, :edit, :update] do
+		has_permission_on :leagues, :to => [:manage_roster, :preview_capture, :capture_payments, :edit, :update] do
 			if_permitted_to :manage
 		end
 

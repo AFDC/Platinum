@@ -95,7 +95,9 @@ class RegistrationsController < ApplicationController
             @registration.paypal_responses.push(JSON.parse(payment.to_json()))
             @registration.payment_timestamps[:authorized] = Time.now
             @registration.status = 'authorized'
-            @registration.save()
+            if @registration.save
+                RegistrationMailer.delay.payment_authorized(@registration._id.to_s)
+            end
 
             redirect_to league_path(@registration.league), notice: "Authorization successful!"
         else

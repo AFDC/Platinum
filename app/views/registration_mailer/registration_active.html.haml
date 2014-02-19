@@ -1,0 +1,21 @@
+%p #{@user.firstname},
+
+%p
+  Welcome to #{link_to(@league.name, leagues_url(@league))}. If required, your payment has been accepted
+  and your status has been updated accordingly. Nothing else is required on your part; at
+  some point before the first week of games, you will be notified of what team you're on
+  and where and when your first games will be played!
+
+%p
+  If you have any questions, please contact the league commissioner. For technical issues or
+  questions, please contact the webmaster at webmaster@afdc.com
+
+%p
+  %strong Thank you for registering to play with the Atlanta Flying Disc Club!
+
+- if @league.allow_pairs?
+  - content_for :callout_box do
+    %strong A note about pairs:
+    This league allows players to pair up to guarantee that they will be on the same team. The only way to ensure that your pair
+    request will be respected is if you <a href="http://toomuchpete.clarify-it.com/d/pqewtm">use the official pairing system</a>.
+    Requests made to the commissioner or in the notes field of your registration cannot be guaranteed.

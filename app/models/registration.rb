@@ -32,6 +32,14 @@ class Registration
 
     after_save :bust_league_cache
 
+    scope :active, where(status: 'active')
+    scope :authorized, where(status: 'authorized')
+    scope :pending, where(status: 'pending')
+    scope :canceled, where(status: 'canceled')
+
+    scope :male, where(gender: 'male')
+    scope :female, where(gender: 'female')
+
     def gen_availability
         availability['general'] if availability
     end

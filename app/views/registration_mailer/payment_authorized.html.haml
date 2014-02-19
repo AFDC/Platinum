@@ -1,0 +1,24 @@
+%p #{@user.firstname},
+
+%p
+  You have successfully authorized a payment to the Atlanta Flying Disc Club for #{link_to(@league.name, leagues_url(@league))}, but no
+  money has yet been charged. Your payment will be claimed if you are accepted into the league.
+
+%p
+  AFDC leagues typically operate on a first-come, first-served basis. Players who sign up too late to make it into the league
+  will be automatically added to a wait list to fill spots of players that back out. You'll get another email when your
+  registration is activated and you are added to the league.
+
+%p
+  If you have any questions, please contact the league commissioner. For technical issues or
+  questions, please contact the webmaster at webmaster@afdc.com
+
+%p
+  %strong Thank you for registering to play with the Atlanta Flying Disc Club!
+
+- if @league.allow_pairs?
+  - content_for :callout_box do
+    %strong A note about pairs:
+    This league allows players to pair up to guarantee that they will be on the same team. The only way to ensure that your pair
+    request will be respected is if you <a href="http://toomuchpete.clarify-it.com/d/pqewtm">use the official pairing system</a>.
+    Requests made to the commissioner or in the notes field of your registration cannot be guaranteed.
