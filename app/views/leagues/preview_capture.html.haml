@@ -1,0 +1,87 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Activate Registrations', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Activate Registrations' => nil}}
+
+.row
+  .span5
+    = render :partial => '/league_summary', :locals => {league: @league}
+    - if permitted_to? :manage, @league
+      %hr
+      %h4 League Comps
+      = render partial: 'comps', locals: {league: @league}
+
+  .span7
+    = render partial: 'navbar'
+
+    %h4 Current Stats
+    - stats = {}
+    %table.table.table-striped
+      %thead
+        %th &nbsp;
+        %th Male
+        %th Female
+        %th Total
+      %tbody
+        %tr
+          %td
+            %strong Active
+          %td= stats[:active_male]=@league.registrations.male.active.count
+          %td= stats[:active_female]=@league.registrations.female.active.count
+          %td= stats[:active_male]+stats[:active_female]
+        %tr
+          %td
+            %strong Limit
+          %td= (stats[:limit_male]=@league.male_limit) || 'n/a'
+          %td= (stats[:limit_female]=@league.female_limit) || 'n/a'
+          %td= stats[:limit_female]+stats[:limit_male]
+        %tr.success
+          %td
+            %strong Spots Remaining
+          %td= stats[:spots_male] = stats[:limit_male].to_i - stats[:active_male]
+          %td= stats[:spots_female] = stats[:limit_female].to_i - stats[:active_female]
+          %td= stats[:spots_female] + stats[:spots_male]
+        %tr
+          %th Authorized
+          %td= stats[:auth_male] = @league.registrations.male.authorized.count
+          %td= stats[:auth_female] = @league.registrations.female.authorized.count
+          %td= stats[:auth_male] + stats[:auth_female]
+        %tr
+          %th Registered
+          %td= stats[:pending_male] = @league.registrations.male.pending.count
+          %td= stats[:pending_female] = @league.registrations.female.pending.count
+          %td= stats[:pending_male] + stats[:pending_female]
+    %hr
+    %h4 Activate Players
+    = form_tag(capture_payments_league_path(@league), method: :post) do
+      .row
+        .span4
+          %p
+            This page allows you to activate players who are authorized up to the cap established for the league.
+          %p
+            On the right, you will see a list of all players who will be activated if you click the button below.
+          %p
+            If there are more authorized players than spots, spots will be filled based on which players authorized their payment earliest.
+          %p
+            If you need to move players into the league using some other system, please talk to Pete about what your options are.
+          %p
+            %strong Please use this tool with care:
+            mistakes here aren't the end of the world, but they do create extra work for other people.
+        .span3
+          %div{style: "min-height: 300px; border-left: 1px solid #808080; padding-left: 10px;"}
+            - %w(male female).each do |gender|
+              - limit = @league["#{gender}_limit"]
+              - spots = stats["spots_#{gender}".to_sym]
+              %h5=gender.capitalize
+              - if limit.nil?
+                .well There is no limit set; in order to use this tool, a limit must be specified.
+              - elsif spots <= 0
+                .well No spots remaining.
+              - else
+                %ul
+                  - @league.registrations.authorized.where(gender: gender).sort('payment_timestamps.authorized' => 1).each do |reg|
+                    - break unless spots > 0
+                    %li
+                      =link_to reg.user.name, reg.user
+                      =hidden_field_tag('reg_id[]', reg._id)
+                    - spots -= 1
+            %button.btn.btn-block.btn-primary Activate Players
+

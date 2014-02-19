@@ -1,0 +1,42 @@
+.navbar.navbar-inverse
+    .navbar-inner
+        %ul.nav
+            %li.active=link_to "League", @league
+            - if @league.registration_open? && permitted_to?(:register, @league)
+                - unless @registration
+                    %li
+                        =link_to "Register", register_league_path(@league)
+                - else
+                    %li= link_to "Update your Registration", edit_registration_path(@registration)
+
+            %li=link_to "Players", registrations_league_path(@league)
+            - if @league.core_options.type.present?
+                %li=link_to @league.core_options.type.capitalize.pluralize, league_registration_groups_path(@league)
+
+        %ul.nav.pull-right
+            - if permitted_to? :manage, @league
+                %li.dropdown
+                    = link_to "#", class: "dropdown-toggle", "data-toggle" => "dropdown" do
+                        Admin
+                        %b.caret
+                    %ul.dropdown-menu
+                        - if permitted_to? :manage, @league
+                            %li
+                                = link_to edit_league_path(@league) do
+                                    %i.icon.icon-pencil
+                                    Edit
+                        - if permitted_to? :create, :teams
+                            %li
+                                =link_to new_league_team_path(@league) do
+                                    %i.icon.icon-plus
+                                    Create Team
+                        - if permitted_to? :manage_roster, @league
+                            %li
+                                = link_to manage_roster_league_path(@league) do
+                                    %i.icon.icon-group
+                                    Manage Roster
+                        - if permitted_to? :preview_capture, @league
+                            %li
+                                = link_to preview_capture_league_path(@league) do
+                                    %i.icon-bolt
+                                    Active Players
