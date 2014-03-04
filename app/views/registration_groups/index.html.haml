@@ -17,6 +17,13 @@
           %i.icon-plus
           Create New #{@league.core_options.type.capitalize}
 
+- active_male = @league.registrations.male.active.count
+- active_female = @league.registrations.female.active.count
+- if @league.male_limit
+  - male_spots = @league.male_limit - active_male
+- if @league.female_limit
+  - female_spots = @league.female_limit - active_female
+
 %table.table
   %thead
     %th Group
@@ -24,8 +31,7 @@
   %tbody
     - @league.registration_groups.each do |rg|
       %tr
-
-        %td
+        %td{width: '30%'}
           %div
             - if permitted_to? :edit, rg
               =link_to rg._id, edit_league_registration_group_path(@league, rg)
@@ -34,12 +40,46 @@
           - if @league.core_options.male_limit && rg.members.where({gender: 'male'}).count > @league.core_options.male_limit
             .alert.alert-error Too many men
           - if @league.core_options.female_limit && rg.members.where({gender: 'female'}).count > @league.core_options.female_limit
-            .alert-error Too many women
+            .alert.alert-error Too many women
+          - member_count = rg.members.count
+          - if member_count > 0
+            %div
+              - registrations = Hash.new(0)
+              - authorized = Hash.new(0)
+              - rg.members.each do |m|
+                - if reg = @league.registration_for(m)
+                  - registrations[:total] += 1
+                  - registrations[reg.status.to_sym] += 1
+                  - if reg.status == 'authorized'
+                    - authorized[reg.gender.to_sym] += 1
+              - if member_count != registrations[:total]
+                .alert.alert-error No actions may be taken until all members are registered.
+              - elsif registrations[:canceled] + registrations[:pending] > 0
+                .alert.alert-warning Core can not be processed until all members are authorized.
+              - elsif registrations[:authorized] > 0
+                - if (male_spots.present? && male_spots < authorized[:male]) || (female_spots.present? && female_spots < authorized[:female])
+                  .alert.alert-warning
+                    %strong There aren't enough spots left to activate this core:
+                    - if male_spots.present?
+                      %p Male Spots Remaining: #{male_spots}
+                    - if female_spots.present?
+                      %p Female Spots Remaining: #{female_spots}    
+                - else
+                  =link_to 'Activate authorized players on this core', preview_capture_league_path(@league, registration_group_id: rg._id), class: 'btn btn-block btn-small btn-primary', style: 'margin-top: 30px'
+
+              - elsif registrations[:active] == member_count
+                / .alert.alert-success WOO! ADD THIS CORE TO A TEAM LIKE RIGHT NOW!
+              - else
+                .alert.alert-error Unknown error. Please contact the webmaster@afdc.com
+            
+
         %td
           %table.table.table-condensed.table-striped
             %thead
               %th Name
-              %th League Rank
+              %th Status
+              %th Team
+              %th Rank
               %th #{@league.core_options.type.capitalize} Rank
             %tbody
               - totals = Hash.new(0)
@@ -48,17 +88,32 @@
                 %tr{class: "#{"error" unless reg}"}
                   %td=link_to m.name, m
                   - unless reg
-                    %td{colspan: 2} Player not registered
+                    %td
+                      %span.label.label-important n/a
+                    %td{colspan: 3} Player not registered
                   - else
+                    - label_type = 'important'
+                    - label_type = 'success' if reg.status == 'active'
+                    - label_type = 'info' if reg.status == 'authorized'
+                    - label_type = 'inverse' if reg.status == 'canceled'
+                    %td
+                      %span{class: "label label-#{label_type}"}=reg.status
+
+                    - if t = @league.team_for(m)
+                      %td=link_to t.name, t
+                    - else
+                      %td N/A
+
                     - totals[:league_rank] += reg.rank || 0
                     %td=reg.rank
+                    
                     - totals[:group_rank] += reg.core_rank || 0
                     %td=reg.core_rank
               - if rg.members.count > 0
                 %tr.info
-                  %td Totals:
+                  %td{colspan: 3} Totals:
                   %td=totals[:league_rank]
                   %td=totals[:group_rank]
                 - if @league.core_options.rank_limit && totals[:group_rank] > @league.core_options.rank_limit
                   %tr.error
-                    %td{colspan: 3} #{@league.core_options.type.capitalize} rank is #{totals[:group_rank] - @league.core_options.rank_limit} points over the limit.
+                    %td{colspan: 5} #{@league.core_options.type.capitalize} rank is #{totals[:group_rank] - @league.core_options.rank_limit} points over the limit.

@@ -58,15 +58,26 @@
             This page allows you to activate players who are authorized up to the cap established for the league.
           %p
             On the right, you will see a list of all players who will be activated if you click the button below.
-          %p
-            If there are more authorized players than spots, spots will be filled based on which players authorized their payment earliest.
-          %p
-            If you need to move players into the league using some other system, please talk to Pete about what your options are.
+          - if @rg
+            %p
+              You are activating players from a #{@league.core_options.type}. On the right, 
+              you will find all authorized players from that group, up to the gender limits for the league.
+          - else
+            %p
+              If there are more authorized players than spots, spots will be filled based on which players authorized their payment earliest.
+            %p
+              If you need to move players into the league using some other system, please talk to Pete about what your options are.
           %p
             %strong Please use this tool with care:
             mistakes here aren't the end of the world, but they do create extra work for other people.
         .span3
           %div{style: "min-height: 300px; border-left: 1px solid #808080; padding-left: 10px;"}
+            - if @rg.present?
+              .alert.alert-warning
+                %p
+                  %strong Warning: 
+                  Capturing payments for a #{@league.core_options.type} does not follow first-come, first-served rules.
+
             - %w(male female).each do |gender|
               - limit = @league["#{gender}_limit"]
               - spots = stats["spots_#{gender}".to_sym]
@@ -77,11 +88,13 @@
                 .well No spots remaining.
               - else
                 %ul
-                  - @league.registrations.authorized.where(gender: gender).sort('payment_timestamps.authorized' => 1).each do |reg|
+                  - if @authorized_registrants[gender.to_sym].count <= 0
+                    .alert.alert-info No #{gender} registrations to capture.
+                  - @authorized_registrants[gender.to_sym].each do |reg|
                     - break unless spots > 0
                     %li
                       =link_to reg.user.name, reg.user
                       =hidden_field_tag('reg_id[]', reg._id)
                     - spots -= 1
-            %button.btn.btn-block.btn-primary Activate Players
 
+            %button.btn.btn-block.btn-primary Activate Players

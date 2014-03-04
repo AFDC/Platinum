@@ -109,6 +109,12 @@ class League
     end
   end
 
+  def team_for(user)
+    if user
+      teams.where({players: user}).first
+    end
+  end
+
   private
 
   def build_options_if_nil

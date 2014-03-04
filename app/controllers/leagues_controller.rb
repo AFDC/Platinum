@@ -342,6 +342,19 @@ class LeaguesController < ApplicationController
     end
 
     def preview_capture
+        if params[:registration_group_id] && @rg = RegistrationGroup.find(params[:registration_group_id])
+            @authorized_registrants = {male: [], female: []}
+            @rg.members.each do |m|
+                if reg = @league.registration_for(m)
+                    @authorized_registrants[reg.gender.to_sym] << reg if reg.status == 'authorized'
+                end
+            end
+        else
+            @authorized_registrants = {}
+            %w(male female).each do |gender|
+                @authorized_registrants[gender.to_sym] = @league.registrations.authorized.where(gender: gender).sort('payment_timestamps.authorized' => 1)
+            end
+        end
     end
 
     def capture_payments
