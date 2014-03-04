@@ -88,6 +88,8 @@ class League
     raise ArgumentError.new "Must supply a team to be added to" unless team.instance_of?(Team)
     raise ArgumentError.new "Team not a part of this league" unless team.league == self
 
+    return true if self.team_for(user) == team
+
     # remove user from all teams in the league
     Team.collection.find(_id: {'$in' => self.team_ids}).update({"$pull" => {players: user._id}}, {multi: true})
 
