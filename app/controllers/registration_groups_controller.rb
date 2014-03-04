@@ -1,7 +1,7 @@
 class RegistrationGroupsController < ApplicationController
     before_filter :load_league_from_params
-    before_filter :load_group_from_params, only: [:show, :edit, :update]
-    filter_access_to [:edit, :update, :show], attribute_check: true
+    before_filter :load_group_from_params, only: [:show, :edit, :update, :add_to_team]
+    filter_access_to [:edit, :update, :show, :add_to_team], attribute_check: true
 
     def index
       respond_to do |format|
@@ -35,10 +35,30 @@ class RegistrationGroupsController < ApplicationController
 
     def update
       if @group.update_attributes(group_params)
-        redirect_to league_registration_groups_path(@league), notice: "#{@league.core_options.type.capitalize} Updated Successfully"
+        redirect_to league_registration_groups_path(@league), notice: "#{@league.core_options.type.capitalize} updated successfully!"
       else
         render :edit
       end
+    end
+
+    def add_to_team
+      unless params[:team_id] && target_team = Team.find(params[:team_id])
+        redirect_to league_registration_groups_path(@league), flash: {error: "Could not find team #{params[:team_id]}"} and return
+      end
+
+      unless target_team.league == @league
+        redirect_to league_registration_groups_path(@league), flash: {error: "League mismatch error!"} and return
+      end
+
+      processed = 0
+      @group.members.each do |m|
+        reg = @league.registration_for(m)
+        next unless reg && reg.status == 'active'
+        @league.add_player_to_team(m, target_team)
+        processed += 1
+      end
+
+      redirect_to league_registration_groups_path(@league), notice: "Added #{processed} active players from that #{@league.core_options.type.capitalize} to #{target_team.name}."
     end
 
     private

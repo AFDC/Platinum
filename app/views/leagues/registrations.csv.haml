@@ -1,4 +1,4 @@
-user_id,pair_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastname,email,gender,availability,pair_name,pair_id,notes,birthdate,height,MST,EOST,wants_competitive,wants_social,wants_family,gRank_exp,gRank_ath,gRank_lvl,gRank_skill
+user_id,pair_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastname,email,gender,availability,notes,birthdate,height,EOST
 - @registrations.each do |reg_item|
     - if reg_item.is_a? Registration
         - r = reg_item
@@ -7,9 +7,9 @@ user_id,pair_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastna
     - next unless r
     - row = []
     - row << r.user_id
-    - row << '' # Pair ID
-    - row << ''
-    - row << ''
+    - row << (Digest::MD5.hexdigest [r.user_id, r.pair_id].sort.join('_') if r.pair)
+    - row << nil
+    - row << r.league.team_for(r.user).try(:_id)
     - row << r.status
     - row << r.rank
     - row << r.self_rank
@@ -18,12 +18,8 @@ user_id,pair_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastna
     - row << r.user.email_address
     - row << r.gender
     - row << r.gen_availability
-    - row << (r.pair ? r.pair.name : '')
-    - row << r.pair_id
-    - row << '"' + (r.notes || '') + '"'
+    - row << r.notes
     - row << r.user_data['birthdate']
     - row << r.user_data['height']
-    - row << 'n/a'
     - row << r.eos_availability
-    - row << ',,,,,,'
-    = raw row.join(',')
+    = raw row.to_csv

@@ -37,7 +37,11 @@ Platinum::Application.routes.draw do
     end
 
     resources :teams, only: [:new, :create]
-    resources :registration_groups
+    resources :registration_groups do
+      member do
+        put 'add_to_team'
+      end
+    end
   end
 
   resources :teams, except: [:new, :create]
