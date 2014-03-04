@@ -58,17 +58,22 @@
                 .alert.alert-warning Core can not be processed until all members are authorized.
               - elsif registrations[:authorized] > 0
                 - if (male_spots.present? && male_spots < authorized[:male]) || (female_spots.present? && female_spots < authorized[:female])
-                  .alert.alert-warning
-                    %strong There aren't enough spots left to activate this core:
-                    - if male_spots.present?
-                      %p Male Spots Remaining: #{male_spots}
-                    - if female_spots.present?
-                      %p Female Spots Remaining: #{female_spots}    
+                  - if permitted_to? :manage, @league
+                    .alert.alert-warning
+                      %strong There aren't enough spots left to activate this core:
+                      - if male_spots.present?
+                        %p Male Spots Remaining: #{male_spots}
+                      - if female_spots.present?
+                        %p Female Spots Remaining: #{female_spots}    
                 - else
-                  =link_to 'Activate authorized players on this core', preview_capture_league_path(@league, registration_group_id: rg._id), class: 'btn btn-block btn-small btn-primary', style: 'margin-top: 30px'
+                  - if permitted_to? :preview_capture, @league
+                    =link_to 'Activate authorized players on this core', preview_capture_league_path(@league, registration_group_id: rg._id), class: 'btn btn-block btn-small btn-primary', style: 'margin-top: 30px'
 
               - elsif registrations[:active] == member_count
-                / .alert.alert-success WOO! ADD THIS CORE TO A TEAM LIKE RIGHT NOW!
+                - if permitted_to? :add_to_team, rg
+                  = form_tag add_to_team_league_registration_group_path(@league,rg), method: 'PUT', style: 'margin-top: 30px' do
+                    = select_tag :team_id, options_for_select(@league.teams.map{|t| ["#{t.name} (#{t.captains.map{|c| c.name}.join(', ')})", t._id]}), style: 'width: 100%', prompt: 'Select a team:'
+                    %button.btn.btn-block.btn-small.btn-success Add this #{@league.core_options.type} to a team
               - else
                 .alert.alert-error Unknown error. Please contact the webmaster@afdc.com
             
