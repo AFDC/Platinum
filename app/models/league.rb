@@ -92,7 +92,7 @@ class League
     Team.collection.find(_id: {'$in' => self.team_ids}).update({"$pull" => {players: user._id}}, {multi: true})
 
     # remove all league teams from player
-    user[:teams].reject!{|team_id| self.team_ids.include?(team_id) }
+    (user[:teams] ||= []).reject!{|team_id| self.team_ids.include?(team_id) }
 
     # add player to team
     Team.collection.find({_id: team._id}).update({"$addToSet" => {players: user._id}}, {multi: false})
