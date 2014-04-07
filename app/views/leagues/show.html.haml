@@ -16,6 +16,7 @@
             %h4 Registration Details
             - %w(male female).each do |gender|
                 - limit = @league["#{gender}_limit"]
+                - next if limit == 0
                 .row
                     .span2
                         %strong #{gender.capitalize} Limit:

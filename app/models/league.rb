@@ -39,8 +39,8 @@ class League
   validates :season, :inclusion => { in: %w(fall winter spring summer saturday) }
   validates :sport, :inclusion => { in: %w(ultimate goaltimate) }
   validates :max_grank_age, :numericality => { integer_only: true, greater_than: 0, less_than: 24, allow_blank: true }
-  validates :female_limit, :numericality => { integer_only: true, greater_than: 0, allow_blank: true }
-  validates :male_limit, :numericality => { integer_only: true, greater_than: 0, allow_blank: true }
+  validates :female_limit, :numericality => { integer_only: true, greater_than_or_equal_to: 0, allow_blank: true }
+  validates :male_limit, :numericality => { integer_only: true, greater_than_or_equal_to: 0, allow_blank: true }
 
   scope :past,    -> { where(:end_date.lt => Date.today).order_by(start_date: :desc) }
   scope :future,  -> { where(:registration_open.gt => Date.today).order_by(start_date: :desc) }
@@ -50,6 +50,19 @@ class League
     return false if registration_open.nil? || registration_close.nil?
 
     registration_open.to_time.in_time_zone.change(hour: 12).past? && registration_close.to_time.in_time_zone.end_of_day.future?
+  end
+
+  def registration_open_for?(user)
+    return false unless user
+    return false unless registration_open?
+
+    user_gender_limit = self["#{user.gender}_limit".to_sym]
+
+    if user_gender_limit.nil? || user_gender_limit > 0
+      return true
+    end
+
+    return false
   end
 
   def started?

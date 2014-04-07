@@ -38,6 +38,12 @@ class LeaguesController < ApplicationController
             return
         end
 
+        user_gender_limit = @league["#{current_user.gender}_limit".to_sym]
+
+        if user_gender_limit == 0
+            redirect_to league_path(@league), flash: {error: "No #{current_user.gender} registrants allowed."} and return
+        end
+
         if @league.require_grank? && (current_user.g_rank_results.first.nil? || current_user.g_rank_results.first.timestamp.end_of_day < @league.max_grank_age.months.ago)
             session[:post_grank_redirect] = @league._id.to_s
             redirect_to edit_g_rank_profile_path, notice: "Your gRank score is out of date, please complete the survey before registering."
