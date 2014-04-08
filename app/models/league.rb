@@ -107,15 +107,14 @@ class League
     Team.collection.find(_id: {'$in' => self.team_ids}).update({"$pull" => {players: user._id}}, {multi: true})
 
     # remove all league teams from player
-    (user[:teams] ||= []).reject!{|team_id| self.team_ids.include?(team_id) }
+    User.collection.find(_id: user._id).update({"$pullAll" => {teams: self.team_ids}})
 
     # add player to team
     Team.collection.find({_id: team._id}).update({"$addToSet" => {players: user._id}}, {multi: false})
 
     # add team to player
-    user[:teams] << team._id
+    User.collection.find(_id: user._id).update({"$addToSet" => {teams: team._id}})
 
-    user.save
     TeamMailer.delay.added_to_team(user._id.to_s, team._id.to_s)
   end
 
