@@ -38,47 +38,45 @@ class RegistrationsController < ApplicationController
             redirect_to registrations_user_path(current_user), flash: {error: "User not found for that registration."}
             return
         end
-        if false
-            price = '%.2f' % @registration.league.price
+        price = '%.2f' % @registration.league.price
 
-            desc = "AFDC Registration Fee for #{@registration.league.name}. [#{@registration._id}]"
+        desc = "AFDC Registration Fee for #{@registration.league.name}. [#{@registration._id}]"
 
-            payment = PayPal::SDK::REST::Payment.new({
-                intent: 'authorize',
-                payer: {payment_method: 'paypal'},
-                transactions: [{amount: {currency: 'USD', total: price}, description: desc}],
-                redirect_urls: {return_url: approved_registration_url(@registration), cancel_url: cancelled_registration_url(@registration)}
-            })
+        payment = PayPal::SDK::REST::Payment.new({
+            intent: 'authorize',
+            payer: {payment_method: 'paypal'},
+            transactions: [{amount: {currency: 'USD', total: price}, description: desc}],
+            redirect_urls: {return_url: approved_registration_url(@registration), cancel_url: cancelled_registration_url(@registration)}
+        })
 
-            begin
-                payment.create
-            rescue
-                redirect_to registrations_user_path(current_user), flash: {error: "There was an error talking to PayPal, please try again or contact webmaster@afdc.com."}
-                return
-            end
+        begin
+            payment.create
+        rescue
+            redirect_to registrations_user_path(current_user), flash: {error: "There was an error talking to PayPal, please try again or contact webmaster@afdc.com."}
+            return
+        end
 
-            if payment.id
-                @registration.payment_id = payment.id
-                @registration.payment_timestamps[:created] = Time.now
-            end
+        if payment.id
+            @registration.payment_id = payment.id
+            @registration.payment_timestamps[:created] = Time.now
+        end
 
-            @registration.paypal_responses.push(JSON.parse(payment.to_json()))
-            @registration.save()
+        @registration.paypal_responses.push(JSON.parse(payment.to_json()))
+        @registration.save()
 
-            # payment state options: created, approved, failed, canceled, or expired
-            if payment.state == 'created'
-                redirect_url = payment.links.find{|v| v.method == 'REDIRECT'}.href
-                Rails.logger.info "Payment[#{payment.id}]"
-                Rails.logger.info "Redirect: #{redirect_url}"
-                redirect_to redirect_url
-            elsif payment.state == 'approved'
-                redirect_to registrations_user_path(current_user), notice: "That registration has already been authorized."
-            elsif payment.errors
-                Rails.logger.error payment.errors.inspect
-                redirect_to registrations_user_path(current_user), flash: {error: payment.errors.inspect}
-            else
-                redirect_to registrations_user_path(current_user), flash: {error: "Unknown error for registration #{@registration._id}"}
-            end
+        # payment state options: created, approved, failed, canceled, or expired
+        if payment.state == 'created'
+            redirect_url = payment.links.find{|v| v.method == 'REDIRECT'}.href
+            Rails.logger.info "Payment[#{payment.id}]"
+            Rails.logger.info "Redirect: #{redirect_url}"
+            redirect_to redirect_url
+        elsif payment.state == 'approved'
+            redirect_to registrations_user_path(current_user), notice: "That registration has already been authorized."
+        elsif payment.errors
+            Rails.logger.error payment.errors.inspect
+            redirect_to registrations_user_path(current_user), flash: {error: payment.errors.inspect}
+        else
+            redirect_to registrations_user_path(current_user), flash: {error: "Unknown error for registration #{@registration._id}"}
         end
     end
 
