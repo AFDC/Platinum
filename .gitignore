@@ -18,6 +18,7 @@
 /config/application.yml
 /config/newrelic.yml
 /config/paypal.yml
+/config/skylight.yml
 
 # Ignore paperclip files
 /public/system
