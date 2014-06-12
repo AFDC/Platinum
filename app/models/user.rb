@@ -30,7 +30,7 @@ class User
     default_url: lambda {|attachment| "http://robohash.org/#{attachment.instance._id}.png?bgset=bg2&size=330x330"},
     styles: {profile: '330x330>', roster: '160x160#', thumbnail: '32x32#'}
 
-  has_many :g_rank_results, order: :timestamp.desc
+  has_many :g_rank_results, order: :_id.desc
   has_many :registrations
   has_and_belongs_to_many :teams, foreign_key: :teams
 

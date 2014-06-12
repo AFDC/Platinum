@@ -49,6 +49,22 @@
 			.span4
 				- if current_user._id == @user._id
 					= link_to 'Update gRank', edit_g_rank_profile_path
+		- unless @user.g_rank_results.empty?
+			%h4
+				Most Recent gRank Answers
+
+			%table.table.table-striped.table-condensed
+				%tbody
+					- grank_answers_text = GRank.convert_answers_to_text(@user.g_rank_results.first.answers)
+					%tr
+						%th{style:'width: 20%'} Experience
+						%td=grank_answers_text['Experience']
+					- %w(level_of_play ultimate_skills athleticism).each do |category|
+						- next unless grank_answers_text[category.humanize]
+						%tr
+							%th=category.humanize
+							%td=grank_answers_text[category.humanize]
+
 
 - unless @user.teams.empty?
 	%h2
@@ -98,3 +114,4 @@
 						=raw league_links.join(', ')
 
 					%td=grr.score
+
