@@ -3,7 +3,7 @@ class GRankResult
     include ActiveModel::ForbiddenAttributesProtection
 
     field :answers, type: Hash, default: {}
-    field :timestamp, type: Date, default: Date.today
+    field :timestamp, type: Date, default: Date.current
     field :score, type: Float
 
     belongs_to :user
