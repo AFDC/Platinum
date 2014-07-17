@@ -32,6 +32,8 @@ class League
   has_and_belongs_to_many :commissioners, class_name: "User", foreign_key: :commissioner_ids, inverse_of: nil
   has_and_belongs_to_many :comped_groups, class_name: "CompGroup", inverse_of: nil
   has_and_belongs_to_many :comped_players, class_name: "User", inverse_of: nil
+  belongs_to :eos_champion, class_name: "Team", inverse_of: nil
+  belongs_to :mst_champion, class_name: "Team", inverse_of: nil
 
   validates :name, :presence => true
   validates :price, :numericality => { integer_only: true, greater_than: 0, less_than: 250, allow_blank: false  }

@@ -8,4 +8,38 @@
             Create a League
 = render :partial => 'league_table', locals: {title: 'Upcoming', leagues: League.future }
 = render :partial => 'league_table', locals: {title: 'Current', leagues: League.current }
-= render :partial => 'league_table', locals: {title: 'Past', leagues: League.past }
+/= render :partial => 'league_table', locals: {title: 'Past', leagues: League.past }
+
+
+- if League.past.count > 0
+    %h3= 'Past'
+
+    %table.table.table-striped
+        %thead
+            %tr
+                %th{width: '40%'} League Name
+                %th Overall Champion
+                %th Midseason Champions
+                %th End of Season Champions
+
+        %tbody
+            - League.past.each do |l|
+                %tr
+                    %td=link_to l.name, league_path(l)
+                    - if l.teams.count != 0
+                        %td=link_to l.teams.first.name, team_path(l.teams.first)
+                    - else
+                        %td= 'N/A'
+                    
+                    - if l.mst_tourney
+                        %td= link_to l.mst_champion.name, team_path(l.mst_champion)
+                    - else 
+                        %td= 'N/A'
+                    
+                    - if l.eos_tourney
+                        - if l.eos_champion == nil
+                            %td= 'N/A'
+                        - else
+                            %td= link_to l.eos_champion.name, team_path(l.eos_champion)  
+                    - else 
+                        %td= 'N/A'
