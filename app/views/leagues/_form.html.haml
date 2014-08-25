@@ -93,6 +93,8 @@
             %ul.nav.nav-tabs
                 %li.active=link_to 'League Config', '#config', 'data-toggle' => "tab"
                 %li=link_to 'Comped Players', '#comped', 'data-toggle' => "tab"
+                -if @league.started?
+                    %li=link_to 'Champions', '#champions', 'data-toggle' => "tab"
             .tab-content
                 .tab-pane.active#config
                     %h4 League Options
@@ -186,10 +188,19 @@
                                         =g.description
                     - else
                         = render partial: 'comps', locals: {league: @league}
+                .tab-pane#champions
+                    %h4 Champions Selection
+                    - if @league.mst_tourney
+                        %label.control-label{for: 'mst_champion'} MST Champion
+                        .controls
+                            = f.select :mst_champion_id, @league.teams.map{|t| ["#{t.name} (#{t.captains.map{|c| c.name}.join(', ')})", t._id]}, style: 'width: 100%', prompt: 'Select a team:'
+                    - if @league.eos_tourney
+                        %label.control-label{for: 'eos_champion'} EOS Champion
+                        .controls
+                            = f.select :eos_champion_id, @league.teams.map{|t| ["#{t.name} (#{t.captains.map{|c| c.name}.join(', ')})", t._id]}, style: 'width: 100%', prompt: 'Select a team:'
 
     .form-actions
         %button.btn.btn-large.btn-primary=@league.new_record? ? "Create League" : "Update League"
-
 
 
 - content_for :page_scripts do
