@@ -31,15 +31,12 @@
                     - else
                         %td= 'N/A'
                     
-                    - if l.mst_tourney
+                    - if l.mst_tourney && l.mst_champion
                         %td= link_to l.mst_champion.name, team_path(l.mst_champion)
                     - else 
                         %td= 'N/A'
                     
-                    - if l.eos_tourney
-                        - if l.eos_champion == nil
-                            %td= 'N/A'
-                        - else
-                            %td= link_to l.eos_champion.name, team_path(l.eos_champion)  
-                    - else 
+                    - if l.eos_tourney && l.eos_champion
+                        %td= link_to l.eos_champion.name, team_path(l.eos_champion)  
+                    - else
                         %td= 'N/A'
