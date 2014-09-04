@@ -270,7 +270,7 @@ class LeaguesController < ApplicationController
         @columns = @sample_data[0].keys
 
         @columns.each do |field_name|
-            item = @sample_data[0][field_name]
+            item = @sample_data[0][field_name].to_s
             if item.match(/^[0-9a-fA-F]{24}$/)
                 if User.find(item)
                     @user_id_field_guess = field_name
