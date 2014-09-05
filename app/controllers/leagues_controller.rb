@@ -245,13 +245,14 @@ class LeaguesController < ApplicationController
 
     def upload_roster
         begin
-            SmarterCSV.process(params[:roster].path, {remove_empty_values: false, chunk_size: 2}) do |chunk|
+            SmarterCSV.process(params[:roster].path, {remove_empty_values: false, chunk_size: 2, row_sep: :auto}) do |chunk|
                 new_csv_path = ENV['roster_csv_path'] + "/roster_upload_" + Digest::SHA1.hexdigest([Time.now, rand].join)[0..16] + ".csv"
 
                 FileUtils.cp params[:roster].path, new_csv_path
                 session[:roster_csv][@league._id] = new_csv_path
                 redirect_to setup_roster_import_league_path(@league) and return
             end
+            raise "No data found in the supplied file. Ensure the file contains data and that the lines are terminated by newline characters."
         rescue => e
             redirect_to manage_roster_league_path(@league), flash: {error: "There was an error reading that CSV file. (#{e})"} and return
         end
@@ -263,7 +264,7 @@ class LeaguesController < ApplicationController
            redirect_to manage_roster_league_path(@league), flash: {error: "No uploaded roster file found"} and return
         end
 
-        SmarterCSV.process(target_file, {remove_empty_values: false, chunk_size: 10}) do |chunk|
+        SmarterCSV.process(target_file, {remove_empty_values: false, chunk_size: 10, row_sep: :auto}) do |chunk|
             @sample_data = chunk
         end
 
