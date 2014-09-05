@@ -5,7 +5,7 @@ gem 'rails', '3.2.17'
 # Backend
 # gem 'airbrake'
 # gem 'newrelic_rpm'
-gem 'figaro'
+gem 'figaro', '~> 1.0.0.rc1'
 gem 'json'
 gem 'multi_json'
 gem 'mongoid'
