@@ -4,12 +4,11 @@ lock '3.2.1'
 set :application, 'platinum'
 set :repo_url, 'git://github.com/AFDC/Platinum.git'
 
-set :stage, :production
 set :rails_env, 'production'
 
-server 'afdc.com', user: 'deploy', roles: %w{web app}
-
 set :rvm_ruby_version, '2.1.2'
+set :unicorn_config_path, 'config/unicorn.rb'
+set :unicorn_pid, '/tmp/unicorn.platinum.pid'
 
 # Default branch is :master
 # ask :branch, proc { `git rev-parse --abbrev-ref HEAD`.chomp }.call
