@@ -45,12 +45,24 @@ GEM
       will_paginate
     bootstrap_form (0.3.2)
     builder (3.0.4)
-    capistrano (2.15.4)
-      highline
-      net-scp (>= 1.0.0)
-      net-sftp (>= 2.0.0)
-      net-ssh (>= 2.0.14)
-      net-ssh-gateway (>= 1.1.0)
+    capistrano (3.2.1)
+      i18n
+      rake (>= 10.0.0)
+      sshkit (~> 1.3)
+    capistrano-bundler (1.1.3)
+      capistrano (~> 3.1)
+      sshkit (~> 1.2)
+    capistrano-rails (1.1.2)
+      capistrano (~> 3.1)
+      capistrano-bundler (~> 1.1)
+    capistrano-rvm (0.1.1)
+      capistrano (~> 3.0)
+      sshkit (~> 1.2)
+    capistrano-sidekiq (0.3.7)
+      capistrano
+      sidekiq
+    capistrano3-unicorn (0.2.1)
+      capistrano (~> 3.1, >= 3.1.0)
     capybara (2.0.3)
       mime-types (>= 1.16)
       nokogiri (>= 1.3.3)
@@ -74,6 +86,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.6.2)
+    colorize (0.7.3)
     connection_pool (1.2.0)
     css_parser (1.3.5)
       addressable
@@ -135,7 +148,6 @@ GEM
       activesupport (>= 3.1, < 4.1)
       haml (>= 3.1, < 4.1)
       railties (>= 3.1, < 4.1)
-    highline (1.6.19)
     hike (1.2.3)
     htmlentities (4.3.1)
     i18n (0.6.9)
@@ -174,14 +186,10 @@ GEM
       paperclip (>= 2.3.6)
     moped (1.5.1)
     multi_json (1.9.0)
-    net-scp (1.1.1)
+    net-scp (1.2.1)
       net-ssh (>= 2.6.5)
-    net-sftp (2.1.2)
-      net-ssh (>= 2.6.5)
-    net-ssh (2.6.7)
-    net-ssh-gateway (1.2.0)
-      net-ssh (>= 2.6.5)
-    newrelic_rpm (3.8.0.218)
+    net-ssh (2.9.1)
+    newrelic_rpm (3.9.3.241)
     nokogiri (1.5.9)
     origin (1.1.0)
     paperclip (3.4.2)
@@ -290,7 +298,7 @@ GEM
       temple (~> 0.6.6)
       tilt (>= 1.3.3, < 2.1)
     slop (3.4.4)
-    smarter_csv (1.0.15)
+    smarter_csv (1.0.17)
     spork (0.9.2)
     sprockets (2.2.2)
       hike (~> 1.2)
@@ -298,6 +306,10 @@ GEM
       rack (~> 1.0)
       tilt (~> 1.1, != 1.3.0)
     sqlite3 (1.3.8)
+    sshkit (1.5.1)
+      colorize
+      net-scp (>= 1.1.2)
+      net-ssh (>= 2.8.0)
     strong_parameters (0.2.1)
       actionpack (~> 3.0)
       activemodel (~> 3.0)
@@ -345,7 +357,11 @@ DEPENDENCIES
   bootstrap-sass
   bootstrap-will_paginate
   bootstrap_form
-  capistrano
+  capistrano-bundler
+  capistrano-rails
+  capistrano-rvm
+  capistrano-sidekiq
+  capistrano3-unicorn
   capybara
   coffee-rails (~> 3.2.1)
   cucumber-rails

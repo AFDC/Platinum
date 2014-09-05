@@ -66,6 +66,11 @@ group :development do
   gem 'rb-fsevent', require: false
   gem 'rb-fchange', require: false
   gem 'terminal-notifier-guard'
+  gem 'capistrano-rvm'
+  gem 'capistrano-rails'
+  gem 'capistrano-bundler'
+  gem 'capistrano3-unicorn'
+  gem 'capistrano-sidekiq'
 end
 
 group :test do
@@ -79,7 +84,6 @@ end
 group :ops do
   gem 'pry'
   gem 'unicorn'
-  gem 'capistrano'
 end
 
 # To use ActiveModel has_secure_password
