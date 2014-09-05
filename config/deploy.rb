@@ -11,7 +11,7 @@ set :unicorn_config_path, 'config/unicorn.rb'
 set :unicorn_pid, '/tmp/unicorn.platinum.pid'
 
 set :linked_files, %w{config/application.yml config/newrelic.yml config/paypal.yml}
-set :linked_dirs, %w{public/system}
+set :linked_dirs, %w{public/system log}
 
 # Default branch is :master
 # ask :branch, proc { `git rev-parse --abbrev-ref HEAD`.chomp }.call
