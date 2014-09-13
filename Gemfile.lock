@@ -404,6 +404,7 @@ DEPENDENCIES
   strong_parameters
   terminal-notifier-guard
   therubyracer
+  thin
   uglifier (>= 1.0.3)
   unicorn
   will_paginate

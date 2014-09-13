@@ -1,0 +1,2 @@
+dev_web: bundle exec thin start -S /tmp/unicorn.sock
+dev_sk:  bundle exec sidekiq -L log/sidekiq.log

@@ -71,6 +71,7 @@ group :development do
   gem 'capistrano-bundler'
   gem 'capistrano3-unicorn'
   gem 'capistrano-sidekiq'
+  gem 'thin'
 end
 
 group :test do
