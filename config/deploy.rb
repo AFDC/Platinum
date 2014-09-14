@@ -10,7 +10,7 @@ set :rvm_ruby_version, '2.1.2'
 set :unicorn_config_path, 'config/unicorn.rb'
 set :unicorn_pid, '/tmp/unicorn.platinum.pid'
 
-set :linked_files, %w{config/application.yml config/newrelic.yml config/paypal.yml}
+set :linked_files, %w{config/application.yml config/newrelic.yml config/braintree.yml}
 set :linked_dirs, %w{public/system log}
 
 # Default branch is :master

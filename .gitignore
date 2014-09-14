@@ -17,7 +17,7 @@
 # Ignore application configuration
 /config/application.yml
 /config/newrelic.yml
-/config/paypal.yml
+/config/braintree.yml
 /config/skylight.yml
 
 # Ignore paperclip files

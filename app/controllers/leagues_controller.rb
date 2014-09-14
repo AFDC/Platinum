@@ -106,7 +106,8 @@ class LeaguesController < ApplicationController
                             height: reg.user.height_in_feet_and_inches,
                             grank: {},
                             age: reg.user.age,
-                            linked: reg.linked?
+                            linked: reg.linked?,
+                            signup_timestamp: reg.signup_timestamp
                         }
                         rd[uid][:timestamps] = {}
                         reg.payment_timestamps.each do |key,ts|

@@ -18,7 +18,6 @@ class Registration
     field :notes
     field :comped, type: Boolean
 
-    field :paypal_responses, type: Array, default: []
     field :payment_id
 
     field :pair_id, type: Moped::BSON::ObjectId
@@ -76,64 +75,6 @@ class Registration
 
     def waiver_accepted
         !waiver_acceptance_date.nil?
-    end
-
-    def capture_payment
-        raise PaymentNotAuthorized if status != 'authorized'
-        raise PaymentInfoMissing unless payment_id
-
-        payment = PayPal::SDK::REST::Payment.find(payment_id)
-        transaction = payment.transactions.first
-        authorization = transaction.related_resources.first.authorization
-
-        capture = authorization.capture({
-            :amount => {
-                :currency => "USD",
-                :total => authorization.amount.total
-            },
-            :is_final_capture => true
-        })
-
-        self.paypal_responses << capture.to_json
-        unless capture.success?
-            save
-            raise PaymentNotCaptured unless capture.success?
-        end
-
-        self.payment_timestamps[:captured] = Time.now
-        self.paid = true
-        self.status = 'active'
-        save
-    end
-
-    def void_authorization
-        raise PaymentNotAuthorized if status != 'authorized'
-        raise PaymentInfoMissing unless payment_id
-
-        payment = PayPal::SDK::REST::Payment.find(payment_id)
-        transaction = payment.transactions.first
-        authorization = transaction.related_resources.first.authorization
-
-        voided = authorization.void
-
-        if voided
-            self.status = 'cancelled'
-            self.payment_timestamps[:voided] = Time.now
-            self.save
-            true
-        end
-
-        voided
-    end
-
-    ## Exceptions
-    class PaymentNotAuthorized < StandardError
-    end
-
-    class PaymentInfoMissing < StandardError
-    end
-
-    class PaymentNotCaptured < StandardError
     end
 
     private

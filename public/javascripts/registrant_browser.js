@@ -100,16 +100,16 @@ $(function(){
           return dir * (a_obj['rank'] - b_obj['rank']);
         });
         break;
-      case 'paypal_auth_asc':
+      case 'reg_time_asc':
         dir = 1;
         // Break intentionally omitted
-      case 'paypal_auth_desc':
+      case 'reg_time_desc':
         var default_time = moment().unix() * (dir + 1);
         registrant_list.sort(function(a,b){
           var a_obj = registrant_data[a];
           var b_obj = registrant_data[b];
 
-          return dir * ((a_obj['timestamps']['authorized'] || default_time) - (b_obj['timestamps']['authorized'] || default_time));
+          return dir * ((a_obj['signup_timestamp'] || default_time) - (b_obj['signup_timestamp'] || default_time));
         });
         break;
     }

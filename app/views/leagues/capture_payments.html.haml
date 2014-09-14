@@ -6,14 +6,13 @@
         = render :partial => '/league_summary', :locals => {league: @league}
     .span6
         %p
-            The players listed below have authorized payments to Paypal. By confirming this list, these payments
-            will be captured and the players will be moved to "active" status in the league. Please verify that
-            the list below is accurate before proceeding.
+            By confirming this list, the players listed below will be invited to pay and join the league.
+            Please verify that the list below is accurate before proceeding.
 
         %p
             %strong Note:
-            Capturing payments from PayPal can take some time, so this will happen in the background and the results
-            will not be available instantly. Please check with the webmaster before re-queueing any payment capture. 
+            This process can take some time, so this will happen in the background and the results
+            will not be available instantly.
 
         %form{action: capture_payments_league_path(@league), method: 'POST'}
             .row
@@ -40,5 +39,5 @@
                         %li=e
             .form-actions
                 %input{type: 'hidden', name: 'confirm', value: 1}
-                %button.btn.btn-primary Queue Payment Captures
+                %button.btn.btn-primary Accept Players
 
