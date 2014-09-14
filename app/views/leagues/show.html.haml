@@ -1,6 +1,14 @@
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'League Details', breadcrumbs: {'Leagues' => leagues_path, @league.name => nil}}
 
+- if @league.registration_open? && permitted_to?(:register, @league)
+    - unless @registration
+        .row
+            .span12
+                .alert.alert-info
+                    %strong Registration for #{@league.name} is now open:
+                    =link_to "Register Now!", register_league_path(@league), class: 'btn btn-warning btn-small'
+
 .row
     .span5
         = render :partial => '/league_summary', :locals => {league: @league}
@@ -37,11 +45,6 @@
                             .progress.progress-striped.active
                                 .bar.bar-success{style: "width: #{number_to_percentage(active_pct)}"}
                                 .bar.bar-warning{style: "width: #{number_to_percentage(auth_pct)}"}
-            - if false && permitted_to?(:register, @league)
-                - unless @registration
-                    =link_to "Register Now!", register_league_path(@league), class: 'btn btn-block btn-primary'
-                - else
-                    =link_to "Update your Registration", edit_registration_path(@registration), class: 'btn btn-block btn-primary'
             %hr
 
         %h4 Teams

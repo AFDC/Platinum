@@ -39,7 +39,10 @@
                     %h4 Registration Open:
                     %ul{style: 'margin-bottom: 20px;'}
                         - @leagues_registering.each do |l|
-                            %li=link_to l.name, l
+                            %li
+                                =link_to l.name, l
+                                - if l.registration_open?
+                                    (#{link_to 'Register', register_league_path(l)})
 
                 - unless @leagues_running.empty?
                     %h4 Leagues Underway:
