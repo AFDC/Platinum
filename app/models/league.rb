@@ -45,8 +45,8 @@ class League
   validates :male_limit, :numericality => { integer_only: true, greater_than_or_equal_to: 0, allow_blank: true }
 
   scope :past,    -> { where(:end_date.lt => Date.today).order_by(start_date: :desc) }
-  scope :future,  -> { where(:registration_open.gt => Date.today).order_by(start_date: :desc) }
-  scope :current, -> { where(:registration_open.lte => Date.today, :end_date.gte => Date.today).order_by(start_date: :desc) }
+  scope :future,  -> { where(:start_date.gt => Date.today).order_by(start_date: :desc) }
+  scope :current, -> { where(:start_date.lte => Date.today, :end_date.gte => Date.today).order_by(start_date: :desc) }
 
   def registration_open?
     return false if registration_open.nil? || registration_close.nil?
