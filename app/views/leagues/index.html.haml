@@ -6,10 +6,7 @@
         = link_to new_league_path, class: 'btn btn-small btn-primary' do
             %i.icon.icon-plus
             Create a League
-/ = render :partial => 'league_table', locals: {title: 'Upcoming', leagues: League.future }
-/ = render :partial => 'league_table', locals: {title: 'Current', leagues: League.current }
-/= render :partial => 'league_table', locals: {title: 'Past', leagues: League.past }
-    
+
 - if League.future.count > 0
     %h3= 'Upcoming'
 
@@ -33,7 +30,7 @@
                     %td=l.registration_close.strftime('%a %b %-d, %Y') if l.registration_close
                     %td=l.start_date.strftime('%a %b %-d, %Y') if l.start_date
 
-    
+
 - if League.current.count > 0
     %h3= 'Current'
 
@@ -53,21 +50,21 @@
                         %td=link_to l.teams.first.name, team_path(l.teams.first)
                     - else
                         %td= 'N/A'
-                    
+
                     - if l.mst_tourney
                         - if l.mst_champion == nil
                             %td= 'N/A'
                         - else
                             %td= link_to l.mst_champion.name, team_path(l.mst_champion)
-                    - else 
+                    - else
                         %td= 'N/A'
-                    
+
                     - if l.eos_tourney
                         - if l.eos_champion == nil
                             %td= 'N/A'
                         - else
-                            %td= link_to l.eos_champion.name, team_path(l.eos_champion)  
-                    - else 
+                            %td= link_to l.eos_champion.name, team_path(l.eos_champion)
+                    - else
                         %td= 'N/A'
 
 
@@ -91,17 +88,17 @@
                         %td=link_to l.teams.first.name, team_path(l.teams.first)
                     - else
                         %td= 'N/A'
-                    
+
                     - if l.mst_tourney
                         - if l.mst_champion != nil
                             %td= link_to l.mst_champion.name, team_path(l.mst_champion)
-                    - else 
+                    - else
                         %td= 'N/A'
-                    
+
                     - if l.eos_tourney
                         - if l.eos_champion == nil
                             %td= 'N/A'
                         - else
-                            %td= link_to l.eos_champion.name, team_path(l.eos_champion)  
-                    - else 
+                            %td= link_to l.eos_champion.name, team_path(l.eos_champion)
+                    - else
                         %td= 'N/A'
