@@ -28,6 +28,7 @@ class Registration
     belongs_to :league
     belongs_to :g_rank_result
     belongs_to :pair, class_name: "User"
+    has_many :payment_transactions
 
     after_save :bust_league_cache
 
@@ -57,6 +58,13 @@ class Registration
 
     def linked?
         self.pair_id.present? || RegistrationGroup.where(league: self.league, member_ids: self[:user_id]).first.present?
+    end
+
+    def accept
+        self.status = 'accepted'
+        if self.save
+            RegistrationMailer.delay.registration_accepted(self._id.to_s)
+        end
     end
 
     def rank

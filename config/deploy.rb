@@ -7,8 +7,6 @@ set :repo_url, 'git://github.com/AFDC/Platinum.git'
 set :rails_env, 'production'
 
 set :rvm_ruby_version, '2.1.2'
-set :unicorn_config_path, 'config/unicorn.rb'
-set :unicorn_pid, '/tmp/unicorn.platinum.pid'
 
 set :linked_files, %w{config/application.yml config/newrelic.yml config/braintree.yml}
 set :linked_dirs, %w{public/system log}
@@ -48,19 +46,9 @@ namespace :deploy do
   desc 'Restart application'
   task :restart do
     on roles(:app), in: :sequence, wait: 5 do
-      invoke 'unicorn:restart'
+      execute "sudo start platinum || sudo restart platinum"
     end
   end
 
   after :publishing, :restart
-
-  after :restart, :clear_cache do
-    on roles(:web), in: :groups, limit: 3, wait: 10 do
-      # Here we can do anything such as:
-      # within release_path do
-      #   execute :rake, 'cache:clear'
-      # end
-    end
-  end
-
 end

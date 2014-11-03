@@ -2,7 +2,7 @@ require 'sidekiq/web'
 
 Platinum::Application.routes.draw do
   match '/users/search' => 'users#search'
-  resources :fields, :schedules, :comp_groups
+  resources :fields, :schedules, :comp_groups, :payments
 
   resources :invitations do
     member do
@@ -15,6 +15,7 @@ Platinum::Application.routes.draw do
   resources :registrations do
     member do
       put 'cancel'
+      get 'pay'
     end
   end
 
@@ -24,7 +25,7 @@ Platinum::Application.routes.draw do
       get 'registrations'
       post 'registrations'
       get 'preview_capture'
-      post 'capture_payments'
+      post 'accept_players'
       get 'manage_roster'
       post 'upload_roster'
       get 'setup_roster_import'

@@ -10,12 +10,12 @@ class RegistrationMailer < ActionMailer::Base
     mail(to: @registration.user.email_address, subject: '[AFDC] Welcome to ' + @league.name)
   end
 
-  def payment_authorized(registration_id)
+  def registration_accepted(registration_id)
     @registration = Registration.find(registration_id)
     @user = @registration.user
     @league = @registration.league
 
-    mail(to: @registration.user.email_address, subject: '[AFDC] Payment authorized for ' + @league.name)
+    mail(to: @registration.user.email_address, subject: '[AFDC] Registration accepted for ' + @league.name)
   end
 
 end

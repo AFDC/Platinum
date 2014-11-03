@@ -1,6 +1,6 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show]
-    filter_access_to [:edit, :update, :show, :checkout, :cancel], attribute_check: true
+    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show, :pay]
+    filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay], attribute_check: true
 
     def create
         # reg_params = params[:registration]
@@ -8,6 +8,16 @@ class RegistrationsController < ApplicationController
             redirect_to registrations_user_path(current_user), flash: {error: "You have already registered for this league. Please be patient. There is no need to submitt he same form multiple times. Thank you."} and return
         end
         populate_registration Registration.new
+    end
+
+    def pay
+        unless @registration.status == 'accepted'
+            message = "You can only pay for your registration if it has been accepted into the league. Your current status is: '#{@registration.status}'."
+            message = "You are already in that league, you don't need to pay again!" if @registration.status == 'active'
+            message = "You have cancelled your registration. Please contact the webmaster if you want to un-cancel." if @registration.status == 'canceled'
+            message = "You haven't been accepted into the league yet, so we can't accept your payment at this time." if @registration.status == 'pending'
+            redirect_to registration_path(@registration), flash: {error: message} and return 
+        end
     end
 
     def edit
@@ -37,7 +47,6 @@ class RegistrationsController < ApplicationController
             reg.waiver_acceptance_date = Time.now
             reg.league = League.find(reg_params[:league_id])
             reg.signup_timestamp = Time.now
-            reg.payment_timestamps[:pending] = Time.now
             reg.user = current_user
             reg.status = 'pending'
             reg.paid = false
@@ -108,7 +117,7 @@ class RegistrationsController < ApplicationController
                 if reg.status == 'active' || reg.status == 'authorized' || current_user._id != reg.user._id
                     redirect_to league_path(reg.league), notice: flash_message || 'Update successful'
                 else
-                    redirect_to registrations_path(reg)
+                    redirect_to registrations_user_path(current_user)
                 end
             end
         else

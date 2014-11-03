@@ -1,7 +1,7 @@
 class LeaguesController < ApplicationController
-    before_filter :load_league_from_params, only: [:register, :registrations, :preview_capture, :capture_payments, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update, :select_pair, :invite_pair, :leave_pair]
+    before_filter :load_league_from_params, only: [:register, :registrations, :preview_capture, :accept_players, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update, :select_pair, :invite_pair, :leave_pair]
     before_filter :initialize_roster_csv, only: [:manage_roster, :upload_roster, :setup_roster_import, :import_roster]
-    filter_access_to [:capture_payments, :preview_capture], attribute_check: true
+    filter_access_to [:accept_players, :preview_capture], attribute_check: true
 
     def index
     end
@@ -360,16 +360,14 @@ class LeaguesController < ApplicationController
         else
             @authorized_registrants = {}
             %w(male female).each do |gender|
-                @authorized_registrants[gender.to_sym] = @league.registrations.authorized.where(gender: gender).sort('payment_timestamps.authorized' => 1)
+                @authorized_registrants[gender.to_sym] = @league.registrations.pending.where(gender: gender).sort('payment_timestamps.authorized' => 1)
             end
         end
     end
 
-    def capture_payments
-        @men = []
-        @women = []
+    def accept_players
         @errors = []
-        good_ids = []
+        registrations = []
 
         submitted_ids = params[:reg_id] || []
 
@@ -377,13 +375,11 @@ class LeaguesController < ApplicationController
             r = Registration.find(reg_id)
 
             if r
-                if r.status == 'authorized'
-                    @men << r if r.gender == 'male'
-                    @women << r if r.gender == 'female'
-                    good_ids << r._id.to_s
-                else
-                    @errors << "Payment not yet authorized for #{r.user.name}."
+                if r.status == 'cancelled'
+                    @errors << "Registration cancelled for #{r.user.name}."
                 end
+
+                registrations << r
             else
                 @errors << "Registration not found for #{reg_id}"
             end
@@ -393,10 +389,8 @@ class LeaguesController < ApplicationController
             flash[:error] = "Errors were found in your submission, see below"
             render 'league/preview_capture' and return
         else
-            good_ids.each do |reg_id|
-                PaymentCaptureWorker.perform_async(reg_id)
-            end
-            redirect_to league_path(@league), notice: "#{@men.count + @women.count} registrations queued for capture, this may take some time."
+            registrations.each { |r| r.accept }
+            redirect_to league_path(@league), notice: "#{registrations.count} registrants accepted. They will be invited to pay and join the league."
         end
     end
 

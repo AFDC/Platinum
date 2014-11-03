@@ -51,7 +51,7 @@
           %td= stats[:pending_male] + stats[:pending_female]
     %hr
     %h4 Activate Players
-    = form_tag(capture_payments_league_path(@league), method: :post) do
+    = form_tag(accept_players_league_path(@league), method: :post) do
       .row
         .span4
           %p

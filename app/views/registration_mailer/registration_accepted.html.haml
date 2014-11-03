@@ -1,13 +1,9 @@
 %p #{@user.firstname},
 
 %p
-  You have successfully authorized a payment to the Atlanta Flying Disc Club for #{link_to(@league.name, league_url(@league))}, but no
-  money has yet been charged. Your payment will be claimed if you are accepted into the league.
-
-%p
-  AFDC leagues typically operate on a first-come, first-served basis. Players who sign up too late to make it into the league
-  will be automatically added to a wait list to fill spots of players that back out. You'll get another email when your
-  registration is activated and you are added to the league.
+  Your registration has been accepted for #{link_to(@league.name, league_url(@league))}, but you are not yet active in the league.
+  In order to join the league, you must pay your registration fee. Please #{link_to('click here', pay_registration_path(@registration))}
+  to pay! You have 48 hours to pay or you will be removed from the league.
 
 %p
   If you have any questions, please contact the league commissioner. For technical issues or

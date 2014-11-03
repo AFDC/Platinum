@@ -21,6 +21,7 @@ gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'dalli'
 gem 'premailer-rails'
 gem 'nokogiri'
+gem 'braintree'
 
 # Job Processing
 gem 'sidekiq'
