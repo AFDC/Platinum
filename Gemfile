@@ -14,7 +14,6 @@ gem 'mongoid-paperclip', require: 'mongoid_paperclip'
 gem 'foreman'
 gem 'strong_parameters'
 gem 'newrelic_rpm'
-gem 'paypal-sdk-rest'
 gem 'ruby_parser'
 gem 'smarter_csv'
 gem 'actionmailer'
@@ -22,6 +21,7 @@ gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'dalli'
 gem 'premailer-rails'
 gem 'nokogiri'
+gem 'braintree'
 
 # Job Processing
 gem 'sidekiq'
@@ -71,6 +71,7 @@ group :development do
   gem 'capistrano-bundler'
   gem 'capistrano3-unicorn'
   gem 'capistrano-sidekiq'
+  gem 'thin'
 end
 
 group :test do

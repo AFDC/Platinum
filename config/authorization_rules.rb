@@ -15,7 +15,6 @@ authorization do
 		has_permission_on :users, to: [:new, :create]
 		has_permission_on :teams, to: [:show, :index, :search]
 		has_permission_on :fields, to: [:index, :show]
-		has_permission_on :registrations, to: [:approved, :cancelled]
 		has_permission_on :auth, to: [:index, :login, :logout, :forgot_password, :reset_password]
 	end
 
@@ -28,6 +27,7 @@ authorization do
 		has_permission_on :teams, to: [:index, :search, :show, :view_roster]
 		has_permission_on :registration_groups, to: [:index]
 		has_permission_on :registrations, to: [:create]
+		has_permission_on :payments, to: [:create]
 		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair]
 		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
 
@@ -44,7 +44,7 @@ authorization do
 			if_attribute sender_id: is { user._id }
 		end
 
-		has_permission_on :registrations, to: [:checkout, :show, :edit, :update, :cancel] do
+		has_permission_on :registrations, to: [:checkout, :show, :pay, :edit, :update, :cancel] do
 			if_attribute user_id: is { user._id }
 		end
 
@@ -61,7 +61,7 @@ authorization do
 			if_attribute commissioners: contains { user }
 		end
 
-		has_permission_on :leagues, :to => [:manage_roster, :preview_capture, :capture_payments, :edit, :update] do
+		has_permission_on :leagues, :to => [:manage_roster, :preview_capture, :accept_players, :edit, :update] do
 			if_permitted_to :manage
 		end
 

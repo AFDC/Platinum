@@ -32,6 +32,7 @@ class User
 
   has_many :g_rank_results, order: :_id.desc
   has_many :registrations
+  has_many :payment_transactions
   has_and_belongs_to_many :teams, foreign_key: :teams
 
   validates :firstname, :presence => true
@@ -47,6 +48,30 @@ class User
 
   def may_report_for
     Team.where({ '$or' => [{'captains' => self._id}, {'reporters' => self._id}]})
+  end
+
+  def braintree_customer_id
+    cid = self._id.to_s
+    begin
+      Braintree::Customer.find(cid)
+      return cid
+    rescue Braintree::NotFoundError
+      result = Braintree::Customer.create(
+        id:         cid,
+        first_name: self.firstname,
+        last_name:  self.lastname,
+        email:      self.email_address
+      )
+
+      return self._id.to_s if result.success?
+      return nil
+    rescue
+      return nil
+    end
+  end
+
+  def braintree_token
+    Braintree::ClientToken.generate(customer_id: self.braintree_customer_id)
   end
 
   def absorb(old_user)

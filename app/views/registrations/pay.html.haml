@@ -1,0 +1,28 @@
+- content_for :title, @registration.league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Join the League', breadcrumbs: {'Leagues' => leagues_path, @registration.league.name => league_path(@registration.league), "Registration for #{@registration.user.name}" => nil}}
+
+.row
+  .span6.offset3
+    .alert.alert-success
+      %strong{style: 'color: #222'}
+        %i.icon-lock
+        Relax! This transaction is secured by a 128 Bit SSL connection
+      %p{style: 'font-size: 80%'} Your payment details will be submitted directly from your browser to our payment processor over a secure connection; the AFDC will never see your credit card information.
+    = form_tag payments_path do
+      %p.lead
+        #{@registration.user.name}'s registration for #{@registration.league.name}:
+      %p.lead{style: 'font-size: 400%; font-weight: bold; text-align: center'}=number_to_currency @registration.league.price
+      #braintree_dropin
+      =hidden_field_tag 'registration_id', @registration._id
+      %button.btn.btn-block.btn-success.btn-large{type: :submit}
+        %i.icon-lock
+        Pay now to join the league!
+
+- content_for :page_scripts do
+  = javascript_include_tag "https://js.braintreegateway.com/v2/braintree.js"
+  :javascript
+    $(function(){
+      braintree.setup("#{current_user.braintree_token}", 'dropin', {
+        container: 'braintree_dropin'
+      });
+    });

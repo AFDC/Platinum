@@ -1,6 +1,6 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show]
-    filter_access_to [:edit, :update, :show, :checkout, :cancel], attribute_check: true
+    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show, :pay]
+    filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay], attribute_check: true
 
     def create
         # reg_params = params[:registration]
@@ -8,6 +8,16 @@ class RegistrationsController < ApplicationController
             redirect_to registrations_user_path(current_user), flash: {error: "You have already registered for this league. Please be patient. There is no need to submitt he same form multiple times. Thank you."} and return
         end
         populate_registration Registration.new
+    end
+
+    def pay
+        unless @registration.status == 'accepted'
+            message = "You can only pay for your registration if it has been accepted into the league. Your current status is: '#{@registration.status}'."
+            message = "You are already in that league, you don't need to pay again!" if @registration.status == 'active'
+            message = "You have cancelled your registration. Please contact the webmaster if you want to un-cancel." if @registration.status == 'canceled'
+            message = "You haven't been accepted into the league yet, so we can't accept your payment at this time." if @registration.status == 'pending'
+            redirect_to registration_path(@registration), flash: {error: message} and return 
+        end
     end
 
     def edit
@@ -28,87 +38,6 @@ class RegistrationsController < ApplicationController
         redirect_to registrations_user_path(@registration.user), flash: {error: "Cancelling your registration failed."}
     end
 
-    def checkout
-        if @registration.league.nil?
-            redirect_to registrations_user_path(current_user), flash: {error: "League not found for that registration."}
-            return
-        end
-
-        if @registration.user.nil?
-            redirect_to registrations_user_path(current_user), flash: {error: "User not found for that registration."}
-            return
-        end
-        price = '%.2f' % @registration.league.price
-
-        desc = "AFDC Registration Fee for #{@registration.league.name}. [#{@registration._id}]"
-
-        payment = PayPal::SDK::REST::Payment.new({
-            intent: 'authorize',
-            payer: {payment_method: 'paypal'},
-            transactions: [{amount: {currency: 'USD', total: price}, description: desc}],
-            redirect_urls: {return_url: approved_registration_url(@registration), cancel_url: cancelled_registration_url(@registration)}
-        })
-
-        begin
-            payment.create
-        rescue
-            redirect_to registrations_user_path(current_user), flash: {error: "There was an error talking to PayPal, please try again or contact webmaster@afdc.com."}
-            return
-        end
-
-        if payment.id
-            @registration.payment_id = payment.id
-            @registration.payment_timestamps[:created] = Time.now
-        end
-
-        @registration.paypal_responses.push(JSON.parse(payment.to_json()))
-        @registration.save()
-
-        # payment state options: created, approved, failed, canceled, or expired
-        if payment.state == 'created'
-            redirect_url = payment.links.find{|v| v.method == 'REDIRECT'}.href
-            Rails.logger.info "Payment[#{payment.id}]"
-            Rails.logger.info "Redirect: #{redirect_url}"
-            redirect_to redirect_url
-        elsif payment.state == 'approved'
-            redirect_to registrations_user_path(current_user), notice: "That registration has already been authorized."
-        elsif payment.errors
-            Rails.logger.error payment.errors.inspect
-            redirect_to registrations_user_path(current_user), flash: {error: payment.errors.inspect}
-        else
-            redirect_to registrations_user_path(current_user), flash: {error: "Unknown error for registration #{@registration._id}"}
-        end
-    end
-
-    def approved
-        token = params[:token]
-        payer_id = params[:PayerID]
-
-        begin
-            payment = PayPal::SDK::REST::Payment.find(@registration.payment_id)
-        rescue
-            redirect_to registrations_user_path(current_user), flash: {error: "Payment not found for registration #{@registration._id}"}
-        end
-
-        if payment.execute(payer_id: payer_id)
-            @registration.paypal_responses.push(JSON.parse(payment.to_json()))
-            @registration.payment_timestamps[:authorized] = Time.now
-            @registration.status = 'authorized'
-            if @registration.save
-                RegistrationMailer.delay.payment_authorized(@registration._id.to_s)
-            end
-
-            redirect_to league_path(@registration.league), notice: "Authorization successful!"
-        else
-            redirect_to registrations_user_path(current_user), flash: {error: payment.errors.inspect}
-        end
-    end
-
-
-    def cancelled
-        redirect_to registrations_user_path(current_user), flash: {error: "Your purchase has been cancelled"}
-    end
-
     private
 
     def populate_registration(reg)
@@ -118,7 +47,6 @@ class RegistrationsController < ApplicationController
             reg.waiver_acceptance_date = Time.now
             reg.league = League.find(reg_params[:league_id])
             reg.signup_timestamp = Time.now
-            reg.payment_timestamps[:pending] = Time.now
             reg.user = current_user
             reg.status = 'pending'
             reg.paid = false
@@ -189,7 +117,7 @@ class RegistrationsController < ApplicationController
                 if reg.status == 'active' || reg.status == 'authorized' || current_user._id != reg.user._id
                     redirect_to league_path(reg.league), notice: flash_message || 'Update successful'
                 else
-                    redirect_to checkout_registration_path(reg)
+                    redirect_to registrations_user_path(current_user)
                 end
             end
         else
