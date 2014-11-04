@@ -19,7 +19,7 @@ class Team
   belongs_to :league, inverse_of: :teams
 
   has_mongoid_attached_file :avatar,
-    default_url: lambda {|attachment| "http://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(attachment.instance._id)}?d=identicon&s=330"},
+    default_url: lambda {|attachment| "https://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(attachment.instance._id)}?d=identicon&s=330"},
     styles: {profile: '330x330>', roster: '160x160#', thumbnail: '64x64#'}
 
   def winning_percentage
