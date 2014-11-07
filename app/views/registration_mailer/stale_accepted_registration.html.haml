@@ -1,9 +1,9 @@
 %p #{@user.firstname},
 
 %p
-  Your registration has been accepted for #{link_to(@league.name, league_url(@league))}, but you are not yet active in the league.
-  In order to join the league, you must pay your registration fee. <strong>If you don't pay within 48 hours, you could lose
-  your spot in the league!</strong>
+  In 24 hours, you will lose your spot for #{link_to(@league.name, league_url(@league))}. This would be a tragedy. But don't worry,
+  all is not yet lost! All you have to do is log back in to the leagues site and pay! <strong>If you don't pay within 24 hours, 
+  you could lose your spot in the league!</strong>
 
 %table.large-button.success.round{style:"margin-top: 10px; margin-bottom: 10px;"}
   %tr

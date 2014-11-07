@@ -114,7 +114,7 @@ class RegistrationsController < ApplicationController
             if reg.user != current_user
                 redirect_to registrations_league_path(reg.league), notice: "Update successful"
             else
-                if reg.status == 'active' || reg.status == 'authorized' || current_user._id != reg.user._id
+                if reg.status == 'active' || reg.status == 'accepted' || current_user._id != reg.user._id
                     redirect_to league_path(reg.league), notice: flash_message || 'Update successful'
                 else
                     redirect_to registrations_user_path(current_user)

@@ -63,6 +63,8 @@ class Registration
     def accept
         self.status = 'accepted'
         if self.save
+            RegistrationPaymentReminderWorker.perform_in(24.hours, self._id.to_s)
+            RegistrationCancellationWorker.perform_in(48.hours, self._id.to_s)
             RegistrationMailer.delay.registration_accepted(self._id.to_s)
         end
     end
