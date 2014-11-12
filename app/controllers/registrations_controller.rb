@@ -117,7 +117,7 @@ class RegistrationsController < ApplicationController
                 if reg.status == 'active' || reg.status == 'accepted' || current_user._id != reg.user._id
                     redirect_to league_path(reg.league), notice: flash_message || 'Update successful'
                 else
-                    redirect_to registrations_user_path(current_user)
+                    redirect_to registrations_user_path(current_user), notice: "You have registered successfully! You'll be notified if you are accepted into the league and will pay at that time."
                 end
             end
         else
