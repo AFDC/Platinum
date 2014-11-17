@@ -110,6 +110,7 @@ class LeaguesController < ApplicationController
                             signup_timestamp: reg.signup_timestamp
                         }
                         rd[uid][:timestamps] = {}
+                        rd[uid][:timestamps][:signup] = reg.signup_timestamp.to_i
                         reg.payment_timestamps.each do |key,ts|
                             rd[uid][:timestamps][key] = ts.to_i
                         end

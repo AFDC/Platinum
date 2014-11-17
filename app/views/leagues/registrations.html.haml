@@ -16,8 +16,8 @@
           <div class="main col"><strong>Availability:</strong> <%=gen_availability%></div>
           <div class="col"><strong>Status:</strong> <%=status%></div>
           <div class="col">
-            <% if (timestamps['authorized']) { %>
-              <span class="label"><i class="icon-usd"></i></span> <%=moment.unix(timestamps['authorized']).format('MMM Do, h:mma')%>
+            <% if (timestamps['signup']) { %>
+              <span class="label"><i class="icon-usd"></i></span> <%=moment.unix(timestamps['signup']).format('MMM Do, h:mma')%>
             <% } else { %>
               <span class="label"><i class="icon-usd"></i></span> n/a
             <% } %>
@@ -144,8 +144,9 @@
         %option{value: '', selected: true} Men & Women
       %select.span3{id: 'status'}
         %option{value: 'active'} Active
-        %option{value: 'authorized'} Authorized
+        %option{value: 'accepted'} Accepted
         %option{value: 'pending'} Pending
+        %option{value: 'authorized'} Authorized       
         %option{value: 'canceled'} Canceled
         %option{value: '', selected: true} All Statuses
       %select.span3{id: 'items-per-page'}
