@@ -7,6 +7,7 @@ class RegistrationCancellationWorker
 
     if r.status == 'accepted'
         r.status = 'pending'
+        r.signup_timestamp = Time.now
         r.save
         logger.info { "#{registration_id} Not yet paid. :(" }
         RegistrationMailer.unpaid_registration_cancelled(registration_id).deliver
