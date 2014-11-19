@@ -361,7 +361,7 @@ class LeaguesController < ApplicationController
         else
             @authorized_registrants = {}
             %w(male female).each do |gender|
-                @authorized_registrants[gender.to_sym] = @league.registrations.pending.where(gender: gender).sort('payment_timestamps.authorized' => 1)
+                @authorized_registrants[gender.to_sym] = @league.registrations.pending.where(gender: gender).sort('signup_timestamp' => 1)
             end
         end
     end
