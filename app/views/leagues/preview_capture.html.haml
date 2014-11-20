@@ -22,33 +22,34 @@
         %th Total
       %tbody
         %tr
+          %th Total Registered
+          %td= stats[:pending_male] = @league.registrations.male.pending.count
+          %td= stats[:pending_female] = @league.registrations.female.pending.count
+          %td= stats[:pending_male] + stats[:pending_female]
+        %tr
+          %th Accepted (Not Paid)
+          %td= stats[:accepted_male] = @league.registrations.male.accepted.count
+          %td= stats[:accepted_female] = @league.registrations.female.accepted.count
+          %td= stats[:accepted_male] + stats[:accepted_female]
+        %tr
           %td
-            %strong Active
+            %strong Active (Paid)
           %td= stats[:active_male]=@league.registrations.male.active.count
           %td= stats[:active_female]=@league.registrations.female.active.count
           %td= stats[:active_male]+stats[:active_female]
         %tr
           %td
-            %strong Limit
+            %strong Player Limit
           %td= (stats[:limit_male]=@league.male_limit) || 'n/a'
           %td= (stats[:limit_female]=@league.female_limit) || 'n/a'
           %td= stats[:limit_female]+stats[:limit_male]
+
         %tr.success
           %td
             %strong Spots Remaining
-          %td= stats[:spots_male] = stats[:limit_male].to_i - stats[:active_male]
-          %td= stats[:spots_female] = stats[:limit_female].to_i - stats[:active_female]
+          %td= stats[:spots_male] = stats[:limit_male].to_i - (stats[:active_male] + stats[:accepted_male])
+          %td= stats[:spots_female] = stats[:limit_female].to_i - (stats[:active_female] + stats[:accepted_female])
           %td= stats[:spots_female] + stats[:spots_male]
-        %tr
-          %th Authorized
-          %td= stats[:auth_male] = @league.registrations.male.authorized.count
-          %td= stats[:auth_female] = @league.registrations.female.authorized.count
-          %td= stats[:auth_male] + stats[:auth_female]
-        %tr
-          %th Registered
-          %td= stats[:pending_male] = @league.registrations.male.pending.count
-          %td= stats[:pending_female] = @league.registrations.female.pending.count
-          %td= stats[:pending_male] + stats[:pending_female]
     %hr
     %h4 Activate Players
     = form_tag(accept_players_league_path(@league), method: :post) do

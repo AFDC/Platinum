@@ -34,6 +34,7 @@ class Registration
 
     scope :active, where(status: 'active')
     scope :authorized, where(status: 'authorized')
+    scope :accepted, where(status: 'accepted')
     scope :pending, where(status: 'pending')
     scope :canceled, where(status: 'canceled')
 
