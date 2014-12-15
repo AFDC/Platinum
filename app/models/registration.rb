@@ -70,6 +70,13 @@ class Registration
         end
     end
 
+    def cancel
+        return false if self.status == 'active'
+
+        self.status = 'canceled'
+        self.save
+    end
+
     def rank
         self.commish_rank || self.g_rank || self.self_rank
     end

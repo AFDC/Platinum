@@ -31,11 +31,11 @@ class RegistrationsController < ApplicationController
     end
 
     def cancel
-        if @registration.void_authorization
+        if @registration.cancel
             redirect_to registrations_user_path(@registration.user), notice: "Your registration has been cancelled." and return
         end
 
-        redirect_to registrations_user_path(@registration.user), flash: {error: "Cancelling your registration failed."}
+        redirect_to registrations_user_path(@registration.user), flash: {error: "Cancelling your registration failed, please contact a league commissioner."}
     end
 
     private
