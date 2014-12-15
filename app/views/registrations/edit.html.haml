@@ -7,7 +7,7 @@
 
         %h4 Actions
         %div{style: "padding: 5px 10px"}
-            - if permitted_to?(:cancel, @registration) && !@registration.new_record?
+            - if permitted_to?(:cancel, @registration) && !@registration.new_record? && @registration.status != 'canceled' && @registration.league.registration_open?
                 %div{style: "margin-bottom: 5px;"}
                     %button#cancel_button{class: 'btn btn-block btn-warning'}
                         %i.icon.icon-remove-circle
@@ -26,15 +26,11 @@
                         .modal-body
                             - if @registration.status == 'active' && @registration.paid == true
                                 .alert.alert-warning
-                                    We've already collected money from you for this registration. Cancelling will not refund that money.
+                                    We've already collected money from you for this registration.
                                     In order to get a refund, you'll need to email our treasurer directly at treasurer@afdc.com.
-                            - if @registration.status == 'authorized'
-                                .alert.alert-info
-                                    If you cancel your registration, you will lose your spot in line.
-
-                            Cancelling your registration will remove you from the authorized or active list. If you have an outstanding
-                            authorization, it will be cancelled as well. Once this is done, if you change your mind, you will need to
-                            speak with an administrator to get your registration reset.
+                            - else
+                                Cancelling your registration will remove you from the league. Once this is done, if you change 
+                                your mind, you will need to speak with an administrator to get your registration reset.
 
                         .modal-footer
                             = form_tag cancel_registration_path(@registration), method: 'PUT' do
