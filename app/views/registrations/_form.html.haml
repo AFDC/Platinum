@@ -16,7 +16,7 @@
     = f.select :player_strength, [nil, 'Runner', 'Thrower', 'Both']
     = f.text_area :notes, rows: 5
     - if @registration.new_record?
-        = f.check_box :waiver_accepted, value: 1, label: raw('I have read, understand, and accept the AFDC\'s <a href="http://blog.afdc.com/wp-content/uploads/2012/05/2012-AFDC-Waiver-Minors.pdf">liability waiver</a>. Additionally, I understand that refunds are available at the sole discretion of the AFDC.')
+        = f.check_box :waiver_accepted, value: 1, label: raw('I have read, understand, and accept the AFDC\'s <a href="http://blog.afdc.com/wp-content/uploads/2012/05/2012-AFDC-Waiver-Minors.pdf">liability waiver</a> and <a href="http://www.afdc.com/refund-policy/">refund policy</a>.')
     = f.actions do
         - if @registration.new_record?
             = f.primary "Register", disable_with: 'Registering...'
