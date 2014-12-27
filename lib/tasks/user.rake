@@ -68,6 +68,7 @@ namespace :user do
         league_unknown = {}
         league_total   = 0
         l.registrations.each do |r|
+            next unless r.status == 'active'
             seen = players_seen[r.user._id.to_s].present?
             players_seen[r.user._id.to_s] = true
             league_total += 1
