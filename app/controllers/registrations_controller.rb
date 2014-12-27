@@ -14,7 +14,7 @@ class RegistrationsController < ApplicationController
         unless @registration.status == 'accepted'
             message = "You can only pay for your registration if it has been accepted into the league. Your current status is: '#{@registration.status}'."
             message = "You are already in that league, you don't need to pay again!" if @registration.status == 'active'
-            message = "You have cancelled your registration. Please contact the webmaster if you want to un-cancel." if @registration.status == 'canceled'
+            message = "You have cancelled your registration. Please contact help@afdc.com if you want to un-cancel." if @registration.status == 'canceled'
             message = "You haven't been accepted into the league yet, so we can't accept your payment at this time." if @registration.status == 'pending'
             redirect_to registration_path(@registration), flash: {error: message} and return 
         end

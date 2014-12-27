@@ -75,7 +75,7 @@
                     = select_tag :team_id, options_for_select(@league.teams.map{|t| ["#{t.name} (#{t.captains.map{|c| c.name}.join(', ')})", t._id]}), style: 'width: 100%', prompt: 'Select a team:'
                     %button.btn.btn-block.btn-small.btn-success Add this #{@league.core_options.type} to a team
               - else
-                .alert.alert-error Unknown error. Please contact the webmaster@afdc.com
+                .alert.alert-error Unknown error. Please contact help@afdc.com
             
 
         %td

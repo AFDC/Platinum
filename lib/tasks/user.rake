@@ -50,7 +50,7 @@ namespace :user do
   end
 
   desc 'Find Numbers for Calendar Year'
-  task :demographic, [:year] => :environment do |t, args|
+  task :demographics, [:year] => :environment do |t, args|
     args.with_defaults(:year => Time.now.year)
 
     players_seen  = {}
