@@ -355,7 +355,7 @@ class LeaguesController < ApplicationController
             @authorized_registrants = {male: [], female: []}
             @rg.members.each do |m|
                 if reg = @league.registration_for(m)
-                    @authorized_registrants[reg.gender.to_sym] << reg if reg.status == 'authorized'
+                    @authorized_registrants[reg.gender.to_sym] << reg if reg.status == 'pending'
                 end
             end
         else

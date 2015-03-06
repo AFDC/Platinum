@@ -45,19 +45,19 @@
           - if member_count > 0
             %div
               - registrations = Hash.new(0)
-              - authorized = Hash.new(0)
+              - ready = Hash.new(0)
               - rg.members.each do |m|
                 - if reg = @league.registration_for(m)
                   - registrations[:total] += 1
                   - registrations[reg.status.to_sym] += 1
-                  - if reg.status == 'authorized'
-                    - authorized[reg.gender.to_sym] += 1
+                  - if reg.status == 'pending'
+                    - ready[reg.gender.to_sym] += 1
               - if member_count != registrations[:total]
                 .alert.alert-error No actions may be taken until all members are registered.
-              - elsif registrations[:canceled] + registrations[:pending] > 0
-                .alert.alert-warning Core can not be processed until all members are authorized.
-              - elsif registrations[:authorized] > 0
-                - if (male_spots.present? && male_spots < authorized[:male]) || (female_spots.present? && female_spots < authorized[:female])
+              - elsif registrations[:canceled] > 0
+                .alert.alert-warning Core can not be processed until all members are registered.
+              - elsif registrations[:pending] > 0
+                - if (male_spots.present? && male_spots < ready[:male]) || (female_spots.present? && female_spots < ready[:female])
                   - if permitted_to? :manage, @league
                     .alert.alert-warning
                       %strong There aren't enough spots left to activate this core:
@@ -67,7 +67,7 @@
                         %p Female Spots Remaining: #{female_spots}    
                 - else
                   - if permitted_to? :preview_capture, @league
-                    =link_to 'Activate authorized players on this core', preview_capture_league_path(@league, registration_group_id: rg._id), class: 'btn btn-block btn-small btn-primary', style: 'margin-top: 30px'
+                    =link_to 'Accept registered players on this core', preview_capture_league_path(@league, registration_group_id: rg._id), class: 'btn btn-block btn-small btn-primary', style: 'margin-top: 30px'
 
               - elsif registrations[:active] == member_count
                 - if permitted_to? :add_to_team, rg
