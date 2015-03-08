@@ -88,7 +88,7 @@ authorization do
 	end
 
 	role :'league-manager' do
-		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps]
+		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps, :setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games]
 	end
 
 	role :admin do

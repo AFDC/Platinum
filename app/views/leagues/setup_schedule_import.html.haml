@@ -1,0 +1,22 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Schedule Management', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Setup Schedule' => nil}}
+
+.row
+    .span6.offset1
+        If your last import was wrong for some reason, the easiest solution is to delete all future games for this league and re-import them. 
+
+    .span4
+        = button_to 'Delete Future Games', remove_future_games_league_path(@league), confirm: "Are you sure?", method: :delete, form_class: 'confirm', class: 'btn btn-block btn-warning'
+
+= form_tag upload_schedule_league_path(@league), method: 'POST', class: 'row', style: 'margin-top: 30px;',  multipart: true do
+    .span6.offset1
+        .input-prepend
+            %span.btn.btn-default.btn-file
+                Select File
+                =file_field_tag 'schedule'
+            %input{type: 'text', class: 'span4', readonly: true}
+
+    .span4
+        %button.btn.btn-primary.btn-block{type: 'submit'} Upload
+
+        

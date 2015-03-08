@@ -227,6 +227,7 @@
 			$('.team').popover({
 				trigger: 'hover',
 				placement: 'left',
+				html: true,
 				content: function() {
 					opponent = opponent_data[$(this).data('team_id')];
 					img_html = '<div style="text-align: center; margin: 10px 0;"><img src="' + opponent['avatar'] + '" class="img-polaroid img-rounded" style="max-width: 160px; height: auto;" /></div>';

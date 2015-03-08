@@ -1,0 +1,49 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Schedule Management', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Schedule Preview' => nil}}
+
+%h2 Schedule Preview
+
+.alert.alert-info
+    %strong Your schedule has not yet been imported!
+    Please ensure the data is correct and then submit below
+
+= form_tag import_schedule_league_path(@league), method: 'POST'  do
+    %table.table.table-striped
+        %thead
+            %tr
+                %td Row
+                %td Game Time
+                %td Fieldsite
+                %td Field #
+                %td{colspan: 2} Teams:
+        %tbody
+            - good_games = 0
+            - row_num    = 0
+            - @results.each do |row|
+                - row_num += 1
+                - if row[:error]
+                    %tr.error
+                        %td=row_num
+                        %td{colspan: 5}=row[:error]
+                - else
+                    - good_games += 1
+                    %tr
+                        %td=row_num
+                        %td
+                            =row[:game_time].strftime("%b %e, %Y %l:%M %P")
+                            %input{type: 'hidden', name: "games[#{row_num}][game_time]", value: row[:game_time].to_i} 
+                        %td
+                            =link_to row[:fieldsite].name, field_path(row[:fieldsite])
+                            %input{type: 'hidden', name: "games[#{row_num}][fieldsite_id]", value: row[:fieldsite]._id} 
+                        %td
+                            =row[:field_num]
+                            %input{type: 'hidden', name: "games[#{row_num}][field_num]", value: row[:field_num]} 
+                        %td
+                            =link_to row[:teams][0].name, team_path(row[:teams][0])
+                            %input{type: 'hidden', name: "games[#{row_num}][team1_id]", value: row[:teams][0]._id} 
+                        %td
+                            =link_to row[:teams][1].name, team_path(row[:teams][1])
+                            %input{type: 'hidden', name: "games[#{row_num}][team2_id]", value: row[:teams][1]._id}
+    .row
+        .span4.offset4
+            %button.btn.btn-primary.btn-block.btn-large.btn-success{type: 'submit'} Import Games

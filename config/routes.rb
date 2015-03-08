@@ -24,12 +24,20 @@ Platinum::Application.routes.draw do
       get 'register'
       get 'registrations'
       post 'registrations'
+
       get 'preview_capture'
       post 'accept_players'
+
       get 'manage_roster'
       post 'upload_roster'
       get 'setup_roster_import'
       post 'import_roster'
+      
+      get 'setup_schedule_import'
+      post 'upload_schedule'
+      post 'import_schedule'
+      delete 'remove_future_games'
+
       get 'invite_pair'
       get 'leave_pair'
     end

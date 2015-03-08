@@ -1,5 +1,5 @@
 class LeaguesController < ApplicationController
-    before_filter :load_league_from_params, only: [:register, :registrations, :preview_capture, :accept_players, :show, :manage_roster, :upload_roster, :setup_roster_import, :import_roster, :edit, :update, :select_pair, :invite_pair, :leave_pair]
+    before_filter :load_league_from_params, except: [:index, :new, :create]
     before_filter :initialize_roster_csv, only: [:manage_roster, :upload_roster, :setup_roster_import, :import_roster]
     filter_access_to [:accept_players, :preview_capture], attribute_check: true
 
@@ -348,6 +348,65 @@ class LeaguesController < ApplicationController
         if @errors.count == 0
             redirect_to manage_roster_league_path(@league), notice: "#{@successful_imports} records were imported with no errors." and return
         end
+    end
+
+    def upload_schedule
+        csv       = SmarterCSV.process(params[:schedule].path)
+        right_now = DateTime.now
+
+        @results = []
+        @skipped = 0
+
+        csv.each do |row|
+            begin
+                missing_fields = [:game_time, :fieldsite_id, :field_num, :team1_id, :team2_id] - row.keys
+
+                unless missing_fields.empty?
+                    raise "Fields missing: #{missing_fields.join(', ')}"
+                end
+
+                new_game = {
+                    game_time: Time.zone.parse(row[:game_time]).to_datetime,
+                    fieldsite: FieldSite.find(row[:fieldsite_id]),
+                    field_num: row[:field_num],
+                    teams:     [Team.find(row[:team1_id]), Team.find(row[:team2_id])]
+                }
+
+                raise "Game is in the past and will be skpped." unless new_game[:game_time] > right_now
+                raise "FieldSite not found with ID '#{row[:fieldsite_id]}'" unless new_game[:fieldsite]
+                raise "Team 1 not found with ID '#{row[:team1_id]}'" unless new_game[:teams][0]
+                raise "Team 2 not found with ID '#{row[:team2_id]}'" unless new_game[:teams][1]
+
+                @results << new_game
+            rescue => e
+                @results << { error: e.message }
+            end
+        end
+    end
+
+    def import_schedule
+        failure = 0
+        params[:games].each do |row, game_data|
+            game = Game.new(
+                league_id: @league._id, 
+                game_time: Time.at(game_data[:game_time].to_i).to_datetime,
+                fieldsite_id: FieldSite.find(game_data[:fieldsite_id])._id,
+                field_num: game_data[:field_num],
+            )
+
+            game[:teams] = [Team.find(game_data[:team1_id])._id, Team.find(game_data[:team2_id])._id]
+            failure +=0 unless game.save
+        end
+
+        redirect_to league_path(@league), notice: "Games successfully imported with #{failure} errors."
+    end
+
+    def remove_future_games
+        game_list = @league.games.where(game_time: { "$gt" => DateTime.now });
+        deleted = game_list.count
+        game_list.delete_all
+
+        redirect_to setup_schedule_import_league_path(@league), notice: "#{deleted} future games deleted."
     end
 
     def preview_capture

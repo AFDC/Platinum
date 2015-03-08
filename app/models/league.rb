@@ -26,6 +26,7 @@ class League
 
   after_initialize :build_options_if_nil
 
+  has_many :games
   has_many :teams, order: {league_rank: :asc}
   has_many :registrations
   has_many :registration_groups
