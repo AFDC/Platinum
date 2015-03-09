@@ -34,20 +34,6 @@
             %dt Status:
             %dd= @registration.status
 
-            %dt Paid?
-            %dd
-                - if @registration.paid
-                    %span.label.label-success Yes
-                - else
-                    %span.label.label-warning No
-
-            %dt Comped?
-            %dd
-                - if @registration.comped
-                    %span.label.label-success Yes
-                - else
-                    %span.label.label-warning No
-
             %dt Role:
             %dd= @registration.player_strength
 
