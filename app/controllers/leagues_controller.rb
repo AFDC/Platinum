@@ -44,6 +44,11 @@ class LeaguesController < ApplicationController
             redirect_to league_path(@league), flash: {error: "No #{current_user.gender} registrants allowed."} and return
         end
 
+        unless current_user.valid?
+            redirect_to edit_user_path(current_user), notice: "Your user profile is incomplete, you must update it before registering."
+            return
+        end
+
         if @league.require_grank? && (current_user.g_rank_results.first.nil? || current_user.g_rank_results.first.timestamp.end_of_day < @league.max_grank_age.months.ago)
             session[:post_grank_redirect] = @league._id.to_s
             redirect_to edit_g_rank_profile_path, notice: "Your gRank score is out of date, please complete the survey before registering."

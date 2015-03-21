@@ -8,6 +8,8 @@
 			= f.text_field :lastname, label: "Last name"
 			= f.text_field :email_address
 			= f.text_field :birthdate, "data-format" => "yyyy-MM-dd", append: '<i data-date-icon="icon-calendar" data-time-icon="icon-time"></i>'.html_safe, class: "global-datepicker"
+			.help-block
+				It's important that we have your correct birthdate on file for insurance reasons.
 			%h3 Set your Password
 			= f.password_field :password
 			= f.password_field :password_confirmation, label: "Confirm Password"
