@@ -391,7 +391,7 @@ class LeaguesController < ApplicationController
                 league_id: @league._id, 
                 game_time: Time.at(game_data[:game_time].to_i).to_datetime,
                 fieldsite_id: FieldSite.find(game_data[:fieldsite_id])._id,
-                field_num: game_data[:field_num],
+                field: game_data[:field_num],
             )
 
             game[:teams] = [Team.find(game_data[:team1_id])._id, Team.find(game_data[:team2_id])._id]
