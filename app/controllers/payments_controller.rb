@@ -18,7 +18,8 @@ class PaymentsController < ApplicationController
         registration_id: registration._id.to_s,
         league_id:       registration.league._id.to_s,
         user_id:         registration.user._id.to_s
-      }
+      },
+      device_data: params['device_data']
     )
 
     if result.success?
@@ -33,6 +34,7 @@ class PaymentsController < ApplicationController
         league:         registration.league
       })
       registration.status = 'active'
+      registration.paid   = true
       registration.save
       redirect_to league_path(registration.league), notice: "Success! You are now confirmed for #{registration.league.name}."
     else
