@@ -1,0 +1,44 @@
+- if @your_games.count > 0
+    %h4 Your Games Today
+    %table.table.table-condensed.table-striped
+        %thead
+            %tr
+                %td League
+                %td Opponent
+                %td Location
+                %td Time
+        %tbody
+            - @your_games.each do |g|
+                - if current_user[:teams].include? g[:teams][0]
+                    - opponent = g.teams[1]
+                - else
+                    - opponent = g.teams[0]
+                %tr
+                    %td=link_to g.league.name, league_path(g.league)
+                    %td #{link_to(opponent.name, team_path(opponent))}
+                    %td
+                        #{link_to(g.field_site.name, field_path(g.field_site))} 
+                        - if g.field
+                            (#{g.field})
+                    %td=g.game_time.strftime("%l:%M %p")
+- if @league_games.count > 0
+    %h4 Today's Games
+    %table.table.table-condensed.table-striped
+        %thead
+            %tr
+                %td League
+                %td Teams
+                %td Location
+                %td Time
+        %tbody
+            - @league_games.each do |g|
+                - t1 = g.teams[0]
+                - t2 = g.teams[1]
+                %tr
+                    %td=link_to g.league.name, league_path(g.league)
+                    %td #{link_to(t1.name, team_path(t1))} vs #{link_to(t2.name, team_path(t2))}
+                    %td
+                        #{link_to(g.field_site.name, field_path(g.field_site))} 
+                        - if g.field
+                            (#{g.field})
+                    %td=g.game_time.strftime("%l:%M %p")

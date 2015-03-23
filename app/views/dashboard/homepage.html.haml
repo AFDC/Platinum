@@ -1,70 +1,17 @@
 - content_for :title, "Atlanta Flying Disc Club"
 = render :partial => '/pageheader', :locals => {subtitle: 'League Management System'}
-
-.row
-    - unless @leagues_registering.count + @leagues_running.count + @your_teams.count > 0
-        .span4
-            %div{style: 'padding: 10px;'}
-                %h4 Welcome!
-                %p
-                    You're looking at the early stages of a re-write of the leauges portion of our website. We've been working
-                    hard over the past months to improve the consistency and performance of the site.
-                %p
-                    We hope that the site will be intuitive and simple to use, but in the event that you have problems or
-                    questions, please do not hesitate to contact <a href="mailto:help@afdc.com">our help desk</a> for
-                    assistance.
-
-    .span4
-        %div{style: 'padding: 10px;'}
-            %h4 Getting Started
-            %p
-                If you're new around here, things might be a bit confusing the first time you register.
-                Rest assured that any problem you are facing, someone has likely experienced before.
-
-            %h4 Some Help
-            %ul
-                %li= link_to 'Tutorial: Signing up for leagues.afdc.com', 'http://toomuchpete.clarify-it.com/d/fvm4pl'
-                %li= link_to 'Tutorial: Reset or change your password', 'http://toomuchpete.clarify-it.com/d/dh9xta'
-                %li= link_to 'Tutorial: Updating your gRank', 'http://toomuchpete.clarify-it.com/d/ddna6c'
-                %li= link_to 'Tutorial: Registering for a league', 'http://toomuchpete.clarify-it.com/d/9lhk4h'
-                %li= link_to 'Tutorial: Pairing with another player', 'http://toomuchpete.clarify-it.com/d/pqewtm'
-
-            %p Just remember . . .
-            %div{style: 'text-align: center; font-weight: bold; margin-bottom: 15px;'} Don't Freak Out!
-
-    - if @leagues_registering.count + @leagues_running.count + @your_teams.count > 0
-        .span4
-            %div{style: 'padding: 10px; border: 1px solid #ddd; background-color: #f8f8f8; min-height: 240px;'}
-                - unless @leagues_registering.empty?
-                    %h4 Registration Open:
-                    %ul{style: 'margin-bottom: 20px;'}
-                        - @leagues_registering.each do |l|
-                            %li
-                                =link_to l.name, l
-                                - if l.registration_open?
-                                    (#{link_to 'Register', register_league_path(l)})
-
-                - unless @leagues_running.empty?
-                    %h4 Leagues Underway:
-                    %ul{style: 'margin-bottom: 20px;'}
-                        - @leagues_running.each do |l|
-                            %li=link_to l.name, l
-
-                - unless @your_teams.empty?
-                    %h4 Your Teams:
-                    %ul{style: 'margin-bottom: 20px;'}
-                        - @your_teams.each do |t|
-                            %li=link_to t.name, t
-
-
-    .span4
-        %div{style: 'padding: 10px;'}
-            %h4 Partners, Sponsors, and Friends
-            %ul
-                %li=link_to "Andy Grimes and The Pickle", "http://thepickleatl.com/pickle/"
-                %li=link_to "Christina Schmidt Photography", "http://www.facebook.com/cuschmidtphotography"
-                %li=link_to "Georgia Soccer Park", "http://www.georgiasoccerpark.com/"
-                %li=link_to "Spin Ultimate", "http://www.spinultimate.com/"
-                %li=link_to "Sweetwater Brewing Company", "http://sweetwaterbrew.com/"
-                %li=link_to "The Midway Pub", "http://www.themidwaypub.com/"
-                %li=link_to "Manuels Tavern", "http://www.manuelstavern.com/"
+- if (@league_games.count + @your_games.count) > 0
+    .row
+        .col-md-8
+            = render 'games'
+        .col-md-4
+            = render 'leagues'
+            = render 'sponsors'
+- else
+    .row
+        .col-md-4
+            = render 'tutorials'
+        .col-md-4
+            = render 'leagues'
+        .col-md-4
+            = render 'sponsors'

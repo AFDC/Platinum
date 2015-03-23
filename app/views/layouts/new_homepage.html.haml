@@ -1,0 +1,78 @@
+!!! 5
+%html
+  %head
+    %title
+      = specified_title = yield(:title)
+      = " | " unless specified_title.blank?
+      Atlanta Flying Disc Club
+    = favicon_link_tag
+    = stylesheet_link_tag '//maxcdn.bootstrapcdn.com/bootswatch/3.3.4/cerulean/bootstrap.min.css'
+    = stylesheet_link_tag '//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css'
+    = javascript_include_tag '/javascripts/jquery-2.1.0.min.js'
+    = javascript_include_tag '//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js'
+
+    = yield :page_scripts
+    = yield :page_styles
+
+    %link{href: "/favicons/apple-touch-icon-57x57.png", rel: "apple-touch-icon", sizes: "57x57"}
+    %link{href: "/favicons/apple-touch-icon-114x114.png", rel: "apple-touch-icon", sizes: "114x114"}
+    %link{href: "/favicons/apple-touch-icon-72x72.png", rel: "apple-touch-icon", sizes: "72x72"}
+    %link{href: "/favicons/apple-touch-icon-144x144.png", rel: "apple-touch-icon", sizes: "144x144"}
+    %link{href: "/favicons/apple-touch-icon-60x60.png", rel: "apple-touch-icon", sizes: "60x60"}
+    %link{href: "/favicons/apple-touch-icon-120x120.png", rel: "apple-touch-icon", sizes: "120x120"}
+    %link{href: "/favicons/apple-touch-icon-76x76.png", rel: "apple-touch-icon", sizes: "76x76"}
+    %link{href: "/favicons/apple-touch-icon-152x152.png", rel: "apple-touch-icon", sizes: "152x152"}
+    %link{href: "/favicons/favicon-196x196.png", rel: "icon", sizes: "196x196", type: "image/png"}
+    %link{href: "/favicons/favicon-160x160.png", rel: "icon", sizes: "160x160", type: "image/png"}
+    %link{href: "/favicons/favicon-96x96.png", rel: "icon", sizes: "96x96", type: "image/png"}
+    %link{href: "/favicons/favicon-32x32.png", rel: "icon", sizes: "32x32", type: "image/png"}
+    %link{href: "/favicons/favicon-16x16.png", rel: "icon", sizes: "16x16", type: "image/png"}
+    %meta{content: "#2b5797", name: "msapplication-TileColor"}
+    %meta{content: "/favicons/mstile-144x144.png", name: "msapplication-TileImage"}
+
+    = csrf_meta_tags
+  %body{style: 'padding-top: 50px;'}
+    %nav.navbar.navbar-default.navbar-fixed-top
+      .container
+        // Brand and toggle get grouped for better mobile display
+        .navbar-header
+          %button.navbar-toggle.collapsed{"data-target" => "#main-nav", "data-toggle" => "collapse", :type => "button"}
+            %span.sr-only Toggle navigation
+            %span.icon-bar
+            %span.icon-bar
+            %span.icon-bar
+          %a.navbar-brand
+            AFDC League Manager
+        #main-nav.collapse.navbar-collapse
+          %ul.nav.navbar-nav
+            %li.active= link_to 'Home', '/'
+            %li= link_to 'Leagues', '/leagues'
+            %li= link_to 'Users', '/users'
+            %li= link_to 'Teams', '/teams'
+            %li= link_to 'Fields', '/fields'
+            %li= link_to 'Games', '/schedules'
+          %ul.nav.navbar-nav.pull-right
+            - if current_user
+              %li#loggedInMenu.dropdown
+                = link_to '#loggedInMenu', :class => 'dropdown-toggle', 'data-toggle' => 'dropdown' do
+                  = "Logged in as: #{current_user.firstname} #{current_user.lastname}"
+                  %b.caret
+                %ul.dropdown-menu
+                  %li= link_to 'Invitations', invitations_path
+                  %li= link_to 'Your Profile', user_profile_path
+                  %li= link_to 'Your Registrations', registrations_user_path(current_user)
+                  %li.divider
+                  %li= link_to 'Log out', logout_path
+            - else
+              %li= link_to 'Log In', auth_path
+    - unless Rails.env.production?
+      .alert.alert-success{:style => 'margin: 0 5px;'}= "Current Rails Environment: #{Rails.env}"
+    .container
+      - if flash[:notice]
+        .alert.alert-info= flash[:notice]
+      - if flash[:error]
+        .alert.alert-error= flash[:error]
+      = yield
+      - if Rails.env.development?
+        %div{style: 'margin-top: 50px'}
+          = debug(params)
