@@ -18,13 +18,8 @@ class AuthController < ApplicationController
         session[:user_id] = @user._id.to_s
 
         if params[:remember_me]
-            @user.remember_me_cookie = SecureRandom.hex(32)
-            cookies[:platinum_login] = @user.remember_me_cookie
-        else
-            @user.remember_me_cookie = nil
+            cookies[:platinum_login] = @user.remember_me
         end
-
-        @user.save
 
         if session[:login_redirect_url]
             redirect_to session[:login_redirect_url]
@@ -51,9 +46,7 @@ class AuthController < ApplicationController
         @user = current_user
 
         unless session['real_user_id']
-            @user.remember_me_cookie = nil
-            @user.save
-
+            @user.forget_me
             cookies.delete(:platinum_login)
 
             reset_session

@@ -47,23 +47,23 @@ class User
   before_save :downcase_email
 
   def may_report_for
-    Team.where({ '$or' => [{'captains' => self._id}, {'reporters' => self._id}]})
+    Team.where({ '$or' => [{'captains' => id}, {'reporters' => id}]})
   end
 
   def braintree_customer_id
-    cid = self._id.to_s
+    cid = id.to_s
     begin
       Braintree::Customer.find(cid)
       return cid
     rescue Braintree::NotFoundError
       result = Braintree::Customer.create(
         id:         cid,
-        first_name: self.firstname,
-        last_name:  self.lastname,
-        email:      self.email_address
+        first_name: firstname,
+        last_name:  lastname,
+        email:      email_address
       )
 
-      return self._id.to_s if result.success?
+      return id.to_s if result.success?
       return nil
     rescue
       return nil
@@ -71,12 +71,12 @@ class User
   end
 
   def braintree_token
-    Braintree::ClientToken.generate(customer_id: self.braintree_customer_id)
+    Braintree::ClientToken.generate(customer_id: braintree_customer_id)
   end
 
   def absorb(old_user)
     raise ArgumentError.new "Must supply a user account to be absorbed" unless old_user.instance_of?(User)
-    raise ArgumentError.new "You cannot absorb a user into a new record, please save it first." if self.new_record?
+    raise ArgumentError.new "You cannot absorb a user into a new record, please save it first." if new_record?
 
     backup_user = User.collection.find(_id: old_user._id).first.to_hash
 
@@ -86,25 +86,25 @@ class User
       team_ids << t._id
     end
     Team.collection.find(_id: {'$in' => team_ids}).update({"$pull" => {players: old_user._id}}, {multi: true})
-    Team.collection.find(_id: {'$in' => team_ids}).update({"$addToSet" => {players: self._id}}, {multi: true})
-    User.collection.find(_id: self._id).update({"$addToSet" => {teams: {"$each" => team_ids}}})
+    Team.collection.find(_id: {'$in' => team_ids}).update({"$addToSet" => {players: id}}, {multi: true})
+    User.collection.find(_id: id).update({"$addToSet" => {teams: {"$each" => team_ids}}})
 
     # Handle Reporters and Captains
     reporter_for = Team.collection.find(reporters: old_user._id).map{|t| t["_id"]}
     Team.collection.find(_id: {'$in' => reporter_for}).update({"$pull" => {reporters: old_user._id}}, {multi: true})
-    Team.collection.find(_id: {'$in' => reporter_for}).update({"$addToSet" => {reporters: self._id}}, {multi: true})
+    Team.collection.find(_id: {'$in' => reporter_for}).update({"$addToSet" => {reporters: id}}, {multi: true})
 
     captain_for = Team.collection.find(captains: old_user._id).map{|t| t["_id"]}
     Team.collection.find(_id: {'$in' => captain_for}).update({"$pull" => {captains: old_user._id}}, {multi: true})
-    Team.collection.find(_id: {'$in' => captain_for}).update({"$addToSet" => {captains: self._id}}, {multi: true})
+    Team.collection.find(_id: {'$in' => captain_for}).update({"$addToSet" => {captains: id}}, {multi: true})
 
     # Assign old_user's registrations to new_user
     registrations = Registration.collection.find(user_id: old_user._id).map{|r| r["_id"]}
-    Registration.collection.find(_id: {'$in' => registrations}).update({"$set" => {user_id: self._id}}, {multi: true})
+    Registration.collection.find(_id: {'$in' => registrations}).update({"$set" => {user_id: id}}, {multi: true})
 
     # Assign old_user's gRanks to new_user
     grr = GRankResult.collection.find(user_id: old_user._id).map{|r| r["_id"]}
-    GRankResult.collection.find(_id: {'$in' => grr}).update({"$set" => {user_id: self._id}}, {multi: true})
+    GRankResult.collection.find(_id: {'$in' => grr}).update({"$set" => {user_id: id}}, {multi: true})
 
     # Backup old_user object
     absorb_data = {
@@ -129,26 +129,40 @@ class User
   end
 
   def height_in_feet_and_inches
-    self.height ? "#{self.height/12}\'#{self.height%12}\"" : 'n/a'
+    height ? "#{height/12}\'#{height%12}\"" : 'n/a'
   end
 
   def name
-    [firstname, lastname].join(' ')
+    "#{firstname} #{lastname}"
+  end
+
+  def remember_me
+    unless remember_me_cookie
+      self.remember_me_cookie = SecureRandom.hex(32)
+      save(validate: false)
+    end
+
+    remember_me_cookie
+  end
+
+  def forget_me
+    self.remember_me_cookie = nil
+    save(validate: false)
   end
 
   def age
     begin
-      dob = Date.parse(self.birthdate)
+      dob = Date.parse(birthdate)
       today = Date.today
       d = Date.new(today.year, dob.month, dob.day)
-      age = d.year - dob.year - (d > today ? 1 : 0)
+      d.year - dob.year - (d > today ? 1 : 0)
     rescue
       nil
     end
   end
 
   def role_symbols
-    self.permission_groups.map(&:to_sym)
+    permission_groups.map(&:to_sym)
   end
 
   def reset_password
