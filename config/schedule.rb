@@ -7,9 +7,6 @@
 #
 set :output, {:error => 'log/error.log', :standard => 'log/cron.log'}
 
-every 1.minute do
-    rake 'registration:hello'
-end
 #
 # every 2.hours do
 #   command "/usr/bin/some_great_command"
