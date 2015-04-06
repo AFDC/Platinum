@@ -52,3 +52,5 @@ namespace :deploy do
 
   after :publishing, :restart
 end
+
+set :whenever_identifier, ->{ "#{fetch(:application)}_#{fetch(:stage)}" }

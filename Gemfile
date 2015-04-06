@@ -28,6 +28,7 @@ gem 'sidekiq'
 gem 'kiqstand', '~> 1.1.0'
 gem 'sinatra', require: false
 gem 'slim'
+gem 'whenever'
 
 # Frontend
 gem 'active_link_to'
