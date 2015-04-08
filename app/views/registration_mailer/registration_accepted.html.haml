@@ -2,8 +2,12 @@
 
 %p
   Your registration has been accepted for #{link_to(@league.name, league_url(@league))}, but you are not yet active in the league.
-  In order to join the league, you must pay your registration fee. <strong>If you don't pay within 48 hours, you could lose
-  your spot in the league!</strong>
+  In order to join the league, you must pay your registration fee. 
+
+- if @registration.acceptance_expires_at
+  %p
+    Because the league is full and there are people on the waitlist, you have a limited amount of time to pay.
+    %strong If you don't pay within #{distance_of_time_in_words_to_now(@registration.acceptance_expires_at)}, you could lose your spot in the league!
 
 %table.large-button.success.round{style:"margin-top: 10px; margin-bottom: 10px;"}
   %tr

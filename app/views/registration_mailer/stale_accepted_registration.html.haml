@@ -1,9 +1,12 @@
 %p #{@user.firstname},
 
+-time_left = distance_of_time_in_words_to_now(@registration.acceptance_expires_at)
+
 %p
-  In 24 hours, you will lose your spot for #{link_to(@league.name, league_url(@league))}. This would be a tragedy. But don't worry,
-  all is not yet lost! All you have to do is log back in to the leagues site and pay! <strong>If you don't pay within 24 hours, 
-  you could lose your spot in the league!</strong>
+  In #{time_left}, you will lose your spot for #{link_to(@league.name, league_url(@league))}. This would be a tragedy. But don't worry,
+  all is not yet lost! All you have to do is log back in to the leagues site and pay! 
+%p
+  <strong>If you don't pay within #{time_left}, you could lose your spot in the league!</strong>
 
 %table.large-button.success.round{style:"margin-top: 10px; margin-bottom: 10px;"}
   %tr

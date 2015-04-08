@@ -1,5 +1,6 @@
 class Registration
     include Mongoid::Document
+    include Mongoid::Timestamps
     field :paid, type: Boolean
     field :status
     field :player_strength
@@ -12,6 +13,9 @@ class Registration
     field :self_rank, type: Float
     field :commish_rank, type: Float
     field :g_rank, type: Float
+
+    field :acceptance_expires_at, type: DateTime
+    field :warning_email_sent_at, type: DateTime  
 
     field :waiver_acceptance_date, type: DateTime
     field :user_data, type: Hash
@@ -61,11 +65,12 @@ class Registration
         self.pair_id.present? || RegistrationGroup.where(league: self.league, member_ids: self[:user_id]).first.present?
     end
 
-    def accept
-        self.status = 'accepted'
+    def accept(expires_at = nil)
+        self.status                = 'accepted'
+        self.warning_email_sent_at = nil
+        self.acceptance_expires_at = expires_at
+
         if self.save
-            RegistrationPaymentReminderWorker.perform_in(24.hours, self._id.to_s)
-            RegistrationCancellationWorker.perform_in(48.hours, self._id.to_s)
             RegistrationMailer.delay.registration_accepted(self._id.to_s)
         end
     end

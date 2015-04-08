@@ -454,7 +454,8 @@ class LeaguesController < ApplicationController
             flash[:error] = "Errors were found in your submission, see below"
             render 'league/preview_capture' and return
         else
-            registrations.each { |r| r.accept }
+            expirations = @league.current_expiration_times
+            registrations.each { |r| r.accept(expirations[r.gender.to_sym]) }
             redirect_to league_path(@league), notice: "#{registrations.count} registrants accepted. They will be invited to pay and join the league."
         end
     end
