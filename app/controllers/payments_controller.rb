@@ -5,7 +5,7 @@ class PaymentsController < ApplicationController
         redirect_to registrations_user_path(current_user), flash: {error: "Registration not found."} and return 
     end
 
-    price    = registration.league.price
+    price    = registration.price
 
     result = Braintree::Transaction.sale(
       amount: price,

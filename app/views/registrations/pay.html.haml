@@ -11,7 +11,7 @@
     = form_tag payments_path do
       %p.lead
         #{@registration.user.name}'s registration for #{@registration.league.name}:
-      %p.lead{style: 'font-size: 400%; font-weight: bold; text-align: center'}=number_to_currency @registration.league.price
+      %p.lead{style: 'font-size: 400%; font-weight: bold; text-align: center'}=number_to_currency @registration.price
       #braintree_dropin
       =hidden_field_tag 'registration_id', @registration._id
       %button.btn.btn-block.btn-success.btn-large{type: :submit}

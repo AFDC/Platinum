@@ -21,6 +21,7 @@ class Registration
     field :user_data, type: Hash
     field :notes
     field :comped, type: Boolean
+    field :price, type: Float, default: ->{ league.try :price }
 
     field :payment_id
 
@@ -34,7 +35,8 @@ class Registration
     belongs_to :pair, class_name: "User"
     has_many :payment_transactions
 
-    after_save :bust_league_cache
+    before_save :ensure_price
+    after_save  :bust_league_cache
 
     scope :active, where(status: 'active')
     scope :authorized, where(status: 'authorized')
@@ -51,6 +53,10 @@ class Registration
 
     def eos_availability
         availability['attend_tourney_eos'] if availability
+    end
+
+    def ensure_price
+        self.price = league.price unless self.price.present?
     end
 
     # Pairing Stuff:
