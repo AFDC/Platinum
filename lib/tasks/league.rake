@@ -18,6 +18,8 @@ namespace :league do
                     next
                 end
 
+                next unless r.acceptance_expires_at
+
                 if r.acceptance_expires_at < Time.now
                     print "\tExpiring: #{r.id}\n"
                     r.status           = 'pending'
