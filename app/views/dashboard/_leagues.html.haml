@@ -1,7 +1,7 @@
-- if @leagues_registering.count + @leagues_running.count + @your_teams.count > 0
+- if (@leagues_registering.count + @leagues_running.count + @your_teams.count )> 0
     %div{style: 'padding: 10px; border: 1px solid #ddd; background-color: #f8f8f8; min-height: 240px;'}
         %h4 Leagues
-        - unless @leagues_running.empty?
+        - unless @leagues_running.empty? and @leagues_registering.empty?
             %ul{style: 'margin-bottom: 20px;'}
                 - @leagues_registering.each do |l|
                     %li{style: 'font-weight: bold'}
@@ -17,5 +17,6 @@
                 - @your_teams.each do |t|
                     %li=link_to t.name, t
 - else
+    stfu
     %h4 Leagues
     .well No current leagues, check out #{link_to('our blog', 'http://www.afdc.com/')} for more information!
