@@ -129,6 +129,14 @@
                             %label.checkbox
                                 = f.check_box :allow_pairs
                                 Allow Pairs
+
+                    .control-group
+                        %label.control-label Spirit
+                        .controls
+                            %label.checkbox
+                                = f.check_box :track_spirit_scores
+                                Enable Score Reporting
+
                     %h4 Core/Pod Options
                     = f.fields_for :core_options do |co|
                         - core_options = @league.core_options

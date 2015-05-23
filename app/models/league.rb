@@ -22,6 +22,7 @@ class League
   field :allow_pairs, type: Boolean, default: true
   field :eos_tourney, type: Boolean, default: true
   field :mst_tourney, type: Boolean, default: false
+  field :track_spirit_scores, type: Boolean, default: false
   embeds_one :core_options, class_name: 'LeagueCoreOptions'
 
   after_initialize :build_options_if_nil
