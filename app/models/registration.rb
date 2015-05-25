@@ -68,7 +68,11 @@ class Registration
     end
 
     def linked?
-        self.pair_id.present? || RegistrationGroup.where(league: self.league, member_ids: self[:user_id]).first.present?
+        self.pair_id.present? || cored?
+    end
+
+    def cored?
+        RegistrationGroup.where(league: self.league, member_ids: self[:user_id]).first.present?
     end
 
     def accept(expires_at = nil)

@@ -1,131 +1,138 @@
-- content_for :title, "AFDC Leagues"
-= render :partial => '/pageheader', :locals => {subtitle: 'Team Profile', breadcrumbs: {'Leagues' => leagues_path, @team.league.name => league_path(@team.league), @team.name => nil}}
-
-
-.row{style: 'margin-bottom: 25px'}
-	.span4
-		#profile-pic.row{style: 'text-align: center; margin-bottom: 10px'}
-			=image_tag @team.avatar.url(:profile), class: 'img-polaroid img-rounded', style: 'max-width: 330px; height: auto;'
+%h3{style: 'margin-bottom: 0'}=link_to @team.league.name, league_path(@team.league)
+.row#team-data{'data-team-id' => @team._id}
+	.span3
+		#profile-pic.row{style: 'text-align: center;'}
+			=image_tag @team.avatar.url(:profile), class: 'img-rounded', style: 'max-width: 250px; height: auto; max-height: 330px;'
 			- permitted_to? :edit_avatar, @team do
 				%p Change Pic
-				/ %p= link_to 'Change Profile Pic', edit_avatar_team_path(@team)
-		#captains.row
-			.span1{style: 'font-weight: bold;'} Captains:
-			.span3
-				- if @team.captains?
-					- @team.captains.each do |captain|
-						= link_to "#{captain.firstname} #{captain.lastname}", captain
-						%br
-				- else
-					None listed
-		#reporters.row
-			.span1{style: 'font-weight: bold;'} Reporters:
-			.span3
-				- if @team.reporters?
-					- @team.reporters.each do |reporter|
-						= link_to "#{reporter.firstname} #{reporter.lastname}", reporter
-						%br
-				- else
-					None listed
-		- if @team.games_played > 0
-			.row{style:'border-top: 1px solid #f0f0f0'}
-				.span1{style: 'font-weight: bold'} Rank:
-				.span3= @team.formatted_rank
-			.row
-				.span1{style: 'font-weight: bold'} Record:
-				- if @team.winning_percentage
-					.span3= "#{@team.record} (#{formatted_winning_percentage(@team.winning_percentage)})"
-				- else
-					.span3 n/a
-			.row
-				.span1{style: 'font-weight: bold'} Pt. Diff.:
-				.span3= formatted_point_diff(@team.point_diff)
-		- else
-			.row
-				.span4
-					.alert.alert-warning Statistics not yet available
-		- permitted_to? :edit, @team do
-			#edit.row{style: 'text-align: center; margin-top: 10px;'}
-				.span4
-					= link_to edit_team_path(@team), class: 'btn btn-small btn-warning' do
-						%i.icon-cog
-						Edit Team Settings
+	.span9
+		.page-header
+			%h1
+				=@team.name
+				- if @team.games_played > 0
+					%small (#{@team.record}, Ranked #{@team.formatted_rank})
 
+		- if @team.captains?
+			.captains
+				%span{style: 'font-weight: bold'} Team Captains: 
+				- cl = []
+				- @team.captains.each do |captain|
+					- cl << link_to("#{captain.firstname} #{captain.lastname}", captain)
+				=raw(cl.join(', '))
+%hr
+.row
+	.span8
+		%h3 Schedule
+		%table.table.table-striped.table-condensed
+			%thead
+				%tr
+					%th When
+					%th Teams
+					%th{colspan: 2} Score
+					- if @team.league.track_spirit_scores?
+						%th{colspan: 2} Spirit
+					%th Location
+			%tbody
+				- opponent_data = {}
+				- @team.games.order_by(game_time: 1).each do |game|
+					- opponent = game.opponent_for(@team)
+					- unless opponent
+						%tr{'id' => game._id}
+							%td{colspan: 4}
+								No opponent listed
+								%span.hide= "Game ID: #{game._id}"
+						- next
+					- opponent_data[opponent._id] = { name: opponent.name, rank: opponent.formatted_rank, avatar: opponent.avatar.url(:roster) }
+					%tr{'data-opponent-id' => opponent._id, 'id' => game._id}
+						%td
+							=game.game_time.strftime("%b %e")
+							%br
+							=game.game_time.strftime("%l:%M %P")
+						%td
+							%span.muted #{@team.name} vs
+								
+							%br
+							=link_to opponent.name, opponent, title: opponent.name, class: 'team', "data-team_id" => opponent._id
+						- if game.scores
+							- if game.scores['rainout']
+								- td_class = 'rainout-score'
+								- icon_class = 'icon-cloud'
+								- score = ''
+							- elsif game.scores['forfeit']
+								- td_class = (game.winning_team == @team ? 'winning-score' : 'forfeit-score')
+								- icon_class = 'icon-frown'
+								- score = ''
+							- else
+								- td_class = (game.winning_team == @team ? 'winning-score' : 'losing-score') if game.winner
+								- score = "#{game.score_for(@team)} <br /> #{game.score_for(opponent)}"
+						- else
+							- score = '-'
 
-	.span8#team-data{'data-team-id' => @team._id}
-		%h3= @team.name
-		%ul.nav.nav-tabs#profile-tabs
-			%li= link_to 'Schedule', '#schedule', 'data-toggle' => 'tab'
-			%li= link_to 'Roster', '#roster', 'data-toggle' => 'tab'
-
-		.tab-content
-			.tab-pane#schedule
-				%table.table.table-striped.table-condensed
-					%thead
-						%tr
-							%th Opponent
-							%th Date / Time
-							%th Location
-							%th{colspan: 2} Results
-					%tbody
-						- opponent_data = {}
-						- @team.games.order_by(game_time: 1).each do |game|
-							- opponent = game.opponent_for(@team)
-							- unless opponent
-								%tr{'id' => game._id}
-									%td{colspan: 4}
-										No opponent listed
-										%span.hide= "Game ID: #{game._id}"
-								- next
-							- opponent_data[opponent._id] = { name: opponent.name, rank: opponent.formatted_rank, avatar: opponent.avatar.url(:roster) }
-							%tr{'data-opponent-id' => opponent._id, 'id' => game._id}
-								%td= link_to opponent.name, opponent, title: opponent.name, class: 'team', "data-team_id" => opponent._id
-								%td= game.game_time.strftime("%b %e, %Y %l:%M %P")
-								%td= link_to "#{game.field_site.name} (#{game.field})", field_path(game.field_site)
-
-								- if game.scores
-									- if game.scores['rainout']
-										- td_class = 'rainout-score'
-										- icon_class = 'icon-cloud'
-										- score = 'Rainout'
-									- elsif game.scores['forfeit']
-										- td_class = (game.winning_team == @team ? 'winning-score' : 'forfeit-score')
-										- icon_class = 'icon-frown'
-										- score = 'Forfeit'
-									- else
-										- td_class = (game.winning_team == @team ? 'winning-score' : 'losing-score') if game.winner
-										- score = "#{game.score_for(@team)}-#{game.score_for(opponent)}"
+						%td{class: "results " + td_class.to_s}
+							%i.result-icon{class: icon_class}
+							%span.score
+								=raw(score)
+						%td{class: "results " + td_class.to_s}
+							- if game.game_time <= Time.zone.now && permitted_to?(:edit_score, game)
+								=link_to edit_score_game_path(game), style: "color: inherit;", 'data-game_id' => game._id, class: 'report-score' do
+									%i.icon-pencil
+							- else
+								=raw("&nbsp;")
+						- if @team.league.track_spirit_scores?
+							%td
+								=game.spirit_score_for(@team) || "-"
+								%br
+								=game.spirit_score_for(opponent) || "-"
+							%td
+								- if game.game_time <= Time.zone.now && permitted_to?(:edit_score, game)
+									=link_to edit_score_game_path(game), style: "color: inherit;", 'data-game_id' => game._id, class: 'report-score' do
+										%i.icon-pencil
+									%br
+									=link_to edit_score_game_path(game), style: "color: inherit;", 'data-game_id' => game._id, class: 'report-score' do
+										%i.icon-pencil
 								- else
-									- score = '-'
+									=raw("&nbsp;")
 
-								%td{class: "results " + td_class.to_s}
-									- if game.game_time <= Time.zone.now && permitted_to?(:edit_score, game)
-										=link_to edit_score_game_path(game), style: "color: inherit;", 'data-game_id' => game._id, class: 'report-score' do
-											%i.icon-pencil
-									%i.result-icon{class: icon_class}
-									%span.score
-										= score
+						%td= link_to "#{game.field_site.name} (#{game.field})", field_path(game.field_site)
+	.span4
+		%h3 Roster
+		- if permitted_to? :view_roster, @team
+			%table.table.table-striped.table-condensed
+				%thead
+					%tr
+						%th Pic
+						%th Player
+						%th Rank
+				%tbody
+					- user_data = []
+					- @team.players.each do |player|
+						- reg = @team.league.registration_for(player)
+						- user_data << { user: player, reg: reg }
+					- user_data.sort_by{|ud| [ud[:user].gender, -(ud[:reg].try(:rank) || 0)]}.each do |ud|
+						- player = ud[:user]
+						- reg    = ud[:reg]
+						%tr
+							%td{width: '45px'}=image_tag player.avatar.url(:thumbnail), class: 'img-polaroid', style: 'width: 32px; height: 32px'
+							%td
+								=link_to player.name, player
+								- if reg.try(:cored?)
+									.label.label-success cored
+								%br
+								%span.muted=player.email_address
+							%td
+								%span{class: "#{player.gender} label"}=player.gender.capitalize
+								%br
+								=reg.try(:rank)
 
-			.tab-pane#roster
-				- if permitted_to? :view_roster, @team
-					.row
-						- @team.players.each do |player|
-							.span2{style: 'margin-bottom: 10px;'}
-								= link_to player do
-									= image_tag player.avatar.url(:roster), class: 'img-polaroid', style: 'width: 160px; height: auto;'
-									%div
-										="#{player.firstname} #{player.lastname}"
-										%br
-										%small= player.email_address
-				- else
-					.alert.alert-info For privacy, league rosters are restricted to AFDC members only. Please log-in to view them.
-
+		- else
+			.alert.alert-info For privacy, league rosters are restricted to AFDC members only. Please log-in to view them.
 
 #score_reporter.modal.hide.fade
 	.modal-header
 		%button.close{type: 'button', 'data-dismiss' => 'modal', 'aria-hidden' => 'true'} &times;
 		%h3 Report a Game Score
 	.modal-body
+
 
 - content_for :page_scripts do
 	:javascript
@@ -195,7 +202,7 @@
 							opponent_score = data[opponent_id];
 						}
 
-						$("#" + data.game_id + " .results .score").html(team_score + '-' + opponent_score);
+						$("#" + data.game_id + " .results .score").html(team_score + '<br />' + opponent_score);
 					}
 
 					$('#score_reporter').modal('hide');
@@ -204,39 +211,5 @@
 					console.log("There was an error updating that score...");
 					console.log(data)
 				});
-			});
-		});
-
-		$(function() {
-			var opponent_data = #{opponent_data.to_json}
-			// Tabs
-			$('#profile-tabs a').click(function (e) {
-				$(this).tab('show');
-			});
-
-			if (window.location.hash) {
-				tab_identifier = '#profile-tabs a[href="' + window.location.hash + '"]'
-				if ($(tab_identifier)) {
-					$(tab_identifier).tab('show');
-				}
-			} else {
-				$('#profile-tabs a:first').tab('show');
-			}
-
-			// Team Popovers on Schedule
-			$('.team').popover({
-				trigger: 'hover',
-				placement: 'left',
-				html: true,
-				content: function() {
-					opponent = opponent_data[$(this).data('team_id')];
-					img_html = '<div style="text-align: center; margin: 10px 0;"><img src="' + opponent['avatar'] + '" class="img-polaroid img-rounded" style="max-width: 160px; height: auto;" /></div>';
-					data_html = '<ul class="unstyled">';
-					data_html += '<li><strong>Rank:</strong> ' + opponent['rank'] + '</li>';
-					data_html += '<li><strong>Record:</strong> ' + opponent['record'] + '</li>';
-					data_html += '</ul>';
-
-					return img_html + data_html;
-				}
 			});
 		});

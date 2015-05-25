@@ -27,7 +27,7 @@ class User
   has_secure_password
 
   has_mongoid_attached_file :avatar,
-    default_url: lambda {|attachment| "https://robohash.org/#{attachment.instance._id}.png?bgset=bg2&size=330x330"},
+    default_url: lambda {|attachment| "http://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(attachment.instance.email_address.downcase)}?s=330&d=mm&r=r"},
     styles: {profile: '330x330>', roster: '160x160#', thumbnail: '32x32#'}
 
   has_many :g_rank_results, order: :_id.desc

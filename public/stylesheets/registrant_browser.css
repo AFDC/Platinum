@@ -44,15 +44,6 @@ ul#registrants li.registrant-row:hover {
   width: 170px;
 }
 
-span.label.female {
-  font-family: monospace;
-  background-color: #B94A48;
-}
-span.label.male {
-  font-family: monospace;
-  background-color: #3A87AD;
-}
-
 i.collapser {
   cursor: pointer;
 }

@@ -370,8 +370,14 @@ class LeaguesController < ApplicationController
                     raise "Fields missing: #{missing_fields.join(', ')}"
                 end
 
+                begin
+                    gt = Time.zone.parse(row[:game_time]).to_datetime
+                rescue => e
+                    raise "Couldn't figure out how to parse '#{row[:game_time]}', please format your dates as YYYY-MM-DD HH:MM:SS."
+                end
+
                 new_game = {
-                    game_time: Time.zone.parse(row[:game_time]).to_datetime,
+                    game_time: gt,
                     fieldsite: FieldSite.find(row[:fieldsite_id]),
                     field_num: row[:field_num],
                     teams:     [Team.find(row[:team1_id]), Team.find(row[:team2_id])]

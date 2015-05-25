@@ -56,3 +56,12 @@ td.forfeit-score {
     cursor: inherit;
     display: block;
 }
+
+span.label.female {
+  font-family: monospace;
+  background-color: #B94A48;
+}
+span.label.male {
+  font-family: monospace;
+  background-color: #3A87AD;
+}
