@@ -6,7 +6,7 @@ class Game
 	field :winner, type: Moped::BSON::ObjectId
 	field :scores, type: Hash, default: {}
 	field :old_scores, type: Array, default: []
-	belongs_to :league, indexed: true
+	belongs_to :league, index: true
 	belongs_to :field_site, foreign_key: :fieldsite_id
 	has_and_belongs_to_many :teams, foreign_key: :teams
 
