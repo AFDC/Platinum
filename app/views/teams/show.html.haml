@@ -66,19 +66,25 @@
 						- if game.scores
 							- if game.scores['rainout']
 								- td_class = 'rainout-score'
+								- colspan = 3
+								- skip_spirit = true
 								- icon_class = 'icon-cloud'
-								- score = ''
+								- score = 'Rainout'
 							- elsif game.scores['forfeit']
 								- td_class = (game.winning_team == @team ? 'winning-score' : 'forfeit-score')
+								- colspan = 3
+								- skip_spirit = true
 								- icon_class = 'icon-frown'
-								- score = ''
+								- score = 'Forfeit'
 							- else
 								- td_class = (game.winning_team == @team ? 'winning-score' : 'losing-score') if game.winner
 								- score = "#{game.score_for(@team)} <br /> #{game.score_for(opponent)}"
+								- colspan = 1
+								- skip_spirit = false
 						- else
 							- score = '-'
 
-						%td{style: 'width: 30px;', class: "results " + td_class.to_s}
+						%td{style: 'width: 30px;', class: "results " + td_class.to_s, colspan: colspan}
 							%i.result-icon{class: icon_class}
 							%span.score
 								=raw(score)
@@ -88,7 +94,7 @@
 									%i.icon-pencil
 							- else
 								=raw("&nbsp;")
-						- if @team.league.track_spirit_scores?
+						- if @team.league.track_spirit_scores? and !skip_spirit
 							%td{style: 'width: 30px;'}
 								- sr = game.spirit_report_for(@team)
 								- if sr
