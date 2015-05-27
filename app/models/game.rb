@@ -5,9 +5,8 @@ class Game
 	field :round_number
 	field :winner, type: Moped::BSON::ObjectId
 	field :scores, type: Hash, default: {}
-	field :avg_spirit_scores, type: Hash, default: {}
 	field :old_scores, type: Array, default: []
-	belongs_to :league
+	belongs_to :league, indexed: true
 	belongs_to :field_site, foreign_key: :fieldsite_id
 	has_and_belongs_to_many :teams, foreign_key: :teams
 
@@ -65,14 +64,8 @@ class Game
 		score.to_i if score
 	end
 
-	def spirit_score_for(subject_team)
-		unless self[:teams].include?(subject_team._id) && scores
-			return nil
-		end
-
-		score = avg_spirit_scores[subject_team._id.to_s]
-
-		score.to_i if score
+	def spirit_report_for(subject_team)
+		SpiritReport.find_by(game: self, team: subject_team)
 	end
 
 	private

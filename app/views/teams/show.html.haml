@@ -68,28 +68,42 @@
 						- else
 							- score = '-'
 
-						%td{class: "results " + td_class.to_s}
+						%td{style: 'width: 30px;', class: "results " + td_class.to_s}
 							%i.result-icon{class: icon_class}
 							%span.score
 								=raw(score)
-						%td{class: "results " + td_class.to_s}
+						%td{style: 'width: 15px;', class: "results " + td_class.to_s}
 							- if game.game_time <= Time.zone.now && permitted_to?(:edit_score, game)
 								=link_to edit_score_game_path(game), style: "color: inherit;", 'data-game_id' => game._id, class: 'report-score' do
 									%i.icon-pencil
 							- else
 								=raw("&nbsp;")
 						- if @team.league.track_spirit_scores?
-							%td
-								=game.spirit_score_for(@team) || "-"
+							%td{style: 'width: 30px;'}
+								- sr = game.spirit_report_for(@team)
+								- if sr
+									=link_to sr.composite.round(2), spirit_report_path(sr)
+								- else 
+									\-
 								%br
-								=game.spirit_score_for(opponent) || "-"
-							%td
-								- if game.game_time <= Time.zone.now && permitted_to?(:edit_score, game)
-									=link_to edit_score_game_path(game), style: "color: inherit;", 'data-game_id' => game._id, class: 'report-score' do
-										%i.icon-pencil
+								- sr = game.spirit_report_for(opponent)
+								- if sr
+									=link_to sr.composite.round(2), spirit_report_path(sr)
+								- else 
+									\-
+							%td{style: 'width: 15px;'}
+								- if game.game_time <= Time.zone.now 
+									- if permitted_to?(:report_spirit_score, opponent)
+										=link_to new_spirit_report_path(game_id: game.id, team_id: opponent.id), style: "color: inherit;" do
+											%i.icon-pencil
+									- else 
+										!= "&nbsp;"
 									%br
-									=link_to edit_score_game_path(game), style: "color: inherit;", 'data-game_id' => game._id, class: 'report-score' do
-										%i.icon-pencil
+									- if permitted_to?(:report_spirit_score, @team)
+										=link_to new_spirit_report_path(game_id: game.id, team_id: opponent.id), style: "color: inherit;" do
+											%i.icon-pencil
+									- else
+										!= "&nbsp;"
 								- else
 									=raw("&nbsp;")
 

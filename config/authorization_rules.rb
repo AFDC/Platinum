@@ -30,6 +30,7 @@ authorization do
 		has_permission_on :payments, to: [:create]
 		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair]
 		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
+		has_permission_on :spirit_reports, to: [:index, :new, :create, :show, :edit, :update]
 
 		# Things a user can do IFF the record belongs to them:
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :registrations, :edit, :update] do
@@ -49,7 +50,7 @@ authorization do
 		end
 
 		# User assignments (league commissioner, team captain, etc...)
-		has_permission_on :teams, :to => [:edit, :update, :report_score] do
+		has_permission_on :teams, :to => [:edit, :update, :report_score, :report_spirit_score] do
 			if_attribute :captains => contains { user }
 		end
 

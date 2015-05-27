@@ -1,0 +1,24 @@
+- game     = @report.game
+- team     = @report.team
+- league   = @report.league
+- opponent = game.opponent_for(team)
+
+
+.well
+    %h3 Spirit Report for: #{team.name}
+    %dl
+    - if team.captains?
+        %dt{style: 'font-weight: bold'} Team Captains:
+        %dd
+            - cl = []
+            - team.captains.each do |captain|
+                - cl << link_to("#{captain.firstname} #{captain.lastname}", captain)
+            =raw(cl.join(', '))
+    %dt{style: 'font-weight: bold'} League
+    %dd=link_to game.league.name, league_path(league)
+
+    %dt{style: 'font-weight: bold'} Game Time
+    %dd=game.game_time.strftime("%b %e at %l:%M %P")
+
+    %dt{style: 'font-weight: bold'} Opponent (Reporter)
+    %dd=link_to opponent.name, team_path(opponent)

@@ -1,0 +1,87 @@
+- score_options = { '0 - Poor' => 0, '1 - Not Good' => 1, '2 - Good' => 2, '3 - Very Good' => 3, '4 - Excellent' => 4 }
+
+- if @report.errors.any?
+    - errors = @report.errors
+    .alert.alert-error
+        The report could not be saved
+- else
+    - errors = Hash.new([])
+
+- game     = @report.game
+- team     = @report.team
+- league   = @report.league
+- opponent = game.opponent_for(team)
+
+.row
+    .span8.offset2
+        %h1 Spirit Score Sheet
+        %p
+            Your whole team should be involved in rating the other team! 
+            Choose a score for each area -- 2 is an average, spirited game.
+            Scores of 1 and 3 represent less or more spirited games, while
+            0 and 4 are exceptional. Scoring a team a 0 or a 4 in any area
+            requires a comment explaining why you chose that the rating.
+
+        = render :partial => 'summary', :locals => {report: @report}
+
+= form_for @report, html: {class: 'form'} do |f|
+    %input{type: "hidden", value: game._id, name: :game_id}
+    %input{type: "hidden", value: team._id, name: :team_id}
+
+    #score_fields
+        - SpiritReport.categories.each do |c|
+            - score_sym    = "#{c[:name]}_score".to_sym
+            - comments_sym = "#{c[:name]}_comments".to_sym
+            .row{style: 'margin-top: 20px'}
+                .span8.offset2
+                    %h3= c[:title]
+                    %p <strong>Examples:</strong> #{c[:desc]}
+            .row
+                .span3.offset2.score
+                    .control-group{ class: ('error' if errors[score_sym].any?)}
+                        %label.control-label Score
+                        .controls
+                            =f.select score_sym, score_options, prompt: "Select a Score", class: 'score'
+                            - if errors[score_sym].any?
+                                %span.help-inline=errors[score_sym].first
+                .span5.comments
+                    .control-group{ class: ('error' if errors[comments_sym].any?)}
+                        %label.control-label{for: comments_sym} Please explain why you chose a score of 0 or 4
+                        .controls
+                            =f.text_area comments_sym, style: 'width: 100%', rows: 2
+                            - if errors[comments_sym].any?
+                                %span.help-inline=errors[comments_sym].first
+    .row.hide#submit_button
+        .span8.offset2
+            .form-actions
+                %button.btn.btn-large.btn-primary=@report.new_record? ? "Create Report" : "Update Report"
+
+- content_for :page_scripts do
+    :javascript
+        function setCommentVisibility() {
+            $('.score').each(function(i, score_div){
+                var selectField = $($(score_div).find('select')[0]);
+
+                var selectVal;
+                if (selectField) {
+                    selectVal = selectField.val();
+                }
+
+                var commentsContainer = $(score_div).siblings('.comments')[0];
+                if (typeof commentsContainer == 'undefined') {
+                    return;
+                }
+
+                if (selectVal == '0' || selectVal == '4') {
+                    $(commentsContainer).show();
+                } else {
+                    $(commentsContainer).hide();
+                }
+            });
+        }
+        $(function(){
+            $('#score_fields').delegate('.score', 'change', setCommentVisibility);
+            setCommentVisibility();
+            $('#submit_button').show();
+        });
+

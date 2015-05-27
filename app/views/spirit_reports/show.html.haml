@@ -1,0 +1,29 @@
+- content_for :title, "AFDC Spirit"
+= render partial: '/pageheader', locals: {subtitle: 'Report Score', breadcrumbs: {'Leagues' => leagues_path}}
+
+- scores  = ['Poor (0)',   'Not Good (1)', 'Good (2)',     'Very Good (3)', 'Excellent (4)']
+- classes = ['text-error', 'text-error',   'text-success', 'text-success',  'text-success']
+
+.row
+    .span8.offset2
+        %h1 Spirit Score Sheet
+        %p
+            Below, 2 is an average, spirited game. Scores of 1 and 3 represent less 
+            or more spirited games, while 0 and 4 are exceptional. 
+            Scoring a team a 0 or a 4 in any area requires a comment explaining 
+            that rating was chosen.
+
+        = render :partial => 'summary', :locals => {report: @report}
+
+- SpiritReport.categories.each do |c|
+    - score_sym    = "#{c[:name]}_score".to_sym
+    - comments_sym = "#{c[:name]}_comments".to_sym
+    .row{style: 'margin-top: 20px'}
+        .span5.offset2
+            %h3= c[:title]
+            %p <strong>Examples:</strong> #{c[:desc]}
+        .span3
+            %h3{class: classes[@report[score_sym]]}=scores[@report[score_sym]]
+            - unless @report[comments_sym].empty?
+                .well.well-small{style: 'font-style: italic'}
+                    =simple_format(@report[comments_sym])

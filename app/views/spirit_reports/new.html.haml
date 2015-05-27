@@ -1,0 +1,4 @@
+- content_for :title, "AFDC Spirit"
+= render partial: '/pageheader', locals: {subtitle: 'Report Score', breadcrumbs: {'Leagues' => leagues_path}}
+
+= render :partial => 'form', :locals => {report: @report}

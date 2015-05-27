@@ -2,7 +2,7 @@ require 'sidekiq/web'
 
 Platinum::Application.routes.draw do
   match '/users/search' => 'users#search'
-  resources :fields, :schedules, :comp_groups, :payments
+  resources :fields, :schedules, :comp_groups, :payments, :spirit_reports
 
   resources :invitations do
     member do
