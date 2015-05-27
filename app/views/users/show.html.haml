@@ -13,49 +13,70 @@
 			=link_to 'Login as this User', login_as_user_path(@user), class: 'btn btn-block btn-small btn-warning'
 
 	.span8
-		%h3= "#{@user.firstname} #{@user.middlename} #{@user.lastname}"
 		.row
-			.span2{style: "font-weight: bold;"} Handedness
-			.span2= @user.handedness
-			.span2{style: "font-weight: bold;"} Gender
-			.span2= @user.gender
-		.row
-			.span2{style: "font-weight: bold;"} Height
-			.span2= @user.height_in_feet_and_inches
-			.span2{style: "font-weight: bold;"} Weight
-			.span2= @user.weight ? "#{@user.weight} pounds" : 'n/a'
-		.row
-			.span2{style: "font-weight: bold;"} Email Address
-			.span6= @user.email_address
-		- if @user.phone
-			- @user.phone.each do |type,number|
-				.row
-					.span2{style: "font-weight: bold; text-transform: capitalize;"}= type
-					.span6= number
-		.row
-			.span2{style: "font-weight: bold;"} Street Address
-			.span6
-				%address= simple_format("#{@user.address}\n#{@user.city}, #{@user.state} #{@user.postal_code}")
-		.row
-			.span2{style: "font-weight: bold;"} Birthdate
-			.span6= @user.birthdate ? "#{@user.birthdate} (#{@user.age} years old)" : 'n/a'
-		.row
-			.span2{style: "font-weight: bold;"} gRank
-			.span2
-				- if last_grr = @user.g_rank_results.first
-					#{last_grr.score} (#{last_grr.timestamp.strftime('%b %Y')})
-				- else
-					n/a
 			.span4
-				- if current_user._id == @user._id
-					= link_to 'Update gRank', edit_g_rank_profile_path
-		- unless @user.g_rank_results.empty?
-			%h4
-				Most Recent gRank Answers
+				%h3= "#{@user.firstname} #{@user.middlename} #{@user.lastname}"
+				.row
+					.span1{style: "font-weight: bold;"} Gender
+					.span3= @user.gender.capitalize
+				.row
+					.span1{style: "font-weight: bold;"} Handedness
+					.span3= @user.handedness.capitalize
+				.row
+					.span1{style: "font-weight: bold;"} Height
+					.span3= @user.height_in_feet_and_inches
+				.row
+					.span1{style: "font-weight: bold;"} Weight
+					.span3= @user.weight ? "#{@user.weight} pounds" : 'n/a'
+				.row
+					.span1{style: "font-weight: bold;"} Email
+					.span3= @user.email_address
+				- if @user.phone
+					- @user.phone.each do |type,number|
+						.row
+							.span1{style: "font-weight: bold; text-transform: capitalize;"}= type
+							.span3= number
+				.row
+					.span1{style: "font-weight: bold;"} Address
+					.span3
+						%address= simple_format("#{@user.address}\n#{@user.city}, #{@user.state} #{@user.postal_code}")
+				.row
+					.span1{style: "font-weight: bold;"} Birthdate
+					.span3= @user.birthdate ? "#{@user.birthdate} (#{@user.age} years old)" : 'n/a'
+			.span4
+				- if permitted_to? :edit, @user
+					%h3 Notification Preferences
+					%p 
+						%small.muted
+							Let the AFDC notify you directly when there's important league news (like game cancellations).
+							If you disable these notifications, you'll have to wait to hear from your captain.
+					%table.table.table-striped.table-condensed
+						%thead
+							%tr
+								%th.span3 Notify
+								%th Enabled?
+								%th Actions
+						%tbody
+							%tr
+								%td{colspan:3}
+									.text-center
+										Add notification method
 
+
+		.row{style: 'margin-top: 15px'}
+			.span4
+				%h4 gRank Answers
+			.span4.text-right
+				- if current_user._id == @user._id
+					= link_to 'Update gRank', edit_g_rank_profile_path, class: 'btn btn-info'
+		- unless @user.g_rank_results.empty?
 			%table.table.table-striped.table-condensed
 				%tbody
-					- grank_answers_text = GRank.convert_answers_to_text(@user.g_rank_results.first.answers)
+					- last_grr = @user.g_rank_results.first
+					- grank_answers_text = GRank.convert_answers_to_text(last_grr.answers)
+					%tr
+						%th Composite Score
+						%td #{last_grr.score} (#{last_grr.timestamp.strftime('%b %Y')})
 					%tr
 						%th{style:'width: 20%'} Experience
 						%td=grank_answers_text['Experience']
