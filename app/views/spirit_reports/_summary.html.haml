@@ -20,5 +20,8 @@
     %dt{style: 'font-weight: bold'} Game Time
     %dd=game.game_time.strftime("%b %e at %l:%M %P")
 
-    %dt{style: 'font-weight: bold'} Opponent (Reporter)
-    %dd=link_to opponent.name, team_path(opponent)
+    %dt{style: 'font-weight: bold'} Opponent (Reporting Team)
+    %dd
+        =link_to opponent.name, team_path(opponent)
+        -unless @report.new_record?
+            (#{link_to(@report.reporter.name, @report.reporter)})

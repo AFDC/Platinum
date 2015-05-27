@@ -19,6 +19,16 @@
 				- @team.captains.each do |captain|
 					- cl << link_to("#{captain.firstname} #{captain.lastname}", captain)
 				=raw(cl.join(', '))
+		- if @team.reporters?
+			.reporters
+				%span{style: 'font-weight: bold'} Additional Score Reporters: 
+				- cl = []
+				- @team.reporters.each do |r|
+					- cl << link_to("#{r.firstname} #{r.lastname}", r)
+				=raw(cl.join(', '))
+		- if permitted_to?(:edit, @team)
+			.edit{style: 'margin-top: 25px;'}
+				=link_to 'Edit Team', edit_team_path(@team), class: 'btn btn-primary'
 %hr
 .row
 	.span8
@@ -93,13 +103,13 @@
 									\-
 							%td{style: 'width: 15px;'}
 								- if game.game_time <= Time.zone.now 
-									- if permitted_to?(:report_spirit_score, opponent)
-										=link_to new_spirit_report_path(game_id: game.id, team_id: opponent.id), style: "color: inherit;" do
+									- if permitted_to?(:report_score, opponent)
+										=link_to new_spirit_report_path(game_id: game.id, team_id: @team.id), style: "color: inherit;" do
 											%i.icon-pencil
 									- else 
 										!= "&nbsp;"
 									%br
-									- if permitted_to?(:report_spirit_score, @team)
+									- if permitted_to?(:report_score, @team)
 										=link_to new_spirit_report_path(game_id: game.id, team_id: opponent.id), style: "color: inherit;" do
 											%i.icon-pencil
 									- else

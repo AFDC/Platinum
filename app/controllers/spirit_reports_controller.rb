@@ -36,8 +36,8 @@ class SpiritReportsController < ApplicationController
 
     def validate_editor
         @opponent = @report.game.opponent_for(@report.team)
-        unless @opponent[:captains].include? current_user._id
-           redirect_to league_path(game.league), flash: {error: "You don't have permission to report that spirit score."}
+        unless permitted_to?(:report_score, @opponent)
+           redirect_to league_path(@report.game.league), flash: {error: "You don't have permission to report that spirit score."}
         end        
     end
 
