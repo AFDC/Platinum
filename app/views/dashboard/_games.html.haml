@@ -9,7 +9,7 @@
                 %td Time
         %tbody
             - @your_games.each do |g|
-                - if current_user[:teams].include? g[:teams][0]
+                - if current_user[:teams].include? g.teams[0]._id
                     - opponent = g.teams[1]
                 - else
                     - opponent = g.teams[0]
