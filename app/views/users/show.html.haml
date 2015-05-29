@@ -18,10 +18,10 @@
 				%h3= "#{@user.firstname} #{@user.middlename} #{@user.lastname}"
 				.row
 					.span1{style: "font-weight: bold;"} Gender
-					.span3= @user.gender.capitalize
+					.span3= @user.gender.try(:capitalize)
 				.row
 					.span1{style: "font-weight: bold;"} Handedness
-					.span3= @user.handedness.capitalize
+					.span3= @user.handedness.try(:capitalize)
 				.row
 					.span1{style: "font-weight: bold;"} Height
 					.span3= @user.height_in_feet_and_inches
@@ -44,7 +44,7 @@
 					.span1{style: "font-weight: bold;"} Birthdate
 					.span3= @user.birthdate ? "#{@user.birthdate} (#{@user.age} years old)" : 'n/a'
 			.span4
-				- if permitted_to? :edit, @user
+				- if permitted_to? :index, :notification_methods
 					%h3 Notification Preferences
 					%p 
 						%small.muted
@@ -60,7 +60,7 @@
 							%tr
 								%td{colspan:3}
 									.text-center
-										/ Add notification method
+										=link_to 'Manage Notificaitons', user_notification_methods_path(@user)
 
 
 		.row{style: 'margin-top: 15px'}
