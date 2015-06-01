@@ -1,0 +1,43 @@
+- content_for :title, "Notification Methods"
+= render :partial => '/pageheader', :locals => {subtitle: nil, breadcrumbs: {'Your Profile' => user_profile_path, 'Manage Notifications' => user_notification_methods_path(@user), 'Add Notification Method' => nil}}
+
+- if @notification_method.errors.any?
+    - errors = @notification_method.errors
+    .alert.alert-error
+        The league information could not be saved
+- else
+    - errors = Hash.new([])
+
+
+= form_for [@user, @notification_method], html: {class: 'form-horizontal'} do |f|
+    .row
+        .span8.offset2
+            .control-group{ class: ('error' if errors[:label].any?)}
+                %label.control-label Label
+                .controls
+                    =f.text_field :label
+                    - if errors[:label].any?
+                        %span.help-inline=errors[:label].first
+
+            .control-group
+                %label.control-label Method
+                .controls
+                    %span.input.uneditable-input=@notification_method.method.humanize
+
+            .control-group{ class: ('error' if errors[:target].any?)}
+                %label.control-label Target
+                .controls
+                    %span.input.uneditable-input=number_to_phone @notification_method.target, area_code: true
+
+            .control-group
+                %label.control-label Status
+                .controls
+                    - if @notification_method.confirmed?
+                        %label.checkbox
+                            = f.check_box :enabled
+                            Enabled
+                    - else
+                        =link_to 'Confirm Now', enter_confirmation_user_notification_method_path(@user, @notification_method), class: 'btn btn-success'
+            .form-actions
+                %button.btn.btn-large.btn-primary=@notification_method.new_record? ? "Add Notification Method" : "Update"
+

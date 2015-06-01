@@ -1,0 +1,49 @@
+- content_for :title, "User Profile"
+= render :partial => '/pageheader', :locals => {subtitle: 'Notification Methods', breadcrumbs: {'Your Profile' => user_profile_path, 'Manage Notifications' => nil}}
+
+%table.table.table-striped.table-condensed
+    %thead
+        %tr
+            %th Type
+            %th Target
+            %th Label
+            %th Status
+            %th Actions
+    %tbody
+        - methods_found = false
+        - @user.notification_methods.each do |nm|
+            - next if nm.new_record?
+            - methods_found = true
+            %tr
+                %td
+                    - if nm.method == 'email'
+                        %i.icon.icon-envelope
+                    - if nm.method == 'text'
+                        %i.icon.icon-phone
+                %td=number_to_phone nm.target, area_code: true
+                %td=nm.label
+                %td
+                    - if nm.status == :enabled
+                        %i.icon.icon-ok
+                    - if nm.status == :disabled
+                        %i.icon.icon-remove
+                    - if nm.status == :not_confirmed
+                        %i.icon.icon-warning-sign
+
+                    =nm.status.to_s.humanize
+                %td
+                    =link_to edit_user_notification_method_path(@user, nm) do
+                        %i.icon.icon-pencil{style: 'margin-right: 10px;'}
+                    %i.icon.icon-trash
+        - unless methods_found
+            %tr.warning
+                %td{colspan: 5}
+                    = render partial: '/no_results', locals: {msg: 'No Notification Methods Found'}
+
+
+.text-right
+    =link_to new_user_notification_method_path(@user), class: 'btn btn-primary' do
+        %i.icon.icon-plus
+        Add New Method
+
+

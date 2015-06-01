@@ -1,0 +1,22 @@
+- content_for :title, "Notification Methods"
+= render :partial => '/pageheader', :locals => {subtitle: 'Confirm', breadcrumbs: {'Your Profile' => user_profile_path, 'Manage Notifications' => user_notification_methods_path(@user), @notification_method.label => edit_user_notification_method_path(@user, @notification_method), 'Confirm Notification Method' => nil}}
+
+.row
+    .span6.offset3
+        %h3 Confirming '#{@notification_method.label}'
+        %p.muted
+            - if @notification_method.method == 'text'
+                When this method was created, a six-digit code was texted to #{number_to_phone @notification_method.target, area_code: true}.
+                In order to enable this method, you must enter that six-digit code here. It may take a few minutes to arrive. If you didn't 
+                receive the code, please delete this notification method and try again.
+            - if @notification_method.method == 'email'
+                When this method was created, a sixteen-digit code was emailed to #{@notification_method.target}. In order to enable this
+                method, you must either enter that code, or click on the link provided in the email. The email may take a few minutes to arrive.
+                If you didn't receive the email, please delete this notification method and try again.
+
+        = form_tag confirm_user_notification_method_path(@user, @notification_method), class: 'form' do
+            .control-group
+                %label.control-label Confirmation Code
+                .controls
+                    =text_field_tag :confirmation_code, nil, class: 'span6'
+            =submit_tag "Confirm your #{@notification_method.method == 'text' ? 'phone number' : 'email address'}" , class: 'btn btn-large btn-primary btn-block'

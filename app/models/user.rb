@@ -33,6 +33,7 @@ class User
   has_many :g_rank_results, order: :_id.desc
   has_many :registrations
   has_many :payment_transactions
+  has_many :notification_methods
   has_and_belongs_to_many :teams, foreign_key: :teams
 
   validates :firstname, :presence => true

@@ -61,6 +61,13 @@ Platinum::Application.routes.draw do
   end
 
   resources :users do
+    resources :notification_methods do
+      member do
+        get 'enter_confirmation'
+        post 'confirm'
+        get 'confirm'
+      end
+    end
     member do
       get 'registrations'
       get 'edit_avatar'

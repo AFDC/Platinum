@@ -49,6 +49,10 @@ authorization do
 			if_attribute user_id: is { user._id }
 		end
 
+		has_permission_on :notification_methods, to: [:index, :new, :create, :edit, :update, :show, :enter_confirmation, :confirm] do
+			if_attribute user_id: is { user._id }
+		end
+
 		# User assignments (league commissioner, team captain, etc...)
 		has_permission_on :teams, :to => [:edit, :update, :report_score, :report_spirit_score] do
 			if_attribute :captains => contains { user }

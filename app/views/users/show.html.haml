@@ -44,7 +44,7 @@
 					.span1{style: "font-weight: bold;"} Birthdate
 					.span3= @user.birthdate ? "#{@user.birthdate} (#{@user.age} years old)" : 'n/a'
 			.span4
-				- if permitted_to? :index, :notification_methods
+				- if permitted_to? :create, @user.notification_methods.new
 					%h3 Notification Preferences
 					%p 
 						%small.muted
@@ -53,10 +53,21 @@
 					%table.table.table-striped.table-condensed
 						%thead
 							%tr
-								%th.span3 Notify
-								%th Enabled?
-								%th Actions
+								%th Notify
+								%th Status
 						%tbody
+							- @user.notification_methods.each do |nm|
+								- next if nm.new_record?
+								%tr
+									%td=number_to_phone nm.target, area_code: true
+									%td
+										- if nm.status == :enabled
+											%i.icon.icon-ok
+										- if nm.status == :disabled
+											%i.icon.icon-remove
+										- if nm.status == :not_confirmed
+											%i.icon.icon-warning-sign
+										=nm.status.to_s.humanize
 							%tr
 								%td{colspan:3}
 									.text-center

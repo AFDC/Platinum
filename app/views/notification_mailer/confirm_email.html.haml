@@ -1,0 +1,17 @@
+%p #{@user.firstname},
+
+%p 
+    You've requested that we notify this email address in the 
+    event of league news (like a rain-out). We're sending this
+    message to verify that this address exists!
+
+%p
+    If this all sounds right to, you
+    =link_to 'click here', confirm_user_notification_method_url(@user, @notification_method, confirmation_code: @notification_method.confirmation_code)
+    to verify your address.
+
+%p If you have any problems, please contact help@afdc.com
+
+- content_for :callout_box do
+    If the link doesn't work, please enter this confirmation code:
+    %strong=@notification_method.confirmation_code
