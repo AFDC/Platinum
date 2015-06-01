@@ -3,7 +3,7 @@ class NotificationMethodsController < ApplicationController
 
     def create
         if @notification_method.save
-            NotificationMailer.delay.confirm_email(@notification_method._id.to_s)
+            NotificationConfirmationWorker.perform_async(@notification_method._id.to_s)
             redirect_to user_notification_methods_path(@user), notice: "Notification Method Added Successfully"
         else
             render :new

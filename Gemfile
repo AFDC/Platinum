@@ -22,6 +22,7 @@ gem 'dalli'
 gem 'premailer-rails'
 gem 'nokogiri'
 gem 'braintree'
+gem 'twilio-ruby'
 
 # Job Processing
 gem 'sidekiq'

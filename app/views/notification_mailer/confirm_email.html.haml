@@ -10,7 +10,7 @@
     =link_to 'click here', confirm_user_notification_method_url(@user, @notification_method, confirmation_code: @notification_method.confirmation_code)
     to verify your address.
 
-%p If you have any problems, please contact help@afdc.com
+%p If you have any problems, please contact help@afdc.com. To manage your notifications, you can visit #{link_to('your profile', user_notification_methods_url(@user))}.
 
 - content_for :callout_box do
     If the link doesn't work, please enter this confirmation code:
