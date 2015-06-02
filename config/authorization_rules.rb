@@ -49,7 +49,7 @@ authorization do
 			if_attribute user_id: is { user._id }
 		end
 
-		has_permission_on :notification_methods, to: [:index, :new, :create, :edit, :update, :show, :enter_confirmation, :confirm] do
+		has_permission_on :notification_methods, to: [:index, :new, :create, :edit, :update, :show, :enter_confirmation, :confirm, :destroy] do
 			if_attribute user_id: is { user._id }
 		end
 

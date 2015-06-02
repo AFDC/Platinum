@@ -32,9 +32,11 @@
 
                     =nm.status.to_s.humanize
                 %td
-                    =link_to edit_user_notification_method_path(@user, nm) do
-                        %i.icon.icon-pencil{style: 'margin-right: 10px;'}
-                    %i.icon.icon-trash
+                    =form_tag user_notification_method_path(@user, nm), method: 'DELETE', class: 'form-inline', style: 'margin: 0' do
+                        =link_to edit_user_notification_method_path(@user, nm), class: 'btn btn-small btn-primary' do
+                            %i.icon.icon-pencil{style: 'margin-right: 10px;'}                    
+                        %button.btn.btn-small.btn-warning
+                            %i.icon.icon-trash
         - unless methods_found
             %tr.warning
                 %td{colspan: 5}

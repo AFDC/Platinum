@@ -14,6 +14,11 @@ class NotificationMethodsController < ApplicationController
         end
     end
 
+    def destroy
+        @notification_method.destroy
+        redirect_to user_notification_methods_path(@user), notice: "Notification method deleted successfully."
+    end
+
     def update
         @notification_method.assign_attributes(update_params[:notification_method])
         if @notification_method.confirmed?
