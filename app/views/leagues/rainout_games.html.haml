@@ -1,0 +1,36 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: nil, breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Rainout Games' => nil}}
+
+- if @todays_games.count > 0
+    =form_tag process_rainout_league_path(@league), class: 'form' do
+        .row
+            .span4.offset2
+                %h3 Fields to Rain Out:
+                .control-group
+                    .controls
+                        - @todays_fields.each do |id, fs|
+                            %label.checkbox
+                                =check_box_tag 'fieldsite_ids[]', id
+                                #{fs.name} (#{@field_game_count[id]} games)
+            .span4
+                %h3 Who to Notify:
+                .control-group
+                    .controls
+                        %label.radio
+                            =radio_button_tag :notify, :whole_team, true
+                            The Entire Team
+                        / %label.radio
+                        /     =radio_button_tag :notify, :captains, false
+                        /     Only Captains
+                        %label.radio
+                            =radio_button_tag :notify, :nobody, false
+                            Nobody
+        .row
+            .span8.offset2
+                .form-actions
+                    %button.btn.btn-large.btn-warning.btn-block Process Rainouts
+
+
+                
+- else
+    = render partial: '/no_results', locals: {msg: 'No games today to rain out.'}

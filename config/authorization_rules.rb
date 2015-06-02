@@ -66,7 +66,7 @@ authorization do
 			if_attribute commissioners: contains { user }
 		end
 
-		has_permission_on :leagues, :to => [:manage_roster, :preview_capture, :accept_players, :edit, :update, :setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games] do
+		has_permission_on :leagues, :to => [:manage_roster, :preview_capture, :accept_players, :edit, :update, :setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games, :rainout_games, :process_rainout] do
 			if_permitted_to :manage
 		end
 

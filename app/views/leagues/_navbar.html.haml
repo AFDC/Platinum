@@ -49,3 +49,8 @@
                                 = link_to setup_schedule_import_league_path do
                                     %i.icon-calendar
                                     Upload Schedule
+                        - if permitted_to? :rainout_games, @league
+                            %li
+                                = link_to rainout_games_league_path do
+                                    %i.icon-cloud
+                                    Rainout Today's Games

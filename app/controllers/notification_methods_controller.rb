@@ -4,7 +4,11 @@ class NotificationMethodsController < ApplicationController
     def create
         if @notification_method.save
             NotificationConfirmationWorker.perform_async(@notification_method._id.to_s)
-            redirect_to user_notification_methods_path(@user), notice: "Notification Method Added Successfully"
+            if @notification_method.method == 'text'
+                redirect_to enter_confirmation_user_notification_method_path(@user, @notification_method), notice: "A confirmation code will be texted to you, please enter it below."
+                return
+            end
+            redirect_to user_notification_methods_path(@user), notice: "Notification method added successfully -- you'll receive an email shortly to confirm."
         else
             render :new
         end

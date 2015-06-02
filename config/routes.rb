@@ -38,6 +38,9 @@ Platinum::Application.routes.draw do
       post 'import_schedule'
       delete 'remove_future_games'
 
+      get 'rainout_games'
+      post 'process_rainout'
+
       get 'invite_pair'
       get 'leave_pair'
     end

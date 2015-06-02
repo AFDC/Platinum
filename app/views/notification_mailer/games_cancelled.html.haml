@@ -1,0 +1,6 @@
+%p #{@user.firstname},
+
+%p 
+    Your games for #{@game_day.strftime('%A, %B %d, %Y')} at #{@fieldsite.name} have been cancelled.
+
+%p To manage your notifications, you can visit #{link_to('your profile', user_notification_methods_url(@user))}.

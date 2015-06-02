@@ -466,6 +466,43 @@ class LeaguesController < ApplicationController
         end
     end
 
+    def rainout_games
+        @todays_games     = @league.games.where(:game_time.gte => Date.today.beginning_of_day, :game_time.lte => Date.today.end_of_day )
+        @todays_fields    = {}
+        @field_game_count = {}
+
+        @todays_games.each do |g|
+            fsid = g.field_site._id.to_s
+
+            @todays_fields[fsid]    ||= g.field_site
+            @field_game_count[fsid] ||= 0
+
+            @field_game_count[fsid] += 1
+        end
+    end
+
+    def process_rainout
+        unless params[:fieldsite_ids].present? && params[:fieldsite_ids].count > 0
+            redirect_to rainout_games_league_path(@league), flash: {error: "You must select one or more sites to rain out."}
+            return
+        end
+
+        # Create job, queue jobs
+        jobs = []
+
+        params[:fieldsite_ids].each do |fsid|
+            fs = FieldSite.find(fsid)
+            unless fs.present?
+                redirect_to rainout_games_league_path(@league), flash: {error: "Invalid field site (#{fsid})."}
+                return
+            end
+
+            GameCancellationWorker.perform_async(@league._id.to_s, fsid, Date.today.beginning_of_day.to_i, Date.today.end_of_day.to_i, current_user._id.to_s, params[:notify])
+        end
+
+        redirect_to league_path(@league), notice: "We've started processing cancellations for those sites. It may take a few minutes for them all to be sent."
+    end
+
     private
 
     def load_league_from_params
