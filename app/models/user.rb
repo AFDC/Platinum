@@ -46,6 +46,7 @@ class User
   validates :birthdate, :date_string => true
 
   before_save :downcase_email
+  after_create :create_initial_notification_method
 
   def may_report_for
     Team.where({ '$or' => [{'captains' => id}, {'reporters' => id}]})
@@ -172,5 +173,9 @@ class User
 
   def self.find_by_email_address(email_address)
     User.where({email_address: /^#{Regexp.escape(email_address)}$/i}).first
+  end
+
+  def create_initial_notification_method
+    notification_methods.create(label: "Account email notifier", method: "email", target: email_address)
   end
 end
