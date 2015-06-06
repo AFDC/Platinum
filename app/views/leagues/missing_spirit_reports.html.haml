@@ -1,0 +1,38 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Spirit Reports', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Missing Spirit Reports' => nil}}
+
+%h2 Missing Spirit Reports 
+- @missing_reports.each do |team_id, games_missing|
+    - t = Team.find(team_id)
+    .row
+        .span4
+            %h3=link_to t.name, team_path(t)
+            - if t.captains?
+                .captains
+                    %span{style: 'font-weight: bold'} Team Captains: 
+                    - cl = []
+                    - t.captains.each do |captain|
+                        - cl << link_to("#{captain.firstname} #{captain.lastname}", captain)
+                    =raw(cl.join(', '))
+            - if t.reporters?
+                .reporters
+                    %span{style: 'font-weight: bold'} Other Reporters: 
+                    - cl = []
+                    - t.reporters.each do |r|
+                        - cl << link_to("#{r.firstname} #{r.lastname}", r)
+                    =raw(cl.join(', '))
+        .span8
+            %table.table.table-condensed.table-striped
+                %thead
+                    %tr
+                        %th{width: '30%'} Opponent
+                        %th{width: '40%'} Game Time
+                        %th{width: '30%'} Field
+                %tbody
+                    - games_missing.each do |g|
+                        - o = g.opponent_for(t)
+                        %tr
+                            %td=link_to o.name, team_path(o)
+                            %td=g.game_time.strftime '%A, %B %-d, %Y'
+                            %td=link_to g.field_site.name, field_path(g.field_site)
+    %hr

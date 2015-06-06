@@ -503,6 +503,22 @@ class LeaguesController < ApplicationController
         redirect_to league_path(@league), notice: "We've started processing cancellations for those sites. It may take a few minutes for them all to be sent."
     end
 
+    def missing_spirit_reports
+        @games           = @league.games.where(:game_time.lte => Time.now)
+        @missing_reports = {}
+
+        @games.each do |game|
+            next if game.rained_out?
+            game.teams.each do |t|
+                o = game.opponent_for(t)
+                if game.spirit_report_for(t).nil?
+                    @missing_reports[o._id.to_s] ||= []
+                    @missing_reports[o._id.to_s] << game
+                end
+            end
+        end
+    end
+
     private
 
     def load_league_from_params
