@@ -55,6 +55,8 @@
                 %th Rank
                 %th Team
                 %th Captains
+                - if @league.track_spirit_scores
+                    %th Spirit
                 %th Record
                 %th Pt. Diff.
             %tbody
@@ -72,12 +74,21 @@
                             %td
                                 %i.icon.icon-exclamation-sign.hasTooltip{title: 'Please log in to view captains.'}
                         - if t.games_played > 0
+                            - if @league.track_spirit_scores
+                                %td
+                                    - if t.spirit_average
+                                        =t.spirit_average.round(2)
+                                    - else 
+                                        n/a
                             %td
                                 = t.record
                                 = "(" + formatted_winning_percentage(t.winning_percentage) + ")"
                             %td= formatted_point_diff(t.point_diff)
                         - else
-                            %td{colspan: 2} Not Available
+                            - if @league.track_spirit_scores
+                                %td{colspan: 3} Not Available
+                            - else
+                                %td{colspan: 2} Not Available
                 - if @league.teams.count == 0
                     %tr
                         %td{colspan:5}= render partial: '/no_results', locals: {msg: 'This league has no teams yet.'}

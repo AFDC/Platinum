@@ -11,6 +11,7 @@ class Team
   field :ties, type: Integer, default: 0
   field :point_diff, type: Integer, default: 0
   field :league_rank, type: Integer
+  field :spirit_average, type: Float
 
   has_and_belongs_to_many :reporters, class_name: "User", foreign_key: :reporters, inverse_of: nil
   has_and_belongs_to_many :captains, class_name: "User", foreign_key: :captains, inverse_of: nil
@@ -32,10 +33,14 @@ class Team
   end
 
   def update_stats
-    self.wins = 0
-    self.losses = 0
-    self.ties = 0
-    self.point_diff = 0
+    self.wins           = 0
+    self.losses         = 0
+    self.ties           = 0
+    self.point_diff     = 0
+    self.spirit_average = nil
+
+    spirit_report_count = 0
+    spirit_report_sum   = 0
 
     games.where({game_time: {'$lte' => Time.now}}).each do |game|
       next if game.rained_out?
@@ -59,7 +64,17 @@ class Team
       end
 
       self.point_diff += game_point_diff
+
+      # Spirit Score
+      if league.track_spirit_scores
+        if spirit_report = game.spirit_report_for(self)
+          spirit_report_count += 1
+          spirit_report_sum   += spirit_report.composite
+        end
+      end
     end
+
+    self.spirit_average = spirit_report_sum / spirit_report_count if spirit_report_count > 0
     true
   end
 
