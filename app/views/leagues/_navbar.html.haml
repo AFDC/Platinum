@@ -54,3 +54,8 @@
                                 = link_to rainout_games_league_path do
                                     %i.icon-cloud
                                     Rainout Today's Games
+                        - if @league.track_spirit_scores?
+                            %li
+                                = link_to missing_spirit_reports_league_path do
+                                    %i.icon-heart-empty
+                                    Missing Spirit Reports
