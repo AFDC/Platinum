@@ -66,13 +66,13 @@ Platinum::Application.configure do
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
 
   config.action_mailer.smtp_settings = {
-      :address   => "smtp.mandrillapp.com",
-      :port      => 25, # ports 587 and 2525 are also supported with STARTTLS
-      :enable_starttls_auto => true, # detects and uses STARTTLS
-      :user_name => Figaro.env.mandrill_user!,
-      :password  => Figaro.env.mandrill_pass!, # SMTP password is any valid API key
-      :authentication => 'login', # Mandrill supports 'plain' or 'login'
-      :domain => 'leagues.afdc.com', # your domain to identify your server when connecting
+      :address   => "smtp.mailgun.org",
+      :port      => 587,
+      :enable_starttls_auto => true,
+      :user_name => Figaro.env.mailgun_user!,
+      :password  => Figaro.env.mailgun_pass!,
+      :authentication => 'login',
+      :domain => 'leagues.afdc.com',
   }
 
   config.cache_store = :dalli_store, 'localhost', { :namespace => 'platinum', :expires_in => 1.day, :compress => true }
