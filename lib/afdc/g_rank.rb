@@ -76,8 +76,8 @@ class GRank
                 'text' => 'USAU registered College ultimate',
                 'questions' => {
                     'level_of_play' => {
-                        'a' => {'score' => 1.0, 'text' => 'I played at college nationals'},
-                        'b' => {'score' => 0.5, 'text' => 'I played at college regionals'},
+                        'a' => {'score' => 1.5, 'text' => 'I played a considerable amount on a college nationals team, for a pro team, or was selected for a college allstar game'},
+                        'b' => {'score' => 1.0, 'text' => 'I played at college regionals'},
                         'c' => {'score' => 0.0, 'text' => 'None of the above'}
                     },
                     'athleticism' => {
@@ -133,7 +133,7 @@ class GRank
                         'c' => {'score' => 0.5, 'text' => 'I have played at club REGIONALS, but didn\'t have a shot at making nationals'},
                         'd' => {'score' => 1.0, 'text' => 'I was on a team while it was a nationals contender'},
                         'e' => {'score' => 1.5, 'text' => 'I was on a team that made it to nationals but I didn\'t play a lot'},
-                        'f' => {'score' => 2.0, 'text' => 'I played a considerable amount on a team at club nationals or worlds'}
+                        'f' => {'score' => 2.0, 'text' => 'I played a considerable amount on a team at club nationals, worlds, or a pro team'}
                     },
                     'athleticism' => {
                         'a' => {'score' => 3.0, 'text' => 'Average club athlete'},
