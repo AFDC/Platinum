@@ -61,7 +61,8 @@
                 %th Pt. Diff.
             %tbody
                 - @league.teams.each do |t|
-                    - if current_user && current_user.teams.include?(t)
+                    - user_on_team = (current_user && current_user.teams.include?(t))
+                    - if user_on_team
                         - row_style = 'background-color: #a7dff1;'
                     - else
                         - row_style = '';
@@ -76,7 +77,7 @@
                         - if t.games_played > 0
                             - if @league.track_spirit_scores
                                 %td
-                                    - if t.spirit_average
+                                    - if t.spirit_average && (@league.display_spirit_scores || user_on_team)
                                         =t.spirit_average.round(2)
                                     - else 
                                         n/a

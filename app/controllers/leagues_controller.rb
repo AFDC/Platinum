@@ -538,7 +538,7 @@ class LeaguesController < ApplicationController
             :name, :age_division, :season, :sport, :price,
             :start_date, :end_date, :registration_open, :registration_close,
             :description, {commissioner_ids: []}, :male_limit, :female_limit,
-            :max_grank_age, :allow_pairs, :track_spirit_scores, :allow_self_rank, :eos_tourney, :mst_tourney, :eos_champion_id, :mst_champion_id,
+            :max_grank_age, :allow_pairs, :track_spirit_scores, :display_spirit_scores, :allow_self_rank, :eos_tourney, :mst_tourney, :eos_champion_id, :mst_champion_id,
             {core_options: [:type, :male_limit, :female_limit, :rank_limit, :male_rank_constant, :female_rank_constant]}
         ]
 
