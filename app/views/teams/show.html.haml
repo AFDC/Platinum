@@ -99,13 +99,19 @@
 								%td{style: 'width: 30px;'}
 									- sr = game.spirit_report_for(@team)
 									- if sr
-										=link_to sr.composite.round(2), spirit_report_path(sr)
+										- if game.spirit_reporting_complete? || opponent.players.include?(current_user)
+											=link_to sr.composite.round(2), spirit_report_path(sr)
+										- else
+											?.??
 									- else 
 										\-
 									%br
 									- sr = game.spirit_report_for(opponent)
 									- if sr
-										=link_to sr.composite.round(2), spirit_report_path(sr)
+										- if game.spirit_reporting_complete? || @team.players.include?(current_user)
+											=link_to sr.composite.round(2), spirit_report_path(sr)
+										- else
+											?.??
 									- else 
 										\-
 								%td{style: 'width: 15px;'}
@@ -124,7 +130,7 @@
 									- else
 										=raw("&nbsp;")
 							- else
-								%td{style: 'width: 30px', colspan: 2}
+								%td{style: 'width: 45px', colspan: 2}
 									n/a
 									%br
 									n/a

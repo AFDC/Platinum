@@ -68,6 +68,13 @@ class Game
 		SpiritReport.find_by(game: self, team: subject_team)
 	end
 
+	def spirit_reporting_complete?
+		teams.each do |t|
+			return false if spirit_report_for(t).nil?
+		end
+		return true
+	end
+
 	private
 
 	def queue_league_update
