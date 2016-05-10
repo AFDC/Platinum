@@ -64,7 +64,7 @@ $(function(){
         if (display_input) {
             display_input.val(label);
         }
-    });    
+    });
 
     $(".confirm").submit(function(e) {
         if (!confirm("Are you sure? This cannot be undone.")) {
@@ -72,3 +72,11 @@ $(function(){
         }
     });
 });
+
+
+window.smartlook||(function(d) {
+var o=smartlook=function(){ o.api.push(arguments)},s=d.getElementsByTagName('script')[0];
+var c=d.createElement('script');o.api=new Array();c.async=true;c.type='text/javascript';
+c.charset='utf-8';c.src='//rec.getsmartlook.com/bundle.js';s.parentNode.insertBefore(c,s);
+})(document);
+smartlook('init', 'f88634ea700a2855d240f06e31b8ead7e366db45');
