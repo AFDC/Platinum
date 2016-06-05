@@ -100,8 +100,13 @@ authorization do
 		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps]
 	end
 
+	role :'spirit-manager' do 
+		has_permission_on :leagues, to: [:manage_spirit]
+	end
+
 	role :admin do
 		includes :'league-manager'
+		includes :'spirit-manager'
 
 		has_permission_on :global, :to => [:see_debug]
 

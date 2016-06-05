@@ -97,11 +97,11 @@
 						- user_on_this_team  = (current_user && @team.players.include?(current_user))
 						- user_on_other_team = (current_user && opponent.players.include?(current_user)) 
 						- if @team.league.track_spirit_scores? and !skip_spirit
-							- if @team.league.display_spirit_scores || user_on_this_team
+							- if @team.league.display_spirit_scores || user_on_this_team || permitted_to?(:manage_spirit, @team.league)
 								%td{style: 'width: 30px;'}
 									- sr = game.spirit_report_for(@team)
 									- if sr
-										- if game.spirit_reporting_complete? || user_on_other_team
+										- if game.spirit_reporting_complete? || user_on_other_team || permitted_to?(:manage_spirit, @team.league)
 											=link_to sr.composite.round(2), spirit_report_path(sr)
 										- else
 											?.??
@@ -110,7 +110,7 @@
 									%br
 									- sr = game.spirit_report_for(opponent)
 									- if sr
-										- if game.spirit_reporting_complete? || user_on_this_team
+										- if game.spirit_reporting_complete? || user_on_this_team || permitted_to?(:manage_spirit, @team.league)
 											=link_to sr.composite.round(2), spirit_report_path(sr)
 										- else
 											?.??
