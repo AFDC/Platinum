@@ -1,0 +1,5 @@
+secret_token: '3015ebad7f97f9dc94ca49cdb78339373da749af295182f4e65a42b0559c367257dde245f9b18ff23d0cfcfbee7f7cadcf730e0a86719b459a6b032d1dac1031'
+sidekiq_path: '/queue'
+roster_csv_path: '/tmp/afdc_rosters'
+
+braintree_environment: development

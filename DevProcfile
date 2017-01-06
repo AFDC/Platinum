@@ -1,3 +1,2 @@
-dev_web:  bundle exec thin start -S /tmp/unicorn.sock
+dev_web:  bundle exec thin start
 dev_sk:   bundle exec sidekiq -L log/sidekiq.log
-dev_mail: mailcatcher --ip 0.0.0.0 -f
