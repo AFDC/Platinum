@@ -1,1 +1,0 @@
-Figaro.require('secret_token', 'roster_csv_path')
