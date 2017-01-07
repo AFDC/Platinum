@@ -69,8 +69,8 @@ Platinum::Application.configure do
       :address   => "smtp.mailgun.org",
       :port      => 587,
       :enable_starttls_auto => true,
-      :user_name => Figaro.env.mailgun_user!,
-      :password  => Figaro.env.mailgun_pass!,
+      :user_name => ENV['mailgun_user'],
+      :password  => ENV['mailgun_pass'],
       :authentication => 'login',
       :domain => 'leagues.afdc.com',
   }
