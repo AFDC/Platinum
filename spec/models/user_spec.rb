@@ -31,7 +31,6 @@ describe User do
 	it "should disallow duplicate email addresses" do
 		FactoryGirl.create(:user, :email_address => 'john.doe@email.com')
 		FactoryGirl.build(:user, :email_address => 'john.doe@email.com').should_not be_valid
-		FactoryGirl.build(:user, :email_address => 'JOHN.DOE@EMAIL.COM').should_not be_valid
 	end
 
 	it "should ensure resonable height and weight" do
@@ -57,7 +56,7 @@ describe User do
 	end
 
 	it "should downcase email addresses before save" do
-		user = FactoryGirl.create(:user, :email_address => 'JOHN.DOE@EMAIL.COM')
-		user.email_address.should eq('john.doe@email.com')
+		user = FactoryGirl.create(:user, :email_address => 'SCREAMIN.JOHN@EMAIL.COM')
+		user.email_address.should eq('screamin.john@email.com')
 	end
 end

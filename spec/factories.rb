@@ -5,5 +5,8 @@ FactoryGirl.define do
     birthdate '1980-01-01'
     sequence(:email_address) {|n| "johndoe#{n}@email.net"}
     gender 'male'
+
+    password 'pw'
+    password_confirmation 'pw'
   end
 end

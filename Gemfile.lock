@@ -105,7 +105,6 @@ GEM
       rails (~> 3.0)
     daemons (1.1.9)
     dalli (2.7.0)
-    database_cleaner (0.9.1)
     debug_inspector (0.0.2)
     declarative_authorization (0.5.7)
     diff-lcs (1.2.1)
@@ -356,7 +355,6 @@ DEPENDENCIES
   coffee-rails (~> 3.2.1)
   cucumber-rails
   dalli
-  database_cleaner
   declarative_authorization
   factory_girl_rails
   faker
@@ -400,4 +398,4 @@ DEPENDENCIES
   will_paginate
 
 BUNDLED WITH
-   1.13.6
+   1.13.7
