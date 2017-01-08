@@ -12,9 +12,7 @@
     "volumes": [".:/var/app"],
     "links": ["mongodb", "redis", "memcached", "mailhog"],
     "environment": {
-      "REDIS_URL": "redis://redis:6379",
-      "RAILS_ENV": "development",
-      "RACK_ENV": "development"
+      "REDIS_URL": "redis://redis:6379"
     }
   },
   "sidekiq": {
@@ -22,9 +20,7 @@
     "volumes": [".:/var/app"],
     "links": ["mongodb", "redis", "memcached", "mailhog"],
     "environment": {
-      "REDIS_URL": "redis://redis:6379",
-      "RAILS_ENV": "development",
-      "RACK_ENV": "development"
+      "REDIS_URL": "redis://redis:6379"
     },
     "command": "bundle exec sidekiq"
   }
