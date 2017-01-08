@@ -8,3 +8,5 @@ deployment:
     branch: master
     commands:
       - docker build --rm=false -t afdc/platinum -f Dockerfile.production .
+      - docker login -e $DOCKERHUB_EMAIL -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+      - docker push afdc/platinum
