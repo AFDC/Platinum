@@ -8,4 +8,4 @@ WORKDIR /var/app
 RUN bundle install
 
 COPY . .
-CMD bundle exec thin start
+CMD bundle exec puma -C config/puma.rb
