@@ -5,7 +5,8 @@ machine:
   services:
     - docker
 
-dependencies:
-  override:
-    - docker info
-    - docker build --rm=false -t afdc/platinum -f Dockerfile.production .
+deployment:
+  hub:
+    branch: master
+    commands:
+      - docker build --rm=false -t afdc/platinum -f Dockerfile.production .
