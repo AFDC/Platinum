@@ -1,0 +1,11 @@
+
+machine:
+  ruby:
+    version: ruby-2.1.9
+  services:
+    - docker
+
+dependencies:
+  override:
+    - docker info
+    - docker build --rm=false -t afdc/platinum -f Dockerfile.production .

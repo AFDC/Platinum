@@ -1,0 +1,20 @@
+FROM ruby:2.1
+MAINTAINER Pete Holiday <pete.holiday@gmail.com>
+
+RUN mkdir -p /var/app
+
+WORKDIR /var/app
+
+COPY Gemfile Gemfile.lock ./
+RUN bundle install --deployment --without deployment test
+
+# Set Rails to run in production
+ENV RAILS_ENV production 
+ENV RACK_ENV production
+
+COPY . ./
+
+# Precompile Rails assets
+RUN bundle exec rake assets:precompile
+
+CMD bundle exec puma -C config/puma.rb
