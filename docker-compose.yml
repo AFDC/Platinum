@@ -14,5 +14,14 @@
     "environment": {
       "REDIS_URL": " redis://redis:6379"
     }
+  },
+  "sidekiq": {
+    "build": ".",
+    "volumes": [".:/var/app"],
+    "links": ["mongodb", "redis", "memcached", "mailhog"],
+    "environment": {
+      "REDIS_URL": " redis://redis:6379"
+    },
+    "command": "bundle exec sidekiq"
   }
 }
