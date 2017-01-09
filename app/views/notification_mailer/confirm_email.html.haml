@@ -1,9 +1,9 @@
 %p #{@user.firstname},
 
 %p 
-    You've requested that we notify this email address in the 
-    event of league news (like a rain-out). We're sending this
-    message to verify that this address exists!
+  You've requested that we notify this email address in the 
+  event of league news (like a rain-out). We're sending this
+  message to verify that this address exists!
 
 %p
     If this all sounds right to... 
@@ -16,5 +16,5 @@
 %p If you have any problems, please contact help@afdc.com. To manage your notifications, you can visit #{link_to('your profile', user_notification_methods_url(@user))}.
 
 - content_for :callout_box do
-    If the link doesn't work, please enter this confirmation code:
-    %strong=@notification_method.confirmation_code
+  If the link doesn't work, please enter this confirmation code:
+  %strong=@notification_method.confirmation_code
