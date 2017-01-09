@@ -72,7 +72,7 @@ production:
     default:
       database: Platypus
       hosts:
-        - localhost:27017
+        - <%=ENV['MONGO_HOST']%>:27017
       options:
   options:
     raise_not_found_error: false

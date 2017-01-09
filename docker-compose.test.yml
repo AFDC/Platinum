@@ -1,0 +1,20 @@
+{
+  "mongodb":   {"image": "mongo"},
+  "redis":     {"image": "redis"},
+  "memcached": {"image": "memcached"},
+  "mailhog":   {
+    "image": "mailhog/mailhog",
+    "ports": ["8025:8025"]
+  },
+  "web": {
+    "image": "afdc/platinum",
+    "ports": ["3000:3000"],
+    "links": ["mongodb", "redis", "memcached", "mailhog"],
+    "environment": {
+      "REDIS_URL": "redis://redis:6379",
+      "MONGO_HOST": "mongodb",
+      "RAILS_ENV": "test",
+      "RACK_ENV": "test"
+    }
+  }
+}

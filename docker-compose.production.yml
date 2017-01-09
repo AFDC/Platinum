@@ -1,0 +1,30 @@
+{
+  "redis":     {
+    "restart": "always",
+    "image": "redis"
+  },
+  "memcached": {
+    "restart": "always",
+    "image": "memcached"
+  },
+  "web": {
+    "restart": "always",
+    "image": "afdc/platinum",
+    "ports": ["3000:3000"],
+    "links": ["redis", "memcached"],
+    "env_file": ["secrets.env"],
+    "environment": {
+      "REDIS_URL": "redis://redis:6379"
+    }
+  },
+  "sidekiq": {
+    "restart": "always",
+    "image": "afdc/platinum",
+    "links": ["redis", "memcached"],
+    "env_file": ["secrets.env"],
+    "environment": {
+      "REDIS_URL": "redis://redis:6379"
+    },
+    "command": "bundle exec sidekiq"
+  }
+}

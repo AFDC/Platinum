@@ -1,12 +1,30 @@
+# Inspired by: http://chrisstump.online/2016/03/03/continuous-integration-docker-rails/
 
 machine:
   services:
     - docker
 
+dependencies:
+  override:
+    - docker info
+    # Build the produciton image, we'll test against this
+    - docker build --rm=false -t afdc/platinum -f Dockerfile.production .
+
+database:
+  pre:
+    # boot all containers
+    - docker-compose -f docker-compose.test.yml up -d
+    # wait a second to make sure all containers are up and running before the next step
+    - sleep 1
+
+test:
+  # run the test suite in the application container
+  override:
+    - docker-compose -f docker-compose.test.yml run web bundle exec rspec --color spec --format progress
+
 deployment:
   hub:
     branch: master
     commands:
-      - docker build --rm=false -t afdc/platinum -f Dockerfile.production .
       - docker login -e $DOCKERHUB_EMAIL -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
       - docker push afdc/platinum

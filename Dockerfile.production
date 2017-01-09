@@ -6,7 +6,7 @@ RUN mkdir -p /var/app
 WORKDIR /var/app
 
 COPY Gemfile Gemfile.lock ./
-RUN bundle install --deployment --without deployment test
+RUN bundle install --deployment
 
 # Set Rails to run in production
 ENV RAILS_ENV production 

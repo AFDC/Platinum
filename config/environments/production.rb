@@ -75,6 +75,6 @@ Platinum::Application.configure do
       :domain => 'leagues.afdc.com',
   }
 
-  config.cache_store = :dalli_store, 'localhost', { :namespace => 'platinum', :expires_in => 1.day, :compress => true }
+  config.cache_store = :dalli_store, 'memcached', { :namespace => 'platinum', :expires_in => 1.day, :compress => true }
   config.action_mailer.default_url_options = { :host => "leagues.afdc.com" }
 end
