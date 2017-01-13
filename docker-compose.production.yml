@@ -15,7 +15,8 @@
     "env_file": ["secrets.env"],
     "environment": {
       "REDIS_URL": "redis://redis:6379"
-    }
+    },
+    "volumes": ["/var/www/html/system:./public/system"]
   },
   "sidekiq": {
     "restart": "always",
@@ -25,6 +26,7 @@
     "environment": {
       "REDIS_URL": "redis://redis:6379"
     },
+    "volumes_from" [ "web" ],
     "command": "bundle exec sidekiq"
   }
 }
