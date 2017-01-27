@@ -20,6 +20,7 @@ gem 'premailer-rails'
 gem 'braintree'
 gem 'twilio-ruby'
 gem 'puma'
+gem 'bugsnag'
 
 # Job Processing
 gem 'sidekiq'

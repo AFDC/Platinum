@@ -19,6 +19,7 @@
 /config/newrelic.yml
 /config/braintree.yml
 /config/skylight.yml
+/config/application.yml
 
 # Ignore paperclip files
 /public/system
