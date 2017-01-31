@@ -34,5 +34,7 @@ Maintained by Pete Holiday – pete.holiday@gmail.com
 
 Distributed under the MIT license. See ``LICENSE`` for more information.
 
+Contributors agree to be bound by [Contributor Covenant v1.4.0](http://contributor-covenant.org/version/1/4/code_of_conduct.txt)
+
 [circleci-image]: https://img.shields.io/circleci/project/github/AFDC/Platinum.svg
 [circleci-url]: https://circleci.com/gh/AFDC/Platinum
