@@ -63,7 +63,7 @@ class League
   end
 
   def registration_close_time
-    Time.zone.parse("#{registration_open}").end_of_day
+    Time.zone.parse("#{registration_close}").end_of_day
   end
 
   def registration_open_for?(user)
