@@ -55,7 +55,15 @@ class League
   def registration_open?
     return false if registration_open.nil? || registration_close.nil?
 
-    registration_open.to_time.in_time_zone.change(hour: 12).past? && registration_close.to_time.in_time_zone.end_of_day.future?
+    registration_open_time.past? && registration_close_time.future?
+  end
+
+  def registration_open_time
+    Time.zone.parse("#{registration_open} 12pm")
+  end
+
+  def registration_close_time
+    Time.zone.parse("#{registration_open}").end_of_day
   end
 
   def registration_open_for?(user)
