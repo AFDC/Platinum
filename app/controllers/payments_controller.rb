@@ -19,6 +19,7 @@ class PaymentsController < ApplicationController
         league_id:       registration.league._id.to_s,
         user_id:         registration.user._id.to_s
       },
+      order_id: "registration:#{registration._id.to_s}",
       device_data: params['device_data']
     )
 

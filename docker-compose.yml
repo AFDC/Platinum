@@ -1,5 +1,8 @@
 {
-  "mongodb":   {"image": "mongo"},
+  "mongodb":   {
+    "image": "mongo",
+    "volumes": ["./mongo_import:/var/import"]
+  },
   "redis":     {"image": "redis"},
   "memcached": {"image": "memcached"},
   "mailhog":   {

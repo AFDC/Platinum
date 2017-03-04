@@ -25,3 +25,5 @@
 /public/system
 
 .sass-cache
+
+mongo_import/*.tar.gz
