@@ -24,6 +24,7 @@ gem 'bugsnag'
 
 # Job Processing
 gem 'sidekiq'
+gem 'sidekiq-cron'
 gem 'kiqstand', '~> 1.1.0'
 gem 'sinatra', require: false
 gem 'slim'

@@ -1,16 +1,54 @@
 class RegistrationCancellationWorker
   include Sidekiq::Worker
 
-  def perform(registration_id)
-    logger.info { "Checking to see if registration #{registration_id} has been paid" }
-    r = Registration.find(registration_id)
+  def perform
+    open_leagues = League.registering
 
-    if r.status == 'accepted'
-        r.status = 'pending'
-        r.signup_timestamp = Time.now
-        r.save
-        logger.info { "#{registration_id} Not yet paid. :(" }
-        RegistrationMailer.unpaid_registration_cancelled(registration_id).deliver
+    open_leagues.each do |league|
+      expirations   = league.current_expiration_times
+
+      # Set Expirations
+      league.registrations.accepted.where(acceptance_expires_at: nil).each do |reg|
+        gender = reg.gender.to_sym
+        next if expirations[gender].nil?
+
+        add_expiration(reg, expirations[gender])
+      end
+
+      # Process expirations
+      league.registrations.accepted.where(:acceptance_expires_at.lte => Time.now).each do |reg|
+        expire_registration(reg)
+      end
+
+      # Process warning emails
+      league.registrations.accepted.where(:acceptance_expires_at.lte => 24.hours.from_now, warning_email_sent_at: nil).each do |reg|
+        send_warning(reg)
+      end
+    end    
+  end
+
+  def add_expiration(reg, expiration)
+    reg.acceptance_expires_at = expiration
+    reg.warning_email_sent_at = nil
+    if reg.save
+        RegistrationMailer.stale_accepted_registration(reg.id.to_s).deliver
+    end
+  end
+
+  def expire_registration(reg)
+    reg.status                = 'pending'
+    reg.signup_timestamp      = Time.now
+    reg.acceptance_expires_at = nil
+    reg.warning_email_sent_at = nil
+    if reg.save
+        RegistrationMailer.unpaid_registration_cancelled(reg.id.to_s).deliver
+    end    
+  end
+
+  def send_warning(reg)
+    reg.warning_email_sent_at = Time.now
+    if reg.save
+        RegistrationMailer.stale_accepted_registration(reg.id.to_s).deliver
     end
   end
 end
