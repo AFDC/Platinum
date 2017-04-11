@@ -32,6 +32,7 @@
     %meta{content: "/favicons/mstile-144x144.png", name: "msapplication-TileImage"}
 
     = csrf_meta_tags
+    %meta{name: "lb-data", content: "#{`hostname`.strip} | #{Socket.ip_address_list[1].ip_address}"}
   %body{style: 'padding-top: 50px;'}
     %nav.navbar.navbar-default.navbar-fixed-top
       .container
