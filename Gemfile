@@ -21,6 +21,7 @@ gem 'braintree'
 gem 'twilio-ruby'
 gem 'puma'
 gem 'bugsnag'
+gem 'gibbon', '~> 3.0'
 
 # Job Processing
 gem 'sidekiq'
