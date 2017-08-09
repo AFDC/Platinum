@@ -7,7 +7,7 @@ class UsersController < ApplicationController
 		if (params[:query])
 			@user_list = user_search(params[:query])
 		end
-	end
+  end
 
 	def search
 		respond_to do |format|
@@ -30,7 +30,7 @@ class UsersController < ApplicationController
 	def login_as
 		session['real_user_id'] = current_user._id.to_s
 		session['user_id'] = @user._id.to_s
-
+    render layout: "new_homepage"
 		redirect_to home_path, notice: "You are now logged in as #{@user.name}, log out to return to your old credentials"
 	end
 

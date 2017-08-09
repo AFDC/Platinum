@@ -4,6 +4,7 @@ class LeaguesController < ApplicationController
     filter_access_to [:accept_players, :preview_capture], attribute_check: true
 
     def index
+        render layout: "new_homepage"
     end
 
     def show
@@ -398,8 +399,7 @@ class LeaguesController < ApplicationController
     def import_schedule
         failure = 0
         params[:games].each do |row, game_data|
-            game = Game.new(
-                league_id: @league._id, 
+            game = Game.new(league_id: @league._id,
                 game_time: Time.at(game_data[:game_time].to_i).to_datetime,
                 fieldsite_id: FieldSite.find(game_data[:fieldsite_id])._id,
                 field: game_data[:field_num],

@@ -1,4 +1,5 @@
 class FieldsController < ApplicationController
+    layout "new_homepage"
     before_filter :load_fieldsite_from_params, only: [:show, :edit, :update]
 
     def index

@@ -14,7 +14,7 @@
 - if League.past.count > 0
     %h3= 'Past'
 
-    %table.table.table-striped
+    %table.table.table-striped.table-responsive
         %thead
             %tr
                 %th{width: '40%'} League Name
@@ -30,13 +30,13 @@
                         %td=link_to l.teams.first.name, team_path(l.teams.first)
                     - else
                         %td= 'N/A'
-                    
+
                     - if l.mst_tourney && l.mst_champion
                         %td= link_to l.mst_champion.name, team_path(l.mst_champion)
-                    - else 
+                    - else
                         %td= 'N/A'
-                    
+
                     - if l.eos_tourney && l.eos_champion
-                        %td= link_to l.eos_champion.name, team_path(l.eos_champion)  
+                        %td= link_to l.eos_champion.name, team_path(l.eos_champion)
                     - else
                         %td= 'N/A'

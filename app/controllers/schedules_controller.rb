@@ -1,4 +1,5 @@
 class SchedulesController < ApplicationController
+    layout "new_homepage"
     def index
         # Get a default filter date
         @default_date = Date.today
@@ -44,7 +45,7 @@ class SchedulesController < ApplicationController
         elsif start_date
             query[:game_time] = {
                 "$gte" => start_date.beginning_of_day,
-            }            
+            }
         end
 
         query[:league_id] = params['league_id'] if params['league_id'].present?

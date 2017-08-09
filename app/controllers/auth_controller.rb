@@ -1,4 +1,5 @@
 class AuthController < ApplicationController
+    layout "new_homepage"
     before_filter :load_user_from_params, only: [:login, :reset_password]
     before_filter :restrict_logged_in, only: [:index, :login]
 
@@ -27,6 +28,7 @@ class AuthController < ApplicationController
         else
             redirect_to home_path
         end
+
     end
 
     def reset_password
