@@ -3,7 +3,6 @@ class User
   include Mongoid::Paperclip
   include ActiveModel::ForbiddenAttributesProtection
   include ActiveModel::SecurePassword
-  include Mailchimp
 
   field :address
   field :birthdate
@@ -50,10 +49,7 @@ class User
   before_save :downcase_email
   after_create :create_initial_notification_method
   after_create do
-    subscribe_to_mailchimp(ENV['USERS_LIST_ID'], self)
-    if subscribe_newsletter
-      subscribe_to_mailchimp(ENV['NEWSLETTER_LIST_ID'], self)
-    end
+    MailChimpWorker.perform_async(id)
   end
 
 
