@@ -23,8 +23,8 @@ class User
   field :permission_groups, type: Array, default: ['user']
 
   field :password_digest
-  field :subscribe_newsletter, type: Boolean, default: false
   field :remember_me_cookie
+  attr_accessor :subscribe_newsletter
   has_secure_password
 
   has_mongoid_attached_file :avatar,
