@@ -27,3 +27,4 @@
 .sass-cache
 
 mongo_import/*.tar.gz
+export/*.csv
