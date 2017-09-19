@@ -29,7 +29,7 @@ namespace :reports do
 
   desc 'List all leagues in the system'
   task :leagues => :environment do
-    print CSV.generate_line %w(league_id name sport season start_date end_date)
+    print CSV.generate_line %w(league_id name year sport season start_date end_date)
 
     League.each do |league|
       print CSV.generate_line [league._id, league.name, league.start_date.year, league.sport, league.season, league.start_date, league.end_date]
@@ -65,11 +65,11 @@ namespace :reports do
 
   desc 'List all game data in the system'
   task :games => :environment do
-    print CSV.generate_line %w(game_id league_id team_id score rainout)
+    print CSV.generate_line %w(game_id league_id field_id field_name team_id score rainout)
 
     Game.each do |game|
       game.teams.each do |team|
-        print CSV.generate_line [game._id, game.league._id, team._id, game.score_for(team), (game.rained_out? ? 'y' : 'n')]
+        print CSV.generate_line [game._id, game.league._id, game.fieldsite_id, game.field_site.name, team._id, game.score_for(team), (game.rained_out? ? 'y' : 'n')]
       end
     end
   end
