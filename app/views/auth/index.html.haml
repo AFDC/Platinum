@@ -1,26 +1,31 @@
 
 .row#login-form
-    .span6.offset3{style: 'margin-top: 50px'}
-        %h3 Site Login
-        = form_tag login_path, method: 'POST', class: 'form-horizontal' do
-            .control-group
-                %label.control-label Email Address
-                .controls
-                    = text_field_tag :email_address
+  .col-lg-offset-3.col-sm-6.col-md-6{style: 'margin: 50px 150px 100px 80px'}
+    %h2 Site Login
+    = form_tag login_path, method: 'POST', class: 'form-horizontal' do
 
-            .control-group
-                %label.control-label Password
-                .controls
-                    = password_field_tag :password
-                    %span.help-block
-                        = link_to "Forget your password?", forgot_password_path
-            .control-group
-                .controls
-                    %label.checkbox
-                        = check_box_tag :remember_me
-                        Remember Me
+      .form-group
+        %label.control-label Email Address
+        .form-controls
+          = text_field_tag :email_address
 
-            .controls
-                %button.btn.btn-primary Login Now
-                = link_to "Register", new_user_path, class: 'btn btn-success'
+      .form-group
+        %label.control-label Password
+        .form-controls
+          = password_field_tag :password
+          %span.help-block
+            = link_to "Forget your password?", forgot_password_path
+            .br
+            = link_to "Don't have an account?", new_user_path
+      .form-group
+        .form-controls
+        .checkbox
+          %label.checkbox
+            = check_box_tag :remember_me
+            Remember Me
+
+      .form-group
+      .form-controls
+        %button.btn.btn-primary Login Now
+
 
