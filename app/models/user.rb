@@ -23,6 +23,7 @@ class User
   field :permission_groups, type: Array, default: ['user']
 
   field :password_digest
+  field :subscribe_newsletter, type: Boolean, default: false
   field :remember_me_cookie
   has_secure_password
 
@@ -47,6 +48,10 @@ class User
 
   before_save :downcase_email
   after_create :create_initial_notification_method
+  after_create do
+    MailChimpWorker.perform_async(id)
+  end
+
 
   def may_report_for
     Team.where({ '$or' => [{'captains' => id}, {'reporters' => id}]})
@@ -177,5 +182,9 @@ class User
 
   def create_initial_notification_method
     notification_methods.create(label: "Account email notifier", method: "email", target: email_address)
+  end
+
+  def email_md5
+    Digest::MD5.hexdigest(email_address.downcase)
   end
 end
