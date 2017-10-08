@@ -5,7 +5,7 @@ class MailChimpWorker
   def perform(user_id)
     user= User.find(user_id)
     subscribe_to_mailchimp(ENV['USERS_LIST_ID'], user)
-    if User.subscribe_newsletter
+    if user_id.subscribe_newsletter
       subscribe_to_mailchimp(ENV['NEWSLETTER_LIST_ID'], user)
     end
   end
