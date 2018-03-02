@@ -40,15 +40,15 @@
         %tr
           %td
             %strong Player Limit
-          %td= (stats[:limit_male]=@league.male_limit) || 'n/a'
-          %td= (stats[:limit_female]=@league.female_limit) || 'n/a'
-          %td= stats[:limit_female]+stats[:limit_male]
+          %td= (stats[:limit_male]=@league.male_limit.to_i)
+          %td= (stats[:limit_female]=@league.female_limit.to_i)
+          %td= stats[:limit_female] + stats[:limit_male]
 
         %tr.success
           %td
             %strong Spots Remaining
-          %td= stats[:spots_male] = stats[:limit_male].to_i - (stats[:active_male] + stats[:accepted_male])
-          %td= stats[:spots_female] = stats[:limit_female].to_i - (stats[:active_female] + stats[:accepted_female])
+          %td= stats[:spots_male] = stats[:limit_male] - (stats[:active_male] + stats[:accepted_male])
+          %td= stats[:spots_female] = stats[:limit_female] - (stats[:active_female] + stats[:accepted_female])
           %td= stats[:spots_female] + stats[:spots_male]
     %hr
     %h4 Activate Players

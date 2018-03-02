@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /var/import
 tar -xzf platypus_dump.tar.gz
-mongorestore --drop -d Platypus dump/Platypus
+docker cp dump/Platypus platinum_mongodb_1:/var/mongo_backup/
+MSYS_NO_PATHCONV=1 docker exec platinum_mongodb_1 mongorestore --drop -d Platypus /var/mongo_backup
 rm -rf dump
