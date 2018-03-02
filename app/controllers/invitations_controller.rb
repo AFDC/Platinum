@@ -2,6 +2,7 @@ class InvitationsController < ApplicationController
     before_filter :load_invite_from_params, only: [:cancel, :accept, :decline]
 
     def index
+      layout "new_homepage"
       @sent = Invitation.where(sender: current_user).sort(updated_at: -1)
       @received = Invitation.where(recipient: current_user).sort(updated_at: -1)
     end

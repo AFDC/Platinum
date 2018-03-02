@@ -3,6 +3,7 @@ class GamesController < ApplicationController
     before_filter :load_game_from_params, only: [:edit_score, :update_score, :show, :edit, :update]
 
     def index
+            layout "new_homepage"
     end
 
     def show

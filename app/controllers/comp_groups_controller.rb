@@ -1,4 +1,5 @@
 class CompGroupsController < ApplicationController
+    layout "new_homepage"
     before_filter :load_group_from_params, only: [:show, :edit, :update]
 
     def new

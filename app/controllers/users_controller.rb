@@ -1,4 +1,5 @@
 class UsersController < ApplicationController
+	layout "new_homepage"
 	before_filter :load_user_from_params, only: [:show, :edit_avatar, :registrations, :edit, :update, :login_as]
 	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
