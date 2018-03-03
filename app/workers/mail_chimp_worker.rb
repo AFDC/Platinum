@@ -1,20 +1,20 @@
 class MailChimpWorker
   include Sidekiq::Worker
 
-  def perform(user_id)
-    user= User.find(user_id)
-    subscribe_to_mailchimp(ENV['USERS_LIST_ID'], user)
-    if user_id.subscribe_newsletter
-      subscribe_to_mailchimp(ENV['NEWSLETTER_LIST_ID'], user)
-    end
+  def perform(user_id, subscribe)
+    user = User.find(user_id)
+    subscribe_to_mailchimp(ENV['mailchimp_list_id'], user, subscribe)
   end
 
-  def subscribe_to_mailchimp(list_id, user)
-     gibbon = Gibbon::Request.new(api_key: ENV['MAILCHIMP_API_KEY'])
+  def subscribe_to_mailchimp(list_id, user, subscribe)
+     gibbon = Gibbon::Request.new(api_key: ENV['mailchimp_api_key'])
  
+     status = 'subscribed'
+     status = 'unsubscribed' unless subscribe
+
      gibbon.lists(list_id).members(user.email_md5)
      .upsert(body: { email_address: user.email_address,
-       status: 'subscribed',
+       status: status,
        merge_fields: { FNAME: user.firstname, LNAME: user.lastname }
        })
    end

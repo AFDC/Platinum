@@ -23,6 +23,7 @@
     "build": ".",
     "volumes": [".:/var/app"],
     "links": ["mongodb", "redis", "memcached", "mailhog"],
+    "env_file": [".env"],
     "environment": {
       "REDIS_URL": "redis://redis:6379"
     },

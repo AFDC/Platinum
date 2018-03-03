@@ -24,7 +24,7 @@ class User
 
   field :password_digest
   field :remember_me_cookie
-  attr_accessor: subscribe_newsletter
+
   has_secure_password
 
   has_mongoid_attached_file :avatar,
@@ -48,9 +48,6 @@ class User
 
   before_save :downcase_email
   after_create :create_initial_notification_method
-  after_create do
-    MailChimpWorker.perform_async(id)
-  end
 
   def may_report_for
     Team.where({ '$or' => [{'captains' => id}, {'reporters' => id}]})
