@@ -53,6 +53,7 @@ class UsersController < ApplicationController
 		@user = User.new(user_params)
 
 		if @user.save
+			MailChimpWorker.perform_async(@user._id.to_s, params[:subscribe])
 			redirect_to '/', notice: 'You have successfully created a new user account.'
 		else
 			render :action => 'new'
@@ -61,6 +62,7 @@ class UsersController < ApplicationController
 
 	def update
 		if @user.update_attributes(user_params)
+			MailChimpWorker.perform_async(@user._id.to_s, params[:subscribe])
 			redirect_to user_path(@user), notice: "User Updated Successfully"
 		else
 			render :edit

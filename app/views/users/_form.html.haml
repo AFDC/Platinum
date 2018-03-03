@@ -13,6 +13,11 @@
 			%h3 Set your Password
 			= f.password_field :password
 			= f.password_field :password_confirmation, label: "Confirm Password"
+			.control-group
+				.controls
+					%label.checkbox
+						= check_box_tag :subscribe, 1, checked: true
+						Keep Me Updated
 		- unless @user.new_record?
 			.span6
 				%h3 Optional Fields
