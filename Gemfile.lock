@@ -39,7 +39,7 @@ GEM
       erubis (>= 2.6.6)
     bootstrap-sass (2.3.1.0)
       sass (~> 3.2)
-    bootstrap-will_paginate (0.0.9)
+    bootstrap-will_paginate (1.0.0)
       will_paginate
     bootstrap_form (0.3.2)
     braintree (2.34.0)
@@ -272,7 +272,7 @@ GEM
       multi_json (~> 1.0, >= 1.0.2)
     whenever (0.9.4)
       chronic (>= 0.6.3)
-    will_paginate (3.0.4)
+    will_paginate (3.1.6)
 
 PLATFORMS
   ruby
