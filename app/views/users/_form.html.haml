@@ -16,7 +16,7 @@
 			.control-group
 				.controls
 					%label.checkbox
-						= check_box_tag :subscribe, 1
+						= check_box_tag :subscribe, 1, checked: true
 						Keep Me Updated
 		- unless @user.new_record?
 			.span6

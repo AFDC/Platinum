@@ -114,6 +114,7 @@ class RegistrationsController < ApplicationController
         end
 
         if reg.save
+            MailChimpWorker.perform_async(reg.user._id.to_s, params[:subscribe])
             if reg.user != current_user
                 redirect_to registrations_league_path(reg.league), notice: "Update successful"
             else
