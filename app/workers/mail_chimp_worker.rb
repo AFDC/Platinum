@@ -21,7 +21,7 @@ class MailChimpWorker
       subscribe_body['status_if_new'] = 'unsubscribed'
     end
 
-    gibbon.lists(list_id).members(user.email_md5).upsert(subscribe_body)
+    gibbon.lists(list_id).members(user.email_md5).upsert(body: subscribe_body)
   end
 
   def list_id
