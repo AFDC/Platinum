@@ -70,8 +70,6 @@ group :development do
 end
 
 group :test do
-  gem 'capybara'
-  gem 'cucumber-rails', require: false
   gem 'factory_girl_rails'
   gem 'spork'
 end
