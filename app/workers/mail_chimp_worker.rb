@@ -7,15 +7,18 @@ class MailChimpWorker
   end
 
   def subscribe_to_mailchimp(list_id, user, subscribe)
-     gibbon = Gibbon::Request.new(api_key: ENV['mailchimp_api_key'])
- 
-     status = 'subscribed'
-     status = 'unsubscribed' unless subscribe
+    gibbon = Gibbon::Request.new(api_key: ENV['mailchimp_api_key'])
 
-     gibbon.lists(list_id).members(user.email_md5)
-     .upsert(body: { email_address: user.email_address,
-       status: status,
-       merge_fields: { FNAME: user.firstname, LNAME: user.lastname }
-       })
-   end
+    status = 'subscribed'
+    status = 'unsubscribed' unless subscribe
+
+    gibbon.lists(list_id).members(user.email_md5).upsert(body: {
+      email_address: user.email_address,
+      status: status,
+      merge_fields: { 
+        FNAME: user.firstname,
+        LNAME: user.lastname
+      }
+     })
+  end
 end
