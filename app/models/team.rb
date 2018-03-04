@@ -24,6 +24,8 @@ class Team
     default_url: lambda {|attachment| "https://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(attachment.instance._id)}?d=identicon&s=330"},
     styles: {profile: '330x330>', roster: '160x160#', thumbnail: '64x64#'}
 
+  validates_attachment :avatar, content_type: { content_type: ["image/jpg", "image/jpeg", "image/png", "image/gif"] }    
+
   def winning_percentage
     return 0 unless wins > 0
     return wins.to_f / games_played.to_f

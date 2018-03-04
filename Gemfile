@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '3.2.17'
+gem 'rails', '~> 3.2.22'
 
 # Backend
 # gem 'airbrake'
@@ -70,8 +70,6 @@ group :development do
 end
 
 group :test do
-  gem 'capybara'
-  gem 'cucumber-rails', require: false
   gem 'factory_girl_rails'
   gem 'spork'
 end

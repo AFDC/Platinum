@@ -46,6 +46,8 @@ class User
   validates :gender, :presence => true, :inclusion => { in: %w(male female) }
   validates :birthdate, :required_age => 13, :date_string => true
 
+  validates_attachment :avatar, content_type: { content_type: ["image/jpg", "image/jpeg", "image/png", "image/gif"] }
+
   before_save :downcase_email
   after_create :create_initial_notification_method
 
