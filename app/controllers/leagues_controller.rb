@@ -33,6 +33,10 @@ class LeaguesController < ApplicationController
     end
 
     def register
+        if (@league.registration_open_for?(current_user) == false)
+            redirect_to league_path(@league), notice: "Registration is not open for that league yet."
+            return
+        end
         if (Registration.where(league_id: @league._id, user_id: current_user._id).count > 0)
             redirect_to registrations_user_path(current_user), notice: "You've already registered for that league."
             return

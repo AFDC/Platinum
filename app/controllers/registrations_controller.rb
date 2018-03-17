@@ -3,12 +3,14 @@ class RegistrationsController < ApplicationController
     filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay], attribute_check: true
 
     def create
+        league = League.find(params[:registration][:league_id])
+
         # reg_params = params[:registration]
-        if League.find(params[:registration][:league_id]).registration_for(current_user)
+        if league.registration_for(current_user)
             redirect_to registrations_user_path(current_user), flash: {error: "You have already registered for this league. Please be patient. There is no need to submitt he same form multiple times. Thank you."} and return
         end
-        unless League.find(params[:registration][:league_id]).registration_open?
-            redirect_to registrations_user_path(current_user), flash: {error: "The registrations for this league have either closed or haven't opened yet. Try again later!"} and return
+        unless league.registration_open_for?(current_user)
+            redirect_to league_path(league), flash: {error: "The registrations for this league have either closed or haven't opened yet. Try again later!"} and return
         end
         populate_registration Registration.new
     end
