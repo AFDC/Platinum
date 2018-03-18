@@ -28,6 +28,7 @@ class Registration
     field :pair_id, type: Moped::BSON::ObjectId
 
     validates :commish_rank, :numericality => { integer_only: false, greater_than: 0, less_than: 10, allow_blank: true }
+    validate :has_valid_attendance_value, :has_valid_self_rank, :has_valid_primary_role, :has_signed_waiver
 
     belongs_to :user
     belongs_to :league
@@ -108,6 +109,36 @@ class Registration
 
     def waiver_accepted
         !waiver_acceptance_date.nil?
+    end
+
+    # Validators
+    def has_valid_attendance_value
+        unless ['25%', '50%', '75%', '100%'].include?(availability[:general])
+            errors.add(:gen_availability, "Please select an attendance percentage.")
+        end
+    end
+
+    def has_valid_self_rank
+        return unless league.allow_self_rank?
+
+        max_rank = 9
+        max_rank = 6 if league.sport == 'goaltimate' && user.gender == 'female'
+
+        unless (1..max_rank).include?(self_rank)
+            errors.add(:self_rank, "Please select a rank between 1 and #{max_rank}")
+        end
+    end
+
+    def has_valid_primary_role
+        unless ['Runner', 'Thrower', 'Both'].include?(player_strength)
+            errors.add(:player_strength, "Please select a primary role.")
+        end        
+    end
+
+    def has_signed_waiver
+        if waiver_acceptance_date.nil?
+            errors.add(:waiver_accepted, "You must accept the liability waiver and refund policy to register.")
+        end
     end
 
     private

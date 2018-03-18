@@ -12,7 +12,8 @@ class RegistrationsController < ApplicationController
         unless league.registration_open_for?(current_user)
             redirect_to league_path(league), flash: {error: "The registrations for this league have either closed or haven't opened yet. Try again later!"} and return
         end
-        populate_registration Registration.new
+        @registration = Registration.new
+        populate_registration
     end
 
     def pay
@@ -29,7 +30,7 @@ class RegistrationsController < ApplicationController
     end
 
     def update
-        populate_registration @registration
+        populate_registration
     end
 
     def show
@@ -45,83 +46,64 @@ class RegistrationsController < ApplicationController
 
     private
 
-    def populate_registration(reg)
+    def populate_registration
         reg_params = params[:registration]
 
-        if reg.new_record?
-            reg.waiver_acceptance_date = Time.now
-            reg.league = League.find(reg_params[:league_id])
-            reg.signup_timestamp = Time.now
-            reg.user = current_user
-            reg.status = 'pending'
-            reg.paid = false
+        if @registration.new_record?
+            @registration.league = League.find(reg_params[:league_id])
+            @registration.signup_timestamp = Time.now
+            @registration.user = current_user
+            @registration.status = 'pending'
+            @registration.paid = false
         end
 
-        unless ['25%', '50%', '75%', '100%'].include?(reg_params[:gen_availability])
-            redirect_to register_league_path(reg.league), notice: "You must select and attendance percentage"
-            return
+        if reg_params[:waiver_accepted] == '1'
+            @registration.waiver_acceptance_date = Time.now
         end
 
-        if reg.league.allow_self_rank?
-            unless ['1', '2', '3', '4', '5', '6', '7', '8', '9'].include?(reg_params[:self_rank])
-                redirect_to register_league_path(reg.league), notice: "You must select a rank for yourself"
-                return
-            end
+        if @registration.league.require_grank?
+            @registration.g_rank_result = @registration.user.g_rank_results.first
+            @registration.g_rank = @registration.g_rank_result.score
         end
 
-        unless ['Runner', 'Thrower', 'Both'].include?(reg_params[:player_strength])
-            redirect_to register_league_path(reg.league), notice: "You must select a primary role"
-            return
-        end
-
-        unless reg_params[:waiver_accepted] == '1' || reg.persisted?
-            redirect_to register_league_path(reg.league), notice: "You must accept the waiver to register"
-            return
-        end
-
-        if reg.league.require_grank?
-            reg.g_rank_result = reg.user.g_rank_results.first
-            reg.g_rank = reg.g_rank_result.score
-        end
-
-        reg.availability = {
+        @registration.availability = {
             general: reg_params[:gen_availability],
             attend_tourney_eos: (reg_params[:eos_availability] == '1')
         }
-        reg.gender = reg.user.gender
-        reg.player_strength = reg_params[:player_strength]
-        reg.self_rank = reg_params[:self_rank]
-        reg.notes = reg_params[:notes]
+        @registration.gender = @registration.user.gender
+        @registration.player_strength = reg_params[:player_strength]
+        @registration.self_rank = reg_params[:self_rank]
+        @registration.notes = reg_params[:notes]
         if reg_params[:pair_id]
-            reg.pair_id = reg_params[:pair_id].first
+            @registration.pair_id = reg_params[:pair_id].first
         end
-        reg.user_data = {
-            birthdate: reg.user.birthdate,
-            firstname: reg.user.firstname,
-            middlename: reg.user.middlename,
-            lastname: reg.user.lastname,
-            gender: reg.user.gender,
-            height: reg.user.height,
-            weight: reg.user.weight
+        @registration.user_data = {
+            birthdate: @registration.user.birthdate,
+            firstname: @registration.user.firstname,
+            middlename: @registration.user.middlename,
+            lastname: @registration.user.lastname,
+            gender: @registration.user.gender,
+            height: @registration.user.height,
+            weight: @registration.user.weight
         }
 
-        if permitted_to? :manage, reg.league
-            reg.commish_rank = reg_params[:commish_rank]
+        if permitted_to? :manage, @registration.league
+            @registration.commish_rank = reg_params[:commish_rank]
         end
 
-        if reg.league.comped? reg.user
-            reg.status = 'active'
-            reg.comped = true
-            flash_message = 'Your registration has been comped' if reg.new_record?
+        if @registration.league.comped? @registration.user
+            @registration.status = 'active'
+            @registration.comped = true
+            flash_message = 'Your registration has been comped' if @registration.new_record?
         end
 
-        if reg.save
-            MailChimpWorker.perform_async(reg.user._id.to_s, params[:subscribe])
-            if reg.user != current_user
-                redirect_to registrations_league_path(reg.league), notice: "Update successful"
+        if @registration.save
+            MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
+            if @registration.user != current_user
+                redirect_to registrations_league_path(@registration.league), notice: "Update successful"
             else
-                if reg.status == 'active' || reg.status == 'accepted' || current_user._id != reg.user._id
-                    redirect_to league_path(reg.league), notice: flash_message || 'Update successful'
+                if @registration.status == 'active' || @registration.status == 'accepted' || current_user._id != @registration.user._id
+                    redirect_to league_path(@registration.league), notice: flash_message || 'Update successful'
                 else
                     redirect_to registrations_user_path(current_user), notice: "You have registered successfully! You'll be notified if you are accepted into the league and will pay at that time."
                 end
@@ -129,7 +111,6 @@ class RegistrationsController < ApplicationController
         else
             render :edit
         end
-
     end
 
     def load_registration_from_params
