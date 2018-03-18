@@ -98,6 +98,11 @@
             %h4 Players Invited to Register Early
             = form_tag(update_invites_league_path(@league), method: :post) do
                 = render partial: '/user_multiselect', locals: {fieldname: 'invited_player_ids', label: "", users: @league.invited_players}
+                - if @league.core_options.type.present?
+                    %div
+                        %em Note:
+                        You can invite entire cores on the
+                        =link_to "cores page.", league_registration_groups_path(@league)
                 = submit_tag(value = "Update Invitation List", options = {class: "btn btn-primary"})
 
 = render :partial => '/game_schedule', :locals => {start_date: Date.today, league_id: @league._id, title: 'Upcoming Games'}
