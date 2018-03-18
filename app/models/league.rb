@@ -24,6 +24,7 @@ class League
   field :mst_tourney, type: Boolean, default: false
   field :track_spirit_scores, type: Boolean, default: false
   field :display_spirit_scores, type: Boolean, default: false
+  field :invited_player_ids, type: Array, default: []
   embeds_one :core_options, class_name: 'LeagueCoreOptions'
 
   after_initialize :build_options_if_nil
@@ -69,7 +70,7 @@ class League
 
   def registration_open_for?(user)
     return false unless user
-    return false unless registration_open?
+    return false unless (registration_open? || is_invited?(user))
 
     user_gender_limit = self["#{user.gender}_limit".to_sym]
 
@@ -177,6 +178,21 @@ class League
     end
 
     return expirations
+  end
+
+  def invite!(player)
+    return if is_invited?(player)
+
+    self[:invited_player_ids] << player._id
+    save!
+  end
+
+  def is_invited?(player)
+    invited_player_ids.include?(player._id)
+  end
+
+  def invited_players
+    User.find(invited_player_ids)
   end
 
   private

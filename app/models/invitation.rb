@@ -33,7 +33,7 @@ class Invitation
   def handler=(handler)
     if handler.is_a?(Class)
       self[:handler_class] = handler.to_s
-      self[:handler_id] = nilr
+      self[:handler_id] = nil
     else
       self[:handler_class] = handler.class.to_s
       self[:handler_id] = handler._id

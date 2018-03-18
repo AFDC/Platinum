@@ -1,7 +1,7 @@
 class LeaguesController < ApplicationController
     before_filter :load_league_from_params, except: [:index, :new, :create]
     before_filter :initialize_roster_csv, only: [:manage_roster, :upload_roster, :setup_roster_import, :import_roster]
-    filter_access_to [:accept_players, :preview_capture], attribute_check: true
+    filter_access_to [:accept_players, :preview_capture, :update_invites], attribute_check: true
 
     def index
     end
@@ -32,7 +32,25 @@ class LeaguesController < ApplicationController
         end
     end
 
+    def update_invites
+        new_invites_list = params[:invited_player_ids].reject { |id| id.blank? }
+        new_invites_list = new_invites_list.map {|id| Moped::BSON::ObjectId.from_string(id)}
+
+        #Later Send Invites
+        players_to_remove = @league.invited_player_ids - new_invites_list
+        players_to_add = new_invites_list - @league.invited_player_ids
+
+        @league.invited_player_ids = new_invites_list
+        @league.save!
+
+        redirect_to league_path(@league), notice: "Invite List Updated"
+    end
+
     def register
+        if (@league.registration_open_for?(current_user) == false)
+            redirect_to league_path(@league), notice: "Registration is not open for that league yet."
+            return
+        end
         if (Registration.where(league_id: @league._id, user_id: current_user._id).count > 0)
             redirect_to registrations_user_path(current_user), notice: "You've already registered for that league."
             return

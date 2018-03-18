@@ -1,7 +1,7 @@
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'League Details', breadcrumbs: {'Leagues' => leagues_path, @league.name => nil}}
 
-- if @league.registration_open? && permitted_to?(:register, @league)
+- if @league.registration_open_for?(current_user) && permitted_to?(:register, @league)
     - unless @registration
         .row
             .span12
@@ -93,5 +93,16 @@
                 - if @league.teams.count == 0
                     %tr
                         %td{colspan:5}= render partial: '/no_results', locals: {msg: 'This league has no teams yet.'}
+
+        - if @league.registration_open? == false && permitted_to?(:manage, @league) == true
+            %h4 Players Invited to Register Early
+            = form_tag(update_invites_league_path(@league), method: :post) do
+                = render partial: '/user_multiselect', locals: {fieldname: 'invited_player_ids', label: "", users: @league.invited_players}
+                - if @league.core_options.type.present?
+                    %div
+                        %em Note:
+                        You can invite entire cores on the
+                        =link_to "cores page.", league_registration_groups_path(@league)
+                = submit_tag(value = "Update Invitation List", options = {class: "btn btn-primary"})
 
 = render :partial => '/game_schedule', :locals => {start_date: Date.today, league_id: @league._id, title: 'Upcoming Games'}

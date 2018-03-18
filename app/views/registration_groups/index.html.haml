@@ -46,13 +46,18 @@
             %div
               - registrations = Hash.new(0)
               - ready = Hash.new(0)
+              - can_register = 0
               - rg.members.each do |m|
+                - can_register += 1 if @league.is_invited?(m)
                 - if reg = @league.registration_for(m)
                   - registrations[:total] += 1
                   - registrations[reg.status.to_sym] += 1
                   - if reg.status == 'pending'
                     - ready[reg.gender.to_sym] += 1
-              - if member_count != registrations[:total]
+              - if member_count > can_register
+                = form_tag(league_registration_group_invite_players_path(@league,rg), method: :post) do
+                  = submit_tag(value = "Invite players to register", options = {class: "btn btn-block btn-small btn-primary"})
+              - elsif member_count != registrations[:total]
                 .alert.alert-error No actions may be taken until all members are registered.
               - elsif registrations[:canceled] > 0
                 .alert.alert-warning Core can not be processed until all members are registered.
@@ -92,7 +97,11 @@
                 - reg = @league.registration_for(m)
                 %tr{class: "#{"error" unless reg}"}
                   %td=link_to m.name, m
-                  - unless reg
+                  - if @league.registration_open_for?(m) == false
+                    %td
+                      %span.label.label-important n/a
+                    %td{colspan: 3} Player not invited
+                  - elsif reg.nil?
                     %td
                       %span.label.label-important n/a
                     %td{colspan: 3} Player not registered

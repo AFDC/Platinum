@@ -28,6 +28,8 @@ Platinum::Application.routes.draw do
       get 'preview_capture'
       post 'accept_players'
 
+      post 'update_invites'
+
       get 'manage_roster'
       post 'upload_roster'
       get 'setup_roster_import'
@@ -49,6 +51,8 @@ Platinum::Application.routes.draw do
 
     resources :teams, only: [:new, :create]
     resources :registration_groups do
+      post 'invite_players'
+
       member do
         put 'add_to_team'
       end

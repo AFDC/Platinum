@@ -5,6 +5,7 @@ RUN mkdir -p /var/app
 COPY Gemfile /var/app/Gemfile
 COPY Gemfile.lock /var/app/Gemfile.lock
 WORKDIR /var/app
+RUN gem update bundler
 RUN bundle install
 
 COPY . .
