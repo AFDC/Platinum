@@ -91,12 +91,6 @@ class RegistrationsController < ApplicationController
             @registration.commish_rank = reg_params[:commish_rank]
         end
 
-        if @registration.league.comped? @registration.user
-            @registration.status = 'active'
-            @registration.comped = true
-            flash_message = 'Your registration has been comped' if @registration.new_record?
-        end
-
         if @registration.save
             MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
             if @registration.user != current_user
