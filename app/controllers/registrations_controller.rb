@@ -1,6 +1,6 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show, :pay]
-    filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay], attribute_check: true
+    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show, :pay, :waitlist_check]
+    filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay, :waitlist_check], attribute_check: true
 
     def create
         league = League.find(params[:registration][:league_id])
@@ -18,7 +18,8 @@ class RegistrationsController < ApplicationController
 
         if @registration.save
             MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
-            redirect_to registrations_user_path(current_user), notice: "You have registered successfully! You'll be notified if you are accepted into the league and will pay at that time."
+            redirect_to waitlist_check_registration_path(@registration)
+            return
         else
             render :edit
         end
@@ -31,6 +32,15 @@ class RegistrationsController < ApplicationController
             message = "You have cancelled your registration. Please contact help@afdc.com if you want to un-cancel." if @registration.status == 'canceled'
             message = "You haven't been accepted into the league yet, so we can't accept your payment at this time." if @registration.status == 'pending'
             redirect_to registration_path(@registration), flash: {error: message} and return 
+        end
+
+        # This player doesn't have to pay
+        if @registration.league.comped? @registration.user
+            @registration.status = 'active'
+            @registration.comped = true
+            @registration.save!
+            redirect_to registrations_user_path(@registration.user), notice: 'Your league dues have been comped. You are now active in the league.'
+            return
         end
     end
 
@@ -62,6 +72,37 @@ class RegistrationsController < ApplicationController
         redirect_to registrations_user_path(@registration.user), flash: {error: "Cancelling your registration failed, please contact a league commissioner."}
     end
 
+    def waitlist_check
+        if @registration.status != 'pending'
+            redirect_to registrations_user_path(current_user), notice: "Your registration status is '#{@registration.status}'."
+            return
+        end
+
+        # Collect Registration Information
+        league          = @registration.league
+        gender          = @registration.gender
+        all_registered  = league.registrations.where(gender: gender)
+        spots_available = league.gender_limit(gender)
+        active          = all_registered.active
+        accepted        = all_registered.accepted
+        earlier_pending = all_registered.pending.where(:_id.lt => @registration._id)
+
+        # Flag Waitlisted Registrations
+        if (all_registered.waitlisted.count > 0) || (accepted.count + active.count + earlier_pending.count >= spots_available)
+            @registration.status = 'waitlisted'
+            @registration.save
+            redirect_to registrations_user_path(current_user), notice: "The league is currently full, but we added you to the waitlist. We'll let you know if spots open up!"
+            return
+        end
+
+        # There's room for this player; accept and move them to the payment phase
+        @registration.status = 'accepted'
+        @registration.warning_email_sent_at = nil
+        @registration.acceptance_expires_at = league.current_expiration_times[gender.to_sym]
+        @registration.save!
+        redirect_to pay_registration_path(@registration)
+    end
+
     private
 
     def populate_registration
@@ -85,8 +126,8 @@ class RegistrationsController < ApplicationController
         end
 
         @registration.availability = {
-            general: reg_params[:gen_availability],
-            attend_tourney_eos: (reg_params[:eos_availability] == '1')
+            'general' => reg_params[:gen_availability],
+            'attend_tourney_eos' => (reg_params[:eos_availability] == '1')
         }
         @registration.gender = @registration.user.gender
         @registration.player_strength = reg_params[:player_strength]

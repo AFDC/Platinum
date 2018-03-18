@@ -56,7 +56,7 @@ class LeaguesController < ApplicationController
             return
         end
 
-        user_gender_limit = @league["#{current_user.gender}_limit".to_sym]
+        user_gender_limit = @league.gender_limit(current_user.gender)
 
         if user_gender_limit == 0
             redirect_to league_path(@league), flash: {error: "No #{current_user.gender} registrants allowed."} and return

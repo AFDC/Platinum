@@ -44,6 +44,7 @@ class Registration
     scope :accepted, where(status: 'accepted')
     scope :pending, where(status: 'pending')
     scope :canceled, where(status: 'canceled')
+    scope :waitlisted, where(status: 'waitlisted')
 
     scope :male, where(gender: 'male')
     scope :female, where(gender: 'female')
@@ -113,7 +114,7 @@ class Registration
 
     # Validators
     def has_valid_attendance_value
-        unless ['25%', '50%', '75%', '100%'].include?(availability[:general])
+        unless ['25%', '50%', '75%', '100%'].include?(gen_availability)
             errors.add(:gen_availability, "Please select an attendance percentage.")
         end
     end
