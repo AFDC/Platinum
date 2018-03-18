@@ -5,15 +5,23 @@ class RegistrationsController < ApplicationController
     def create
         league = League.find(params[:registration][:league_id])
 
-        # reg_params = params[:registration]
         if league.registration_for(current_user)
             redirect_to registrations_user_path(current_user), flash: {error: "You have already registered for this league. Please be patient. There is no need to submitt he same form multiple times. Thank you."} and return
         end
+
         unless league.registration_open_for?(current_user)
             redirect_to league_path(league), flash: {error: "The registrations for this league have either closed or haven't opened yet. Try again later!"} and return
         end
+
         @registration = Registration.new
         populate_registration
+
+        if @registration.save
+            MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
+            redirect_to registrations_user_path(current_user), notice: "You have registered successfully! You'll be notified if you are accepted into the league and will pay at that time."
+        else
+            render :edit
+        end
     end
 
     def pay
@@ -31,6 +39,16 @@ class RegistrationsController < ApplicationController
 
     def update
         populate_registration
+
+        if @registration.save
+            redirect_destination = registrations_user_path(current_user)
+            redirect_destination = registrations_league_path(@registration.league) if @registration.user != current_user
+
+            redirect_to redirect_destination, notice: "Update successful"
+            return
+        end
+
+        render :edit
     end
 
     def show
@@ -89,21 +107,6 @@ class RegistrationsController < ApplicationController
 
         if permitted_to? :manage, @registration.league
             @registration.commish_rank = reg_params[:commish_rank]
-        end
-
-        if @registration.save
-            MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
-            if @registration.user != current_user
-                redirect_to registrations_league_path(@registration.league), notice: "Update successful"
-            else
-                if @registration.status == 'active' || @registration.status == 'accepted' || current_user._id != @registration.user._id
-                    redirect_to league_path(@registration.league), notice: flash_message || 'Update successful'
-                else
-                    redirect_to registrations_user_path(current_user), notice: "You have registered successfully! You'll be notified if you are accepted into the league and will pay at that time."
-                end
-            end
-        else
-            render :edit
         end
     end
 
