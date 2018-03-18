@@ -6,11 +6,13 @@ class RegistrationsController < ApplicationController
         league = League.find(params[:registration][:league_id])
 
         if league.registration_for(current_user)
-            redirect_to registrations_user_path(current_user), flash: {error: "You have already registered for this league. Please be patient. There is no need to submitt he same form multiple times. Thank you."} and return
+            redirect_to registrations_user_path(current_user), flash: {error: "You have already registered for this league."}
+            return
         end
 
         unless league.registration_open_for?(current_user)
-            redirect_to league_path(league), flash: {error: "The registrations for this league have either closed or haven't opened yet. Try again later!"} and return
+            redirect_to league_path(league), flash: {error: "The registrations for this league have either closed or haven't opened yet. Try again later!"}
+            return
         end
 
         @registration = Registration.new
@@ -20,9 +22,9 @@ class RegistrationsController < ApplicationController
             MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
             redirect_to waitlist_check_registration_path(@registration)
             return
-        else
-            render :edit
         end
+
+        render :edit
     end
 
     def pay
