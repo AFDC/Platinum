@@ -180,6 +180,13 @@ class League
     return expirations
   end
 
+  def invite!(player)
+    return if is_invited?(player)
+
+    self[:invited_player_ids] << player._id
+    save!
+  end
+
   def is_invited?(player)
     invited_player_ids.include?(player._id)
   end

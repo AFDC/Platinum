@@ -49,6 +49,8 @@ Platinum::Application.routes.draw do
 
     resources :teams, only: [:new, :create]
     resources :registration_groups do
+      post 'invite_players'
+
       member do
         put 'add_to_team'
       end

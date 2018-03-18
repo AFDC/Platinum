@@ -1,6 +1,6 @@
 class RegistrationGroupsController < ApplicationController
     before_filter :load_league_from_params
-    before_filter :load_group_from_params, only: [:show, :edit, :update, :add_to_team]
+    before_filter :load_group_from_params, only: [:show, :edit, :update, :add_to_team, :invite_players]
     filter_access_to [:edit, :update, :show, :add_to_team], attribute_check: true
 
     def index
@@ -61,6 +61,14 @@ class RegistrationGroupsController < ApplicationController
       redirect_to league_registration_groups_path(@league), notice: "Added #{processed} active players from that #{@league.core_options.type.capitalize} to #{target_team.name}."
     end
 
+    def invite_players
+      @group.members.each do |m|
+        @league.invite!(m)
+      end
+
+      redirect_to league_registration_groups_path(@league), notice: "Users from Group #{@group._id} have been invited" and return
+    end
+
     private
 
     def load_league_from_params
@@ -71,7 +79,7 @@ class RegistrationGroupsController < ApplicationController
     end
 
     def load_group_from_params
-      @group = RegistrationGroup.find(params[:id])
+      @group = RegistrationGroup.find(params[:id] || params[:registration_group_id])
 
       redirect_to(league_registration_groups_path(@league), flash: {error: "Could not load Group for ID '#{params[:id]}'"}) unless @group
     end

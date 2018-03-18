@@ -79,7 +79,7 @@ authorization do
 			if_permitted_to :manage, :league
 		end
 
-		has_permission_on :registration_groups, to: [:new, :create, :edit, :update, :add_to_team] do
+		has_permission_on :registration_groups, to: [:new, :create, :edit, :update, :add_to_team, :invite_players] do
 			if_permitted_to :manage, :league
 		end
 
