@@ -28,6 +28,8 @@ Platinum::Application.routes.draw do
       get 'preview_capture'
       post 'accept_players'
 
+      post 'update_invites'
+
       get 'manage_roster'
       post 'upload_roster'
       get 'setup_roster_import'

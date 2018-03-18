@@ -1,13 +1,15 @@
 - limit = 0 if local_assigns[:limit].nil?
 - label = fieldname if local_assigns[:label].nil?
-.control-group.user-multi-select{"data-field-name" => "#{form.object_name}[#{fieldname}]", "data-user-limit" => "#{limit}"}
+- if local_assigns[:form].nil? == false
+	- fieldname = "#{form.object_name}[#{fieldname}]"
+.control-group.user-multi-select{"data-field-name" => fieldname, "data-user-limit" => "#{limit}"}
 	%label.control-label{style: 'text-transform: capitalize'}= label
 	.controls
 		.user-list
 			- users.each do |u|
 				- next unless u
 				%div
-					%input{type: 'hidden', name: "#{form.object_name}[#{fieldname}][]", value: u._id}
+					%input{type: 'hidden', name: "#{fieldname}[]", value: u._id}
 					%span.span3.uneditable-input= "#{u.firstname} #{u.lastname}"
 					=link_to '#remove', class: 'remove' do
 						%i.icon-remove{style: 'color: #555555;'}
