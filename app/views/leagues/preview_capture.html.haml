@@ -80,7 +80,7 @@
                   Capturing payments for a #{@league.core_options.type} does not follow first-come, first-served rules.
 
             - %w(male female).each do |gender|
-              - limit = @league["#{gender}_limit"]
+              - limit = @league.gender_limit(gender)
               - spots = stats["spots_#{gender}".to_sym]
               %h5=gender.capitalize
               - if limit.nil?

@@ -72,7 +72,7 @@ class League
     return false unless user
     return false unless (registration_open? || is_invited?(user))
 
-    user_gender_limit = self["#{user.gender}_limit".to_sym]
+    user_gender_limit = gender_limit(user.gender)
 
     if user_gender_limit.nil? || user_gender_limit > 0
       return true
@@ -93,6 +93,10 @@ class League
     return true if comped_player_ids.include? user._id
     return true if comped_groups.collect(&:member_ids).flatten.include? user._id
     false
+  end
+
+  def gender_limit(gender)
+    self["#{gender}_limit".to_sym]
   end
 
   def update_standings!

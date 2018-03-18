@@ -1,19 +1,30 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show, :pay]
-    filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay], attribute_check: true
+    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show, :pay, :waitlist_check]
+    filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay, :waitlist_check], attribute_check: true
 
     def create
         league = League.find(params[:registration][:league_id])
 
-        # reg_params = params[:registration]
         if league.registration_for(current_user)
-            redirect_to registrations_user_path(current_user), flash: {error: "You have already registered for this league. Please be patient. There is no need to submitt he same form multiple times. Thank you."} and return
+            redirect_to registrations_user_path(current_user), flash: {error: "You have already registered for this league."}
+            return
         end
+
         unless league.registration_open_for?(current_user)
-            redirect_to league_path(league), flash: {error: "The registrations for this league have either closed or haven't opened yet. Try again later!"} and return
+            redirect_to league_path(league), flash: {error: "The registrations for this league have either closed or haven't opened yet. Try again later!"}
+            return
         end
+
         @registration = Registration.new
         populate_registration
+
+        if @registration.save
+            MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
+            redirect_to waitlist_check_registration_path(@registration)
+            return
+        end
+
+        render :edit
     end
 
     def pay
@@ -24,6 +35,15 @@ class RegistrationsController < ApplicationController
             message = "You haven't been accepted into the league yet, so we can't accept your payment at this time." if @registration.status == 'pending'
             redirect_to registration_path(@registration), flash: {error: message} and return 
         end
+
+        # This player doesn't have to pay
+        if @registration.league.comped? @registration.user
+            @registration.status = 'active'
+            @registration.comped = true
+            @registration.save!
+            redirect_to registrations_user_path(@registration.user), notice: 'Your league dues have been comped. You are now active in the league.'
+            return
+        end
     end
 
     def edit
@@ -31,6 +51,16 @@ class RegistrationsController < ApplicationController
 
     def update
         populate_registration
+
+        if @registration.save
+            redirect_destination = registrations_user_path(current_user)
+            redirect_destination = registrations_league_path(@registration.league) if @registration.user != current_user
+
+            redirect_to redirect_destination, notice: "Update successful"
+            return
+        end
+
+        render :edit
     end
 
     def show
@@ -42,6 +72,37 @@ class RegistrationsController < ApplicationController
         end
 
         redirect_to registrations_user_path(@registration.user), flash: {error: "Cancelling your registration failed, please contact a league commissioner."}
+    end
+
+    def waitlist_check
+        if @registration.status != 'pending'
+            redirect_to registrations_user_path(current_user), notice: "Your registration status is '#{@registration.status}'."
+            return
+        end
+
+        # Collect Registration Information
+        league          = @registration.league
+        gender          = @registration.gender
+        all_registered  = league.registrations.where(gender: gender)
+        spots_available = league.gender_limit(gender)
+        active          = all_registered.active
+        accepted        = all_registered.accepted
+        earlier_pending = all_registered.pending.where(:_id.lt => @registration._id)
+
+        # Flag Waitlisted Registrations
+        if (all_registered.waitlisted.count > 0) || (accepted.count + active.count + earlier_pending.count >= spots_available)
+            @registration.status = 'waitlisted'
+            @registration.save
+            redirect_to registrations_user_path(current_user), notice: "The league is currently full, but we added you to the waitlist. We'll let you know if spots open up!"
+            return
+        end
+
+        # There's room for this player; accept and move them to the payment phase
+        @registration.status = 'accepted'
+        @registration.warning_email_sent_at = nil
+        @registration.acceptance_expires_at = league.current_expiration_times[gender.to_sym]
+        @registration.save!
+        redirect_to pay_registration_path(@registration)
     end
 
     private
@@ -67,8 +128,8 @@ class RegistrationsController < ApplicationController
         end
 
         @registration.availability = {
-            general: reg_params[:gen_availability],
-            attend_tourney_eos: (reg_params[:eos_availability] == '1')
+            'general' => reg_params[:gen_availability],
+            'attend_tourney_eos' => (reg_params[:eos_availability] == '1')
         }
         @registration.gender = @registration.user.gender
         @registration.player_strength = reg_params[:player_strength]
@@ -89,27 +150,6 @@ class RegistrationsController < ApplicationController
 
         if permitted_to? :manage, @registration.league
             @registration.commish_rank = reg_params[:commish_rank]
-        end
-
-        if @registration.league.comped? @registration.user
-            @registration.status = 'active'
-            @registration.comped = true
-            flash_message = 'Your registration has been comped' if @registration.new_record?
-        end
-
-        if @registration.save
-            MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
-            if @registration.user != current_user
-                redirect_to registrations_league_path(@registration.league), notice: "Update successful"
-            else
-                if @registration.status == 'active' || @registration.status == 'accepted' || current_user._id != @registration.user._id
-                    redirect_to league_path(@registration.league), notice: flash_message || 'Update successful'
-                else
-                    redirect_to registrations_user_path(current_user), notice: "You have registered successfully! You'll be notified if you are accepted into the league and will pay at that time."
-                end
-            end
-        else
-            render :edit
         end
     end
 
