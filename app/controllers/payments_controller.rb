@@ -37,7 +37,7 @@ class PaymentsController < ApplicationController
       registration.status = 'active'
       registration.paid   = true
       registration.save
-      redirect_to league_path(registration.league), notice: "Success! You are now confirmed for #{registration.league.name}."
+      redirect_to registration_path(registration), notice: "Success! You are now confirmed for #{registration.league.name}."
     else
       redirect_to pay_registration_path(registration), flash: {error: "Payment Failed: #{result.message}"}
     end      
