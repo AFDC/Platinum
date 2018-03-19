@@ -1,5 +1,38 @@
 - content_for :title, @registration.league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'Registration', breadcrumbs: {'Leagues' => leagues_path, @registration.league.name => league_path(@registration.league), "Registration for #{@registration.user.name}" => nil}}
+- if current_user && current_user = @registration.user
+    .row
+        .span12
+            .hero-unit
+                - case @registration.status
+                    - when 'active'
+                        %h2
+                            = fa_icon 'thumbs-up'
+                            You're in!
+                        %p
+                            You've registered and paid. There's nothing left to do! Enjoy #{@registration.league.name}!
+                    - when 'accepted'
+                        %h2
+                            = fa_icon 'warning-sign'
+                            You're Almost Done...
+                        %p
+                            We haven't received your payment for this league!
+                            #{link_to("Click here to pay now!", pay_registration_path(@registration))}
+                        - if @registration.acceptance_expires_at
+                            %p
+                                %em Note:
+                                Your registration will expire in approximately
+                                %strong
+                                    #{distance_of_time_in_words Time.now, @registration.acceptance_expires_at}. 
+                                After that, you'll be put on the wait list and may not get a chance to play.
+                    - when 'waitlisted'
+                        %h2
+                            = fa_icon 'time'
+                            You're on the wait list
+                        %p
+                            The league is currently full, but we'll notify you if a spot opens up!
+                    - else
+                        %h2 Registration Status: '#{@registration.status}'
 
 .row
     .span5
