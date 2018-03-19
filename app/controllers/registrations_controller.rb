@@ -38,9 +38,8 @@ class RegistrationsController < ApplicationController
 
         # This player doesn't have to pay
         if @registration.league.comped? @registration.user
-            @registration.status = 'active'
             @registration.comped = true
-            @registration.save!
+            @registration.activate!
             redirect_to registration_path(@registration), notice: 'Your league dues have been comped. You are now active in the league.'
             return
         end

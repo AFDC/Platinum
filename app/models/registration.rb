@@ -87,6 +87,12 @@ class Registration
         end
     end
 
+    def activate!
+        self.status = 'active'
+        save!
+        RegistrationMailer.delay.registration_active(self._id.to_s)
+    end
+
     def cancel
         return false if self.status == 'active'
 
