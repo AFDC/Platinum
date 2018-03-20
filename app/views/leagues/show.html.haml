@@ -1,7 +1,7 @@
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'League Details', breadcrumbs: {'Leagues' => leagues_path, @league.name => nil}}
 
-- if @league.registration_open_for?(current_user) && permitted_to?(:register, @league)
+- if @league.registration_open_for?(current_user)
     - unless @registration
         .row
             .span12
