@@ -93,6 +93,12 @@ class Registration
         RegistrationMailer.delay.registration_active(self._id.to_s)
     end
 
+    def can_cancel?
+        return false if ['active', 'canceled'].include?(status)
+        return false if new_record?
+        true
+    end
+
     def cancel
         return false if self.status == 'active'
 

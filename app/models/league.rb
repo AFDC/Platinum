@@ -54,7 +54,7 @@ class League
   scope :started, -> { where(:start_date.lte => Time.current.to_date, :end_date.gte => Time.current.to_date).order_by(start_date: :desc) }
   scope :not_started, -> { where(:start_date.gte => Time.current.to_date).order_by(start_date: :desc) }
 
-  def registration_open?
+  def general_registration_open?
     return false if registration_open.nil? || registration_close.nil?
 
     registration_open_time.past? && registration_close_time.future?
@@ -68,17 +68,17 @@ class League
     Time.zone.parse("#{registration_close}").end_of_day
   end
 
+  def gender_permitted?(gender)
+    limit = gender_limit(gender)
+    return (limit.nil? == false && limit > 0)
+  end
+
   def registration_open_for?(user)
-    return false unless user
-    return false unless (registration_open? || is_invited?(user))
+    # Just return general open/closed status if no user is supplied
+    return general_registration_open? if user.nil?
+    return false unless gender_permitted?(user.gender)
 
-    user_gender_limit = gender_limit(user.gender)
-
-    if user_gender_limit.nil? || user_gender_limit > 0
-      return true
-    end
-
-    return false
+    return (general_registration_open? || is_invited?(user))
   end
 
   def started?

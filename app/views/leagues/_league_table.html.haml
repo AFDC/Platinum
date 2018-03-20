@@ -12,7 +12,7 @@
             - leagues.each do |l|
                 %tr
                     %td=link_to l.name, league_path(l)
-                    - if l.registration_open?
+                    - if l.registration_open_for?(current_user)
                         %td=link_to "Register Now!", register_league_path(l)
                     - else
                         %td=l.registration_open.strftime('%a %b %-d, %Y') if l.registration_open

@@ -1,17 +1,15 @@
-- if (@leagues_registering.count + @leagues_running.count + @your_teams.count )> 0
+- if (@league_list.count + @your_teams.count )> 0
     %div{style: 'padding: 10px; border: 1px solid #ddd; background-color: #f8f8f8; min-height: 240px;'}
         %h4 Leagues
-        - unless @leagues_running.empty? and @leagues_registering.empty?
+        - if @league_list.any?
             %ul{style: 'margin-bottom: 20px;'}
-                - @leagues_registering.each do |l|
+                - @league_list.each do |l|
                     %li{style: 'font-weight: bold'}
                         =link_to l.name, l
-                        - if l.registration_open?
+                        - if l.registration_open_for?(current_user)
                             (#{link_to 'Register', register_league_path(l)})
-                - @leagues_running.each do |l|
-                    %li=link_to l.name, l
 
-        - unless @your_teams.empty?
+        - if @your_teams.any?
             %h4 Your Teams
             %ul{style: 'margin-bottom: 20px;'}
                 - @your_teams.each do |t|

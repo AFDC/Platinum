@@ -7,7 +7,7 @@
 
         %h4 Actions
         %div{style: "padding: 5px 10px"}
-            - if permitted_to?(:cancel, @registration) && !@registration.new_record? && @registration.status != 'canceled' && @registration.league.registration_open?
+            - if permitted_to?(:cancel, @registration) && @registration.can_cancel?
                 %div{style: "margin-bottom: 5px;"}
                     %button#cancel_button{class: 'btn btn-block btn-warning'}
                         %i.icon.icon-remove-circle
