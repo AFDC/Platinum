@@ -21,7 +21,7 @@ class ProfileController < ApplicationController
     end
 
     # Update any existing registrations
-    current_user.registrations.where({'league_id' => {'$in' => League.current.map(&:_id)}}).each do |r|
+    current_user.registrations.where({'league_id' => {'$in' => League.not_started.map(&:_id)}}).each do |r|
       next unless r.league.require_grank?
       next unless r.league.start_date.beginning_of_day > Time.now
 

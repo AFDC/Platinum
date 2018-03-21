@@ -2,7 +2,7 @@ class RegistrationCancellationWorker
   include Sidekiq::Worker
 
   def perform
-    open_leagues = League.registering
+    open_leagues = League.not_started
 
     open_leagues.each do |league|
       expirations   = league.current_expiration_times

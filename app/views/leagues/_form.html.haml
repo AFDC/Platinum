@@ -140,6 +140,41 @@
                                 = f.check_box :display_spirit_scores
                                 Display Spirit Scores
 
+                    %h4 Gender-based Registration
+                    %p.muted
+                        These dates will be used <em>in addition</em> to the general registrationdates
+                        on the left. Please leave these dates blank unless you intended to to have
+                        different registration dates for men and women in a <strong>coed league</strong>. 
+                        For a single-gender league, simply set the other gender's limit to 0 and use the
+                        general Registration Dates on the left.
+                    .control-group{ class: ('error' if errors[:female_registration_open].any? || errors[:female_registration_close].any?)}
+                        %label.control-label Women's Registration
+                        .controls
+                            .input-append
+                                =f.text_field :female_registration_open, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small'}
+                                %span.add-on
+                                    %i.icon.icon-calendar
+                            to
+                            .input-append
+                                =f.text_field :female_registration_close, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small'}
+                                %span.add-on
+                                    %i.icon.icon-calendar
+                            %button.btn.button-primary#clear_female_reg_dates{type: 'button'} Clear
+
+                    .control-group{ class: ('error' if errors[:male_registration_open].any? || errors[:male_registration_close].any?)}
+                        %label.control-label Men's Registration
+                        .controls
+                            .input-append
+                                =f.text_field :male_registration_open, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small'}
+                                %span.add-on
+                                    %i.icon.icon-calendar
+                            to
+                            .input-append
+                                =f.text_field :male_registration_close, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small'}
+                                %span.add-on
+                                    %i.icon.icon-calendar
+                            %button.btn.button-primary#clear_male_reg_dates{type: 'button'} Clear
+
                     %h4 Core/Pod Options
                     = f.fields_for :core_options do |co|
                         - core_options = @league.core_options
@@ -219,4 +254,13 @@
     :javascript
         $(function(){
             $(".date-field").datepicker();
+
+            $("#clear_female_reg_dates").click(function(){
+                $("#league_female_registration_open").val('');
+                $("#league_female_registration_close").val('');
+            });
+            $("#clear_male_reg_dates").click(function(){
+                $("#league_male_registration_open").val('');
+                $("#league_male_registration_close").val('');
+            });
         });

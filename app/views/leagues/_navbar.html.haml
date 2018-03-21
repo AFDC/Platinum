@@ -2,12 +2,10 @@
     .navbar-inner
         %ul.nav
             %li.active=link_to "League", @league
-            - if @league.registration_open_for?(current_user) && permitted_to?(:register, @league)
-                - unless @registration
-                    %li
-                        =link_to "Register", register_league_path(@league)
-                - else
-                    %li= link_to "Update your Registration", edit_registration_path(@registration)
+            - if @registration
+                %li= link_to "Update your Registration", edit_registration_path(@registration)
+            - elsif @league.registration_open_for?(current_user)
+                %li= link_to "Register", register_league_path(@league)
 
             %li=link_to "Players", registrations_league_path(@league)
             - if @league.core_options.type.present?

@@ -6,12 +6,10 @@
         = link_to new_league_path, class: 'btn btn-small btn-primary' do
             %i.icon.icon-plus
             Create a League
-= render :partial => 'league_table', locals: {title: 'Upcoming', leagues: League.future }
-= render :partial => 'league_table', locals: {title: 'Current', leagues: League.current }
-/= render :partial => 'league_table', locals: {title: 'Past', leagues: League.past }
+= render :partial => 'league_table', locals: {title: 'Current', leagues: League.not_ended }
 
 
-- if League.past.count > 0
+- if League.ended.count > 0
     %h3= 'Past'
 
     %table.table.table-striped
@@ -23,7 +21,7 @@
                 %th End of Season Champions
 
         %tbody
-            - League.past.each do |l|
+            - League.ended.each do |l|
                 %tr
                     %td=link_to l.name, league_path(l)
                     - if l.teams.count != 0
