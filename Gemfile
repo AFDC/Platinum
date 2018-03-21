@@ -22,6 +22,7 @@ gem 'braintree'
 gem 'twilio-ruby'
 gem 'puma'
 gem 'bugsnag'
+gem 'skylight'
 gem 'gibbon', '~> 3.0'
 
 # Job Processing
