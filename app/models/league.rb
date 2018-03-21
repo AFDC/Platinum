@@ -14,6 +14,12 @@ class League
   field :price, type: Integer
   field :registration_open, type: Date, default: 2.weeks.from_now.to_date
   field :registration_close, type: Date, default: 4.weeks.from_now.to_date
+
+  field :male_registration_open, type: Date
+  field :male_registration_close, type: Date
+  field :female_registration_open, type: Date
+  field :female_registration_close, type: Date
+
   field :description, type: String
 
   # Options
@@ -57,15 +63,7 @@ class League
   def general_registration_open?
     return false if registration_open.nil? || registration_close.nil?
 
-    registration_open_time.past? && registration_close_time.future?
-  end
-
-  def registration_open_time
-    Time.zone.parse("#{registration_open} 12pm")
-  end
-
-  def registration_close_time
-    Time.zone.parse("#{registration_close}").end_of_day
+    open_time_on_date(registration_open).past? && close_time_on_date(registration_close).future?
   end
 
   def gender_permitted?(gender)
@@ -76,9 +74,22 @@ class League
   def registration_open_for?(user)
     # Just return general open/closed status if no user is supplied
     return general_registration_open? if user.nil?
+
+    # Bail out early if the gender is blocked
     return false unless gender_permitted?(user.gender)
 
-    return (general_registration_open? || is_invited?(user))
+    return (general_registration_open? || registration_open_for_gender?(user.gender) || is_invited?(user))
+  end
+
+  def registration_open_for_gender?(gender)
+    return false unless gender == 'male' || gender == 'female'
+
+    open_date  = self["#{gender}_registration_open"]
+    close_date = self["#{gender}_registration_close"]
+
+    return false if open_date.nil? || close_date.nil?
+
+    open_time_on_date(open_date).past? && close_time_on_date(close_date).future?
   end
 
   def started?
@@ -203,5 +214,13 @@ class League
 
   def build_options_if_nil
     build_core_options if core_options.nil?
+  end
+
+  def open_time_on_date(open_date)
+    Time.zone.parse("#{open_date} 12pm")
+  end
+
+  def close_time_on_date(close_date)
+    Time.zone.parse("#{close_date}").end_of_day
   end
 end
