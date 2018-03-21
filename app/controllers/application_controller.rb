@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   protect_from_forgery
   filter_access_to :all
   helper_method :current_user
+  before_bugsnag_notify :add_user_info_to_bugsnag
 
   def current_user
     unless @current_user
@@ -28,5 +29,16 @@ class ApplicationController < ActionController::Base
       session[:login_redirect_url] = request.original_url
       redirect_to auth_path and return
     end
+  end
+
+  private
+
+  def add_user_info_to_bugsnag(report)
+    return if current_user.nil?
+    report.user = {
+      email: current_user.email_address,
+      name: current_user.name,
+      id: current_user._id
+    }
   end
 end
