@@ -37,7 +37,7 @@ class RegistrationCancellationWorker
   end
 
   def expire_registration(reg)
-    reg.status                = 'pending'
+    reg.status                = 'waitlisted'
     reg.signup_timestamp      = Time.now
     reg.acceptance_expires_at = nil
     reg.warning_email_sent_at = nil

@@ -447,13 +447,13 @@ class LeaguesController < ApplicationController
             @authorized_registrants = {male: [], female: []}
             @rg.members.each do |m|
                 if reg = @league.registration_for(m)
-                    @authorized_registrants[reg.gender.to_sym] << reg if reg.status == 'pending'
+                    @authorized_registrants[reg.gender.to_sym] << reg if reg.status == 'waitlisted'
                 end
             end
         else
             @authorized_registrants = {}
             %w(male female).each do |gender|
-                @authorized_registrants[gender.to_sym] = @league.registrations.pending.where(gender: gender).sort('signup_timestamp' => 1)
+                @authorized_registrants[gender.to_sym] = @league.registrations.waitlisted.where(gender: gender).sort('signup_timestamp' => 1)
             end
         end
     end

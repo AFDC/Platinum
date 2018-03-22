@@ -35,18 +35,18 @@
                         =accepted = Registration.where(league: @league, status: 'accepted', gender: gender).count
                     .span2
                         %strong Total Registered:
-                        -pending =  Registration.where(league: @league, status: 'pending', gender: gender).count
+                        -waitlisted =  Registration.where(league: @league, status: 'waitlisted', gender: gender).count
                         =Registration.where(league: @league, gender: gender).count
                 .row{style: 'margin-bottom: 30px'}
                     .span7
                         - if limit
                             - active_pct = [(active.to_f / limit.to_f), 0].max * 100
                             - accepted_pct = [(accepted.to_f / limit.to_f), 0].max * 100
-                            - pending_pct = [(pending.to_f / limit.to_f), 0].max * 100
+                            - waitlist_pct = [(waitlisted.to_f / limit.to_f), 0].max * 100
                             .progress.progress-striped.active
                                 .bar.bar-success{style: "width: #{number_to_percentage(active_pct)}"}
                                 .bar.bar-info{style: "width: #{number_to_percentage(accepted_pct)}"}
-                                .bar.bar-warning{style: "width: #{number_to_percentage(pending_pct)}"}
+                                .bar.bar-warning{style: "width: #{number_to_percentage(waitlist_pct)}"}
             %hr
 
         %h4 Teams

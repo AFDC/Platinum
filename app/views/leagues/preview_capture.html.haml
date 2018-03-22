@@ -22,10 +22,10 @@
         %th Total
       %tbody
         %tr
-          %th Pending
-          %td= stats[:pending_male] = @league.registrations.male.pending.count
-          %td= stats[:pending_female] = @league.registrations.female.pending.count
-          %td= stats[:pending_male] + stats[:pending_female]
+          %th Waitlisted
+          %td= stats[:waitlisted_male] = @league.registrations.male.waitlisted.count
+          %td= stats[:waitlisted_female] = @league.registrations.female.waitlisted.count
+          %td= stats[:waitlisted_male] + stats[:waitlisted_female]
         %tr
           %th Accepted (Not Paid)
           %td= stats[:accepted_male] = @league.registrations.male.accepted.count
