@@ -19,7 +19,7 @@ user_id,pair_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastna
     - row << r.gender
     - row << r.gen_availability
     - row << r.notes
-    - row << r.user_data['birthdate']
+    - row << r.user.age
     - row << r.user_data['height']
     - row << r.eos_availability
-    = raw row.to_csv
+    = raw row.to_csv(row_sep: nil)
