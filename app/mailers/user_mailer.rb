@@ -8,4 +8,11 @@ class UserMailer < ActionMailer::Base
     
     mail(to: @user.email_address, subject: 'AFDC League Manager Password Reset')
   end
+
+  def league_invite(user_id, league_id)
+    @user = User.find(user_id)
+    @league = League.find(league_id)
+
+    mail(to: @user.email_address, subject: "[AFDC] Early Registration Invitation for #{@league.name}")
+  end
 end
