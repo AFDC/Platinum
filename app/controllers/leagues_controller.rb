@@ -36,12 +36,15 @@ class LeaguesController < ApplicationController
         new_invites_list = params[:invited_player_ids].reject { |id| id.blank? }
         new_invites_list = new_invites_list.map {|id| Moped::BSON::ObjectId.from_string(id)}
 
-        #Later Send Invites
         players_to_remove = @league.invited_player_ids - new_invites_list
         players_to_add = new_invites_list - @league.invited_player_ids
 
         @league.invited_player_ids = new_invites_list
         @league.save!
+
+        players_to_add.each do |player_id|
+            UserMailer.delay.league_invite(player_id.to_s, @league._id.to_s)
+        end
 
         redirect_to league_path(@league), notice: "Invite List Updated"
     end

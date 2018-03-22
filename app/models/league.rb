@@ -200,6 +200,7 @@ class League
 
     self[:invited_player_ids] << player._id
     save!
+    UserMailer.delay.league_invite(player._id.to_s, _id.to_s)
   end
 
   def is_invited?(player)

@@ -1,0 +1,19 @@
+%p #{@user.firstname},
+
+%p
+  You can register for #{link_to(@league.name, league_url(@league))} now. 
+  General registration is not yet open, but the league commissioner invited you
+  to register early. This early window usually will not last long, so grab your
+  spot in the league today!
+
+%table.large-button.success.round{style:"margin-top: 10px; margin-bottom: 10px;"}
+  %tr
+    %td
+      =link_to "CLICK HERE TO REGISTER NOW", register_league_url(@league)
+
+%p
+  If you have any questions, please contact the league commissioner. For technical issues or
+  questions, please contact help@afdc.com
+
+%p
+  %strong Thanks for playing with the Atlanta Flying Disc Club!
