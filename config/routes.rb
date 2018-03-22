@@ -105,5 +105,6 @@ Platinum::Application.routes.draw do
   get 'reset-password', to: 'auth#forgot_password', as: 'forgot_password'
   post 'reset-password', to: 'auth#reset_password', as: 'reset_password'
 
+  get 'logs', to: 'dashboard#audit_logs'
   root to: 'dashboard#homepage', as: 'home'
 end

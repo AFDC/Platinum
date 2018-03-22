@@ -46,6 +46,8 @@ class LeaguesController < ApplicationController
             UserMailer.delay.league_invite(player_id.to_s, @league._id.to_s)
         end
 
+        audit('ManualInviteUpdate', @league, users_added: players_to_add, users_removed: players_to_remove)
+
         redirect_to league_path(@league), notice: "Invite List Updated"
     end
 
