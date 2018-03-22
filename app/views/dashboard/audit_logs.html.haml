@@ -1,0 +1,25 @@
+
+%h2 Audit Logs
+%table.table.table-striped
+    %thead
+        %tr
+            %th Timestamp
+            %th Acting User
+            %th Action
+            %th Target
+    %tbody
+        - @logs.each do |log|
+            %tr
+                %td=log.created_at.strftime('%a, %b %e, %Y; %l:%M %P')
+                %td
+                    - if log.acting_user
+                        =link_to(log.acting_user.name, log.acting_user)
+                    - else
+                        n/a
+                %td=log.action
+                %td
+                    - if log.target
+                        - if log.target.respond_to?(:name)
+                            =link_to("#{log.target.name} (#{log.target.class})",log.target)
+                        - else 
+                            =link_to("#{log.target.class}-#{log.target._id}",log.target)

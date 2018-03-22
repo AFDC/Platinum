@@ -25,4 +25,8 @@ class DashboardController < ApplicationController
 
     render layout: "new_homepage"
   end
+
+  def audit_logs
+    @logs = AuditLog.order_by(_id: 'desc').limit(1000)
+  end
 end

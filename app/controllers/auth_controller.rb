@@ -16,6 +16,7 @@ class AuthController < ApplicationController
         end
 
         session[:user_id] = @user._id.to_s
+        audit('Login', @user)
 
         if params[:remember_me]
             cookies[:platinum_login] = @user.remember_me

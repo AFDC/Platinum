@@ -18,6 +18,12 @@ class ApplicationController < ActionController::Base
     @current_user
   end
 
+  def audit(action, target, details = {})
+    details[:acting_user] = current_user unless details.key?(:acting_user)
+
+    AuditLog.log(action, target, details)
+  end
+
   protected
 
   def permission_denied
