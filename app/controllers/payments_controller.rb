@@ -37,6 +37,8 @@ class PaymentsController < ApplicationController
       registration.paid = true
       registration.activate!
 
+      audit('Pay', registration)
+
       redirect_to registration_path(registration), notice: "Success! You are now confirmed for #{registration.league.name}."
     else
       redirect_to pay_registration_path(registration), flash: {error: "Payment Failed: #{result.message}"}

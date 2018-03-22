@@ -11,7 +11,7 @@ class AuditLog
 
     field :details, type: Hash, default: {}
 
-    validates :target_class, inclusion: { in: %w(User) }, allow_nil: true
+    validates :target_class, inclusion: { in: %w(User League Registration) }, allow_nil: true
 
     def target
       if target_class.nil? || target_id.nil?
