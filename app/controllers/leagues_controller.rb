@@ -7,6 +7,10 @@ class LeaguesController < ApplicationController
     end
 
     def show
+        if @league.nil?
+            redirect_to leagues_path, notice: "League not found."
+            return
+        end
         @registration = @league.registration_for(current_user)
     end
 
