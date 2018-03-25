@@ -28,7 +28,7 @@ class User
   has_secure_password
 
   has_mongoid_attached_file :avatar,
-    default_url: lambda {|attachment| "http://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(attachment.instance.email_address.downcase)}?s=330&d=mm&r=r"},
+    default_url: lambda {|attachment| "http://www.gravatar.com/avatar/#{attachment.instance.email_md5}?s=330&d=mm&r=r"},
     styles: {profile: '330x330>', roster: '160x160#', thumbnail: '32x32#'}
 
   has_many :g_rank_results, order: :_id.desc
@@ -130,7 +130,7 @@ class User
   end
 
   def downcase_email
-  	self.email_address = self.email_address.downcase
+    self.email_address = email_address.try(:downcase)
   end
 
   def height_in_feet_and_inches
@@ -183,6 +183,6 @@ class User
   end
 
   def email_md5
-    Digest::MD5.hexdigest(email_address.downcase)
+    Digest::MD5.hexdigest(downcase_email)
   end
 end
