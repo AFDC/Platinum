@@ -78,6 +78,14 @@
         .alert.alert-info= flash[:notice]
       - if flash[:error]
         .alert.alert-error= flash[:error]
+      - if current_user
+        - regs_due = current_user.registrations_with_payment_due
+        - if regs_due.count > 0
+          .alert.alert-success
+            %h4 Please pay the following registration fees to join the league:
+            %ul
+              -current_user.registrations_with_payment_due.each do |reg|
+                %li #{link_to(reg.league.name, pay_registration_path(reg))} ($#{number_with_precision(reg.price, precision: 2)})
       = yield
       - if Rails.env.development?
         %div{style: 'margin-top: 50px'}

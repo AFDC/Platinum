@@ -186,4 +186,8 @@ class User
   def email_md5
     Digest::MD5.hexdigest(downcase_email)
   end
+
+  def registrations_with_payment_due
+    registrations.accepted.select {|reg| reg.league.started? == false}
+  end
 end
