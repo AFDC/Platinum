@@ -29,7 +29,8 @@ class User
 
   has_mongoid_attached_file :avatar,
     default_url: lambda {|attachment| "http://www.gravatar.com/avatar/#{attachment.instance.email_md5}?s=330&d=mm&r=r"},
-    styles: {profile: '330x330>', roster: '160x160#', thumbnail: '32x32#'}
+    styles: {profile: '330x330>', roster: '160x160#', thumbnail: '32x32#'},
+    escape_url: false
 
   has_many :g_rank_results, order: :_id.desc
   has_many :registrations
