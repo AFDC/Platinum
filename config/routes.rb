@@ -87,10 +87,6 @@ Platinum::Application.routes.draw do
     end
   end
 
-  if ENV['sidekiq_path']
-    mount Sidekiq::Web => ENV['sidekiq_path']
-  end
-
   get 'help/login', to: 'help#login', as: 'login_help'
   get 'help/registration', to: 'help#registration', as: 'registration_help'
 

@@ -94,7 +94,7 @@
                     %tr
                         %td{colspan:5}= render partial: '/no_results', locals: {msg: 'This league has no teams yet.'}
 
-        - if @league.registration_open.future?
+        - if @league.registration_open.future? && permitted_to?(:update_invites, @league)
             %h4 Players Invited to Register Early
             = form_tag(update_invites_league_path(@league), method: :post) do
                 = render partial: '/user_multiselect', locals: {fieldname: 'invited_player_ids', label: "", users: @league.invited_players}

@@ -10,7 +10,7 @@
             = f.check_box :eos_availability, value: 1, label: "Will attend end of season tourney"
     - rank_max = 6 if (@registration.league.sport == 'goaltimate' && @registration.user.gender == 'female')
     - if @registration.league.allow_self_rank?
-        = f.select :self_rank, (1..(rank_max || 9)).map(&:to_s), prompt: 'Select a Rank'
+        = f.select :self_rank, (1..(rank_max || 9)).map(&:to_f), prompt: 'Select a Rank'
     - if permitted_to?(:manage, @registration.league) && @registration.persisted?
         = f.text_field :commish_rank, label: 'League Rank'
     = f.select :player_strength, [nil, 'Runner', 'Thrower', 'Both']

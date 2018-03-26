@@ -94,6 +94,7 @@ class RegistrationsController < ApplicationController
         if (all_registered.waitlisted.count > 0) || (accepted.count + active.count + earlier_pending.count >= spots_available)
             @registration.status = 'waitlisted'
             @registration.save
+            RegistrationMailer.delay.registration_waitlisted(@registration._id.to_s)
             redirect_to registration_path(@registration), notice: "The league is currently full, but we added you to the waitlist. We'll let you know if spots open up!"
             return
         end

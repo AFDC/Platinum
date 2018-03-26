@@ -18,6 +18,14 @@ class RegistrationMailer < ActionMailer::Base
     mail(to: @registration.user.email_address, subject: '[AFDC] Registration accepted for ' + @league.name)
   end
 
+  def registration_waitlisted(registration_id)
+    @registration = Registration.find(registration_id)
+    @user = @registration.user
+    @league = @registration.league
+
+    mail(to: @registration.user.email_address, subject: "[AFDC] #{@league.name} Wait List")
+  end
+
   def stale_accepted_registration(registration_id)
     @registration = Registration.find(registration_id)
     @user = @registration.user

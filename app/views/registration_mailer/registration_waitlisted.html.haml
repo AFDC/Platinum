@@ -1,0 +1,19 @@
+%p #{@user.firstname},
+
+%p
+  We have received your for #{link_to(@league.name, league_url(@league))}, but the league is currently full.
+  We've placed you on the wait list and will let you know if a spot opens up.
+
+%p
+  If you have any questions, please contact the league commissioner. For technical issues or
+  questions, please contact help@afdc.com
+
+%p
+  %strong Thank you for registering to play with the Atlanta Flying Disc Club!
+
+- if @league.allow_pairs?
+  - content_for :callout_box do
+    %strong A note about pairs:
+    This league allows players to pair up to guarantee that they will be on the same team. The only way to ensure that your pair
+    request will be respected is if you <a href="http://toomuchpete.clarify-it.com/d/pqewtm">use the official pairing system</a>.
+    Requests made to the commissioner or in the notes field of your registration cannot be guaranteed.
