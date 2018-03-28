@@ -4,6 +4,10 @@ class AuditLog
 
     belongs_to :acting_user, class_name: 'User'
 
+    belongs_to :league
+    belongs_to :registration
+    belongs_to :user
+
     field :action, type: String
 
     field :target_class, type: String
@@ -19,19 +23,5 @@ class AuditLog
       end
 
       target_class.constantize.find(target_id)
-    end
-
-    def self.log(action, target, details = {})
-      log_entry = {action: action}
-
-      log_entry[:acting_user] = details.delete(:acting_user)
-      log_entry[:details]     = details
-
-      if target
-        log_entry[:target_class] = target.class.to_s
-        log_entry[:target_id]    = target._id
-      end
-
-      create(log_entry)
     end
 end

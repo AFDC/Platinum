@@ -18,10 +18,11 @@ class ApplicationController < ActionController::Base
     @current_user
   end
 
-  def audit(action, target, details = {})
+  def log_audit(action, details = {})
     details[:acting_user] = current_user unless details.key?(:acting_user)
+    details[:action] = action
 
-    AuditLog.log(action, target, details)
+    AuditLog.create(details)
   end
 
   protected

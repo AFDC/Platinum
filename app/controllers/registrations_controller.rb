@@ -19,7 +19,7 @@ class RegistrationsController < ApplicationController
         populate_registration
 
         if @registration.save
-            audit('Register', league)
+            log_audit('Register', league: league, registration: @registration)
             MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
             redirect_to waitlist_check_registration_path(@registration)
             return
@@ -68,7 +68,7 @@ class RegistrationsController < ApplicationController
 
     def cancel
         if @registration.cancel
-            audit('Cancel', @registration)
+            log_audit('Cancel', league: @registration.league, registration: @registration)
             redirect_to registrations_user_path(@registration.user), notice: "Your registration has been cancelled." and return
         end
 

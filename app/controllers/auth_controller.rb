@@ -16,7 +16,7 @@ class AuthController < ApplicationController
         end
 
         session[:user_id] = @user._id.to_s
-        audit('Login', nil)
+        log_audit('Login')
 
         if params[:remember_me]
             cookies[:platinum_login] = @user.remember_me
@@ -37,7 +37,7 @@ class AuthController < ApplicationController
 
         new_pw = @user.reset_password
         @user.save(validate: false)
-        audit('PasswordReset', nil, acting_user: @user)
+        log_audit('PasswordReset', acting_user: @user)
 
         UserMailer.delay.password_reset(@user._id, new_pw)
 
