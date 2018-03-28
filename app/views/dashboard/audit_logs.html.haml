@@ -18,8 +18,13 @@
                         n/a
                 %td=log.action
                 %td
-                    - if log.target
-                        - if log.target.respond_to?(:name)
-                            =link_to("#{log.target.name} (#{log.target.class})",log.target)
-                        - else 
-                            =link_to("#{log.target.class}-#{log.target._id}",log.target)
+                    - if log.league
+                        League:
+                        = link_to("#{log.league.name}", log.league)
+                        %br
+                    - if log.registration
+                        = link_to("Registration for #{log.registration.user.name}", log.registration)
+                        %br
+                    - if log.user
+                        %i= link_to("#{log.user.name}", log.user)
+

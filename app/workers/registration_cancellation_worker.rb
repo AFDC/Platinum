@@ -31,7 +31,12 @@ class RegistrationCancellationWorker
     reg.acceptance_expires_at = expiration
     reg.warning_email_sent_at = nil
     if reg.save
-        AuditLog.log('AddExpiration', reg, new_expiration: expiration)
+        AuditLog.create(
+          action: 'AddExpiration',
+          leauge: reg.league,
+          registration: reg,
+          details: {new_expiration: expiration}
+        )
         RegistrationMailer.stale_accepted_registration(reg.id.to_s).deliver
     end
   end
@@ -42,7 +47,11 @@ class RegistrationCancellationWorker
     reg.acceptance_expires_at = nil
     reg.warning_email_sent_at = nil
     if reg.save
-        AuditLog.log('Expire', reg)
+        AuditLog.create(
+          action: 'Expire',
+          leauge: reg.league,
+          registration: reg
+        )
         RegistrationMailer.unpaid_registration_cancelled(reg.id.to_s).deliver
     end    
   end

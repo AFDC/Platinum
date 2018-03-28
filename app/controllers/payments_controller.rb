@@ -37,7 +37,7 @@ class PaymentsController < ApplicationController
       registration.paid = true
       registration.activate!
 
-      audit('Pay', registration)
+      log_audit('Pay', league: registration.league, registration: registration)
 
       redirect_to registration_path(registration), notice: "Success! You are now confirmed for #{registration.league.name}."
     else

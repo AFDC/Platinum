@@ -48,9 +48,12 @@ class LeaguesController < ApplicationController
 
         players_to_add.each do |player_id|
             UserMailer.delay.league_invite(player_id.to_s, @league._id.to_s)
+            log_audit('InvitePlayer', league: @league, user: User.find(player_id))
         end
 
-        audit('ManualInviteUpdate', @league, users_added: players_to_add, users_removed: players_to_remove)
+        players_to_remove.each do |player_id|
+            log_audit('UninvitePlayer', league: @league, user: User.find(player_id))
+        end
 
         redirect_to league_path(@league), notice: "Invite List Updated"
     end
