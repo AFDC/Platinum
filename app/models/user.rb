@@ -40,7 +40,7 @@ class User
 
   validates :firstname, :presence => true
   validates :lastname, :presence => true
-  validates :email_address, :presence => true, :uniqueness => { case_sensitive: false }
+  validates :email_address, presence: true, uniqueness: { case_sensitive: false }, format: { with: /.+@.+\.{1}.{2,}/ }
   validates :height, :numericality => { integer_only: true, greater_than: 30, less_than: 96, allow_blank: true  }
   validates :weight, :numericality => { integer_only: true, greater_than: 60, less_than: 400, allow_blank: true }
   validates :handedness, :inclusion => { in: %w(left right both), message: "%{value} is not a valid option", allow_blank: true }
