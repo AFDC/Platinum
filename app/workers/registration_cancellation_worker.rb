@@ -33,7 +33,7 @@ class RegistrationCancellationWorker
     if reg.save
         AuditLog.create(
           action: 'AddExpiration',
-          leauge: reg.league,
+          league: reg.league,
           registration: reg,
           details: {new_expiration: expiration}
         )
@@ -49,7 +49,7 @@ class RegistrationCancellationWorker
     if reg.save
         AuditLog.create(
           action: 'Expire',
-          leauge: reg.league,
+          league: reg.league,
           registration: reg
         )
         RegistrationMailer.unpaid_registration_cancelled(reg.id.to_s).deliver
