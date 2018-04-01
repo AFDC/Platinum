@@ -475,8 +475,8 @@ class LeaguesController < ApplicationController
             r = Registration.find(reg_id)
 
             if r
-                if r.status == 'cancelled'
-                    @errors << "Registration cancelled for #{r.user.name}."
+                if r.status == 'canceled'
+                    @errors << "Registration canceled for #{r.user.name}."
                 end
 
                 registrations << r

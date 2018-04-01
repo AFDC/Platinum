@@ -11,7 +11,7 @@
                 %span Active Registrants:
                 =@league.registrations.where(status: 'active').count
             %li
-                %span{class: 'hasTooltip', title: 'includes cancelled and waitlisted'} Total Registrants:
+                %span{class: 'hasTooltip', title: 'includes canceled and waitlisted'} Total Registrants:
                 =@league.registrations.count
             %li
                 %span{class: 'hasTooltip', title: 'active registrants without teams'} Orphans:

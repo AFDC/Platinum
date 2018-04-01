@@ -1,5 +1,5 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :cancelled, :show, :pay, :waitlist_check]
+    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :canceled, :show, :pay, :waitlist_check]
     filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay, :waitlist_check], attribute_check: true
 
     def create
@@ -32,7 +32,7 @@ class RegistrationsController < ApplicationController
         unless @registration.status == 'accepted'
             message = "You can only pay for your registration if it has been accepted into the league. Your current status is: '#{@registration.status}'."
             message = "You are already in that league, you don't need to pay again!" if @registration.status == 'active'
-            message = "You have cancelled your registration. Please contact help@afdc.com if you want to un-cancel." if @registration.status == 'canceled'
+            message = "You have canceled your registration. Please contact help@afdc.com if you want to un-cancel." if @registration.status == 'canceled'
             message = "You haven't been accepted into the league yet, so we can't accept your payment at this time." if @registration.status == 'pending'
             redirect_to registration_path(@registration), flash: {error: message} and return 
         end
@@ -69,7 +69,7 @@ class RegistrationsController < ApplicationController
     def cancel
         if @registration.cancel
             log_audit('Cancel', league: @registration.league, registration: @registration)
-            redirect_to registrations_user_path(@registration.user), notice: "Your registration has been cancelled." and return
+            redirect_to registrations_user_path(@registration.user), notice: "Your registration has been canceled." and return
         end
 
         redirect_to registrations_user_path(@registration.user), flash: {error: "Cancelling your registration failed, please contact a league commissioner."}
