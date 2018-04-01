@@ -63,9 +63,7 @@
       <% if (registration_group) { %>
         <li><strong style="text-transform: capitalize"><%=window.core_type%>:</strong> <a href="#" class="show-group-details" data-group-id="<%=registration_group%>"><%= registration_group.substr(0,8) %></a></li>
       <% } %>
-      <% if (timestamps['authorized']) { %>
-        <li><strong>Paid:</strong> <%=moment.unix(timestamps['authorized']).format('MMM Do, h:mm a')%></li>
-      <% } else if (timestamps['pending']) { %>
+      <% } if (timestamps['pending']) { %>
         <li><strong>Reg:</strong> <%=moment.unix(timestamps['pending']).format('MMM Do, h:mm a')%></li>
       <% } %>
     </ul>
@@ -146,7 +144,6 @@
         %option{value: 'active'} Active
         %option{value: 'accepted'} Accepted
         %option{value: 'waitlisted'} Waitlisted
-        %option{value: 'authorized'} Authorized       
         %option{value: 'canceled'} Canceled
         %option{value: '', selected: true} All Statuses
       %select.span3{id: 'items-per-page'}

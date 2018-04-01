@@ -11,13 +11,13 @@ class NotificationMailer < ActionMailer::Base
     end
   end
 
-  def games_cancelled(notification_method_id, fieldsite_id, day_timestamp) 
+  def games_canceled(notification_method_id, fieldsite_id, day_timestamp) 
     notification_method = NotificationMethod.find(notification_method_id)
 
     @user      = notification_method.user
     @fieldsite = FieldSite.find(fieldsite_id)
     @game_day  = Time.at(day_timestamp)
 
-    mail(to: notification_method.target, subject: "AFDC Games Cancelled for #{@game_day.strftime('%B %d, %Y')}")
+    mail(to: notification_method.target, subject: "AFDC Games Canceled for #{@game_day.strftime('%B %d, %Y')}")
   end
 end

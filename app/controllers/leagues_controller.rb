@@ -451,16 +451,16 @@ class LeaguesController < ApplicationController
 
     def preview_capture
         if params[:registration_group_id] && @rg = RegistrationGroup.find(params[:registration_group_id])
-            @authorized_registrants = {male: [], female: []}
+            @registrant_list = {male: [], female: []}
             @rg.members.each do |m|
                 if reg = @league.registration_for(m)
-                    @authorized_registrants[reg.gender.to_sym] << reg if reg.status == 'waitlisted'
+                    @registrant_list[reg.gender.to_sym] << reg if reg.status == 'waitlisted'
                 end
             end
         else
-            @authorized_registrants = {}
+            @registrant_list = {}
             %w(male female).each do |gender|
-                @authorized_registrants[gender.to_sym] = @league.registrations.waitlisted.where(gender: gender).sort('signup_timestamp' => 1)
+                @registrant_list[gender.to_sym] = @league.registrations.waitlisted.where(gender: gender).sort('signup_timestamp' => 1)
             end
         end
     end
@@ -475,8 +475,8 @@ class LeaguesController < ApplicationController
             r = Registration.find(reg_id)
 
             if r
-                if r.status == 'cancelled'
-                    @errors << "Registration cancelled for #{r.user.name}."
+                if r.status == 'canceled'
+                    @errors << "Registration canceled for #{r.user.name}."
                 end
 
                 registrations << r

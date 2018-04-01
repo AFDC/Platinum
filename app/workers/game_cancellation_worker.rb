@@ -52,7 +52,7 @@ class GameCancellationWorker
     end
 
     game_date     = Time.at(start_ts).strftime('%a, %b %e')
-    text_message  = "Bad news! Your AFDC games at #{@fieldsite.name} are cancelled for today (#{game_date})."
+    text_message  = "Bad news! Your AFDC games at #{@fieldsite.name} are canceled for today (#{game_date})."
 
     player_list.each do |user_id, p|
         notify_user(p, text_message, start_ts)
@@ -73,7 +73,7 @@ class GameCancellationWorker
         end
 
         if nm.method == 'email'
-            NotificationMailer.games_cancelled(nm._id, @fieldsite._id, game_day_timestamp).deliver
+            NotificationMailer.games_canceled(nm._id, @fieldsite._id, game_day_timestamp).deliver
         end
     end
   end
