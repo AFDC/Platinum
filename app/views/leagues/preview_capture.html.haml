@@ -62,7 +62,7 @@
           - if @rg
             %p
               You are activating players from a #{@league.core_options.type}. On the right, 
-              you will find all authorized players from that group, up to the gender limits for the league.
+              you will find all waitlisted players from that group, up to the gender limits for the league.
           - else
             %p
               If there are more registered players than available spots, spots will be filled based on registration time.
@@ -89,9 +89,9 @@
                 .well No spots remaining.
               - else
                 %ul
-                  - if @authorized_registrants[gender.to_sym].count <= 0
+                  - if @registrant_list[gender.to_sym].count <= 0
                     .alert.alert-info No #{gender} registrations to capture.
-                  - @authorized_registrants[gender.to_sym].each do |reg|
+                  - @registrant_list[gender.to_sym].each do |reg|
                     - break unless spots > 0
                     %li
                       =link_to reg.user.name, reg.user
