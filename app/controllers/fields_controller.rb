@@ -6,13 +6,13 @@ class FieldsController < ApplicationController
     end
 
     def show
+        if @field.nil?
+            redirect_to fields_path, flash: {error: "Could not load Field Site for ID '#{params[:id]}', please try a different field."}
+            return
+        end
     end
 
     def load_fieldsite_from_params
-        begin
-            @field = FieldSite.find(params[:id])
-        rescue
-            redirect_to fields_path, flash: {error: "Could not load Field Site for ID '#{params[:id]}', please try a different field."}
-        end
+        @field = FieldSite.find(params[:id])
     end
 end
