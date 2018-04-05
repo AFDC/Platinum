@@ -63,7 +63,7 @@
       <% if (registration_group) { %>
         <li><strong style="text-transform: capitalize"><%=window.core_type%>:</strong> <a href="#" class="show-group-details" data-group-id="<%=registration_group%>"><%= registration_group.substr(0,8) %></a></li>
       <% } %>
-      <% } if (timestamps['pending']) { %>
+      <% if (timestamps['pending']) { %>
         <li><strong>Reg:</strong> <%=moment.unix(timestamps['pending']).format('MMM Do, h:mm a')%></li>
       <% } %>
     </ul>
