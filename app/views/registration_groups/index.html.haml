@@ -48,7 +48,7 @@
               - ready = Hash.new(0)
               - can_register = 0
               - rg.members.each do |m|
-                - can_register += 1 if @league.is_invited?(m)
+                - can_register += 1 if @league.registration_open_for?(m)
                 - if reg = @league.registration_for(m)
                   - registrations[:total] += 1
                   - registrations[reg.status.to_sym] += 1
