@@ -2,7 +2,9 @@
 > This code is use by the Atlanta ultimate community (the [AFDC](http://www.afdc.com)) 
 > to manage ultimate and goaltimate league registration and scheudling. 
 
-[![Build Status][circleci-image]][circleci-url]
+[![Build Status][circleci-image]][circleci-url] [![View performance data on Skylight](https://badges.skylight.io/status/pZMk9YMLIt2z.svg)](https://oss.skylight.io/app/applications/pZMk9YMLIt2z)
+
+[![View performance data on Skylight](https://badges.skylight.io/rpm/pZMk9YMLIt2z.svg)](https://oss.skylight.io/app/applications/pZMk9YMLIt2z) [![View performance data on Skylight](https://badges.skylight.io/typical/pZMk9YMLIt2z.svg)](https://oss.skylight.io/app/applications/pZMk9YMLIt2z) [![View performance data on Skylight](https://badges.skylight.io/typical/pZMk9YMLIt2z.svg)](https://oss.skylight.io/app/applications/pZMk9YMLIt2z)
 
 Platinum is a Ruby on Rails application used by the [Atlanta Flying Disc Club](http://www.afdc.com) to manage league registrations, rosters, schedules, and result tracking. It is the latest evolution of a platform that has been in use since before 2001. This application has been in development since 2013.
 
