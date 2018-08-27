@@ -20,19 +20,19 @@ namespace :reports do
 
   desc 'List all users in the system'
   task :users => :environment do
-    print CSV.generate_line %w(user_id first_name last_name email_address gender zip_code birthdate)
+    print CSV.generate_line %w(user_id first_name last_name signup_date email_address gender zip_code birthdate)
 
     User.each do |user|
-      print CSV.generate_line [user._id, user.firstname, user.lastname, user.email_address, user.gender, user.postal_code, user.birthdate]
+      print CSV.generate_line [user._id, user.firstname, user.lastname, user.signup_date, user.email_address, user.gender, user.postal_code, user.birthdate]
     end
   end
 
   desc 'List all leagues in the system'
   task :leagues => :environment do
-    print CSV.generate_line %w(league_id name year sport season start_date end_date)
+    print CSV.generate_line %w(league_id name year sport season price start_date end_date registration_start registration_end)
 
     League.each do |league|
-      print CSV.generate_line [league._id, league.name, league.start_date.year, league.sport, league.season, league.start_date, league.end_date]
+      print CSV.generate_line [league._id, league.name, league.start_date.year, league.sport, league.season, league.price, league.start_date, league.end_date, league.registration_open, league.registration_close]
     end
   end
 
@@ -65,11 +65,11 @@ namespace :reports do
 
   desc 'List all game data in the system'
   task :games => :environment do
-    print CSV.generate_line %w(game_id league_id field_id field_name team_id score rainout)
+    print CSV.generate_line %w(game_id league_id date field_id field_name team_id score rainout)
 
     Game.each do |game|
       game.teams.each do |team|
-        print CSV.generate_line [game._id, game.league._id, game.fieldsite_id, game.field_site.name, team._id, game.score_for(team), (game.rained_out? ? 'y' : 'n')]
+        print CSV.generate_line [game._id, game.league._id, game.game_time.strftime('%Y-%m-%d'), game.fieldsite_id, game.field_site.name, team._id, game.score_for(team), (game.rained_out? ? 'y' : 'n')]
       end
     end
   end

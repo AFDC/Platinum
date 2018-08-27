@@ -4,6 +4,8 @@ class User
   include ActiveModel::ForbiddenAttributesProtection
   include ActiveModel::SecurePassword
 
+  MONGO_IMPORT_DATE = Date.new(2012,4,20)
+
   field :address
   field :birthdate
   field :city
@@ -161,6 +163,18 @@ class User
     rescue
       nil
     end
+  end
+
+  def signup_date
+    record_creation_date = _id.generation_time.to_date
+
+    return record_creation_date unless record_creation_date == MONGO_IMPORT_DATE
+
+    if teams.first
+      return teams.first.league.start_date
+    end
+
+    nil
   end
 
   def role_symbols
