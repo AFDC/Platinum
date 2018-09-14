@@ -105,6 +105,26 @@ class Registration
         self.save
     end
 
+    def refund!
+        return false unless status == 'active'
+        return false if comped
+
+        pt = payment_transactions.first
+
+        result = Braintree::Transaction.refund(pt.transaction_id)
+
+
+        unless result.success?
+            raise result.errors.first.message
+        end
+
+        pt.refunded_amount = pt.amount
+        pt.save
+
+        self.status = 'canceled'
+        save!
+    end
+
     def rank
         self.commish_rank || self.g_rank || self.self_rank
     end

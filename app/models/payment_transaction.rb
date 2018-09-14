@@ -6,6 +6,7 @@ class PaymentTransaction
   field :amount, type: BigDecimal
   field :service_fee, type: BigDecimal
   field :currency
+  field :refunded_amount, type: BigDecimal
 
   belongs_to :user
   belongs_to :league
