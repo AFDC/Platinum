@@ -13,7 +13,8 @@ class Registration
     field :self_rank, type: Float
     field :commish_rank, type: Float
     field :g_rank, type: Float
-
+    field :shirt_size
+    
     field :acceptance_expires_at, type: DateTime
     field :warning_email_sent_at, type: DateTime  
 

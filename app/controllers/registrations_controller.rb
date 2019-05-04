@@ -137,6 +137,7 @@ class RegistrationsController < ApplicationController
         @registration.player_strength = reg_params[:player_strength]
         @registration.self_rank = reg_params[:self_rank]
         @registration.notes = reg_params[:notes]
+        @registration.shirt_size = reg_params[:shirt_size]
         if reg_params[:pair_id]
             @registration.pair_id = reg_params[:pair_id].first
         end

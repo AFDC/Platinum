@@ -5,6 +5,8 @@
     = f.alert_message "Please fix the errors below."
     = f.hidden_field :league_id
     = f.select :gen_availability, [nil, '25%', '50%', '75%', '100%'], label: 'Availability'
+    - if @registration.league.created_at > Date.new(2019, 4, 11)
+        = f.select :shirt_size, [nil, 'XXL', 'XL', 'Large', 'Medium', 'Small', 'XS', 'XXS'], label: 'Unisex Shirt Size'
     .control-group
         .controls
             = f.check_box :eos_availability, value: 1, label: "Will attend end of season tourney"

@@ -1,4 +1,8 @@
-user_id,pair_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastname,email,gender,availability,notes,birthdate,height,EOST
+- include_shirt_size = (@league.created_at > Date.new(2019, 4, 11))
+- headers = %w(user_id pair_id draft_id team_id status official_rank self_rank firstname lastname email gender availability notes birthdate height EOST)
+- if include_shirt_size
+    - headers << 'shirt_size'
+= headers.join(',')
 - @registrations.each do |reg_item|
     - if reg_item.is_a? Registration
         - r = reg_item
@@ -22,4 +26,6 @@ user_id,pair_id,draft_id,team_id,status,official_rank,self_rank,firstname,lastna
     - row << r.user.age
     - row << r.user_data['height']
     - row << r.eos_availability
+    - if include_shirt_size
+        - row << r.shirt_size
     = raw row.to_csv(row_sep: nil)
