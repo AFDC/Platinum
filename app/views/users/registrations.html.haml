@@ -24,7 +24,7 @@
                     %td= reg.signup_timestamp.to_formatted_s(:long)
                     %td
                         = reg.status
-                        - if reg.status == 'accepted'
+                        - if reg.status == 'registering'
                             =link_to pay_registration_path(reg) do
                                 %i.icon.icon-shopping-cart
                         - if false && reg.status == 'canceled'

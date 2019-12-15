@@ -41,7 +41,7 @@ class Registration
     after_save  :bust_league_cache
 
     scope :active, where(status: 'active')
-    scope :accepted, where(status: 'accepted')
+    scope :registering, where(status: 'registering')
     scope :pending, where(status: 'pending')
     scope :canceled, where(status: 'canceled')
     scope :waitlisted, where(status: 'waitlisted')
@@ -79,7 +79,7 @@ class Registration
     end
 
     def accept(expires_at = nil)
-        self.status                = 'accepted'
+        self.status                = 'registering'
         self.warning_email_sent_at = nil
         self.acceptance_expires_at = expires_at
 

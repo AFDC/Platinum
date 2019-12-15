@@ -29,11 +29,11 @@ class RegistrationsController < ApplicationController
     end
 
     def pay
-        unless @registration.status == 'accepted'
-            message = "You can only pay for your registration if it has been accepted into the league. Your current status is: '#{@registration.status}'."
+        unless @registration.status == 'registering'
+            message = "Can't pay for that registration; your current status is: '#{@registration.status}'."
             message = "You are already in that league, you don't need to pay again!" if @registration.status == 'active'
             message = "You have canceled your registration. Please contact help@afdc.com if you want to un-cancel." if @registration.status == 'canceled'
-            message = "You haven't been accepted into the league yet, so we can't accept your payment at this time." if @registration.status == 'pending'
+            message = "It's not your turn to register yet, so we can't accept your payment at this time." if @registration.status == 'queued'
             redirect_to registration_path(@registration), flash: {error: message} and return 
         end
 
@@ -87,11 +87,11 @@ class RegistrationsController < ApplicationController
         all_registered  = league.registrations.where(gender: gender)
         spots_available = league.gender_limit(gender)
         active          = all_registered.active
-        accepted        = all_registered.accepted
+        registering     = all_registered.registering
         earlier_pending = all_registered.pending.where(:_id.lt => @registration._id)
 
         # Flag Waitlisted Registrations
-        if (all_registered.waitlisted.count > 0) || (accepted.count + active.count + earlier_pending.count >= spots_available)
+        if (all_registered.waitlisted.count > 0) || (registering.count + active.count + earlier_pending.count >= spots_available)
             @registration.status = 'waitlisted'
             @registration.save
             RegistrationMailer.delay.registration_waitlisted(@registration._id.to_s)
@@ -100,7 +100,7 @@ class RegistrationsController < ApplicationController
         end
 
         # There's room for this player; accept and move them to the payment phase
-        @registration.status = 'accepted'
+        @registration.status = 'registering'
         @registration.warning_email_sent_at = nil
         @registration.acceptance_expires_at = league.current_expiration_times[gender.to_sym]
         @registration.save!

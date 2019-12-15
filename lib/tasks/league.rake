@@ -1,11 +1,11 @@
 namespace :league do
-    desc 'Expire old, accepted registrations and send warning emails'
+    desc 'Expire old registrations and send warning emails'
     task expire_registrations: :environment do
         League.not_started.each do |l|
             print "#{l.name} (#{l.id})\n"
             expirations = l.current_expiration_times
 
-            l.registrations.accepted.each do |r|
+            l.registrations.registering.each do |r|
                 gender = r.gender.to_sym
 
                 if expirations[gender] && r.acceptance_expires_at.nil?

@@ -1,7 +1,7 @@
 %p #{@user.firstname},
 
 %p
-  Your registration has been accepted for #{link_to(@league.name, league_url(@league))}, but you are not yet active in the league.
+  You are invited to register for #{link_to(@league.name, league_url(@league))}, but you are not yet active in the league.
   In order to join the league, you must pay your registration fee. 
 
 - if @registration.acceptance_expires_at

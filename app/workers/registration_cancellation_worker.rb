@@ -8,7 +8,7 @@ class RegistrationCancellationWorker
       expirations   = league.current_expiration_times
 
       # Set Expirations
-      league.registrations.accepted.where(acceptance_expires_at: nil).each do |reg|
+      league.registrations.registering.where(acceptance_expires_at: nil).each do |reg|
         gender = reg.gender.to_sym
         next if expirations[gender].nil?
 
@@ -16,12 +16,12 @@ class RegistrationCancellationWorker
       end
 
       # Process expirations
-      league.registrations.accepted.where(:acceptance_expires_at.lte => Time.now).each do |reg|
+      league.registrations.registering.where(:acceptance_expires_at.lte => Time.now).each do |reg|
         expire_registration(reg)
       end
 
       # Process warning emails
-      league.registrations.accepted.where(:acceptance_expires_at.lte => 24.hours.from_now, warning_email_sent_at: nil).each do |reg|
+      league.registrations.registering.where(:acceptance_expires_at.lte => 24.hours.from_now, warning_email_sent_at: nil).each do |reg|
         send_warning(reg)
       end
     end    

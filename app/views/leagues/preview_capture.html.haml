@@ -27,10 +27,10 @@
           %td= stats[:waitlisted_female] = @league.registrations.female.waitlisted.count
           %td= stats[:waitlisted_male] + stats[:waitlisted_female]
         %tr
-          %th Accepted (Not Paid)
-          %td= stats[:accepted_male] = @league.registrations.male.accepted.count
-          %td= stats[:accepted_female] = @league.registrations.female.accepted.count
-          %td= stats[:accepted_male] + stats[:accepted_female]
+          %th Registering (Not Paid)
+          %td= stats[:registering_male] = @league.registrations.male.registering.count
+          %td= stats[:registering_female] = @league.registrations.female.registering.count
+          %td= stats[:registering_male] + stats[:registering_female]
         %tr
           %td
             %strong Active (Paid)
@@ -47,8 +47,8 @@
         %tr.success
           %td
             %strong Spots Remaining
-          %td= stats[:spots_male] = stats[:limit_male] - (stats[:active_male] + stats[:accepted_male])
-          %td= stats[:spots_female] = stats[:limit_female] - (stats[:active_female] + stats[:accepted_female])
+          %td= stats[:spots_male] = stats[:limit_male] - (stats[:active_male] + stats[:registering_male])
+          %td= stats[:spots_female] = stats[:limit_female] - (stats[:active_female] + stats[:registering_female])
           %td= stats[:spots_female] + stats[:spots_male]
     %hr
     %h4 Activate Players
@@ -58,7 +58,7 @@
           %p
             This page allows you to accept players up to the cap established for the league.
           %p
-            On the right, you will see a list of all players who will be accepted if you click the button below.
+            On the right, you will see a list of all players who will be allowed to register if you click the button below.
           - if @rg
             %p
               You are activating players from a #{@league.core_options.type}. On the right, 

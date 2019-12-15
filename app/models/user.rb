@@ -188,6 +188,6 @@ class User
   end
 
   def registrations_with_payment_due
-    registrations.accepted.select {|reg| reg.league.started? == false}
+    registrations.registering.select {|reg| reg.league.started? == false}
   end
 end
