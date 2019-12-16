@@ -45,7 +45,8 @@ class Registration
     scope :pending, where(status: 'pending')
     scope :canceled, where(status: 'canceled')
     scope :waitlisted, where(status: 'waitlisted')
-    scope :queued, where(status: 'queued')
+    scope :queued, where(status: 'queued', :expires_at.gt => Time.now)
+    scope :expired, where(status: 'expired').or(status: 'queued', :expires_at.lte => Time.now)
 
     scope :male, where(gender: 'male')
     scope :female, where(gender: 'female')
