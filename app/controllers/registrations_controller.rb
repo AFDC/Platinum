@@ -102,7 +102,7 @@ class RegistrationsController < ApplicationController
         # There's room for this player; accept and move them to the payment phase
         @registration.status = 'registering'
         @registration.warning_email_sent_at = nil
-        @registration.acceptance_expires_at = league.current_expiration_times[gender.to_sym]
+        @registration.expires_at = league.current_expiration_times[gender.to_sym]
         @registration.save!
         redirect_to pay_registration_path(@registration)
     end

@@ -15,7 +15,8 @@ class Registration
     field :g_rank, type: Float
     field :shirt_size
     
-    field :acceptance_expires_at, type: DateTime
+    field :acceptance_expires_at, type: DateTime # DEPRECATED
+    field :expires_at, type: DateTime
     field :warning_email_sent_at, type: DateTime  
 
     field :waiver_acceptance_date, type: DateTime
@@ -46,7 +47,7 @@ class Registration
     scope :canceled, where(status: 'canceled')
     scope :waitlisted, where(status: 'waitlisted')
     scope :queued, where(status: 'queued', :expires_at.gt => Time.now)
-    scope :expired, where(status: 'expired').or(status: 'queued', :expires_at.lte => Time.now)
+    scope :expired, where(status: 'expired').or(status: 'registering', :expires_at.lte => Time.now)
 
     scope :male, where(gender: 'male')
     scope :female, where(gender: 'female')
@@ -82,7 +83,7 @@ class Registration
     def accept(expires_at = nil)
         self.status                = 'registering'
         self.warning_email_sent_at = nil
-        self.acceptance_expires_at = expires_at
+        self.expires_at = expires_at
 
         if self.save
             RegistrationMailer.delay.registration_accepted(self._id.to_s)
