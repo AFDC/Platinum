@@ -59,18 +59,33 @@ class LeaguesController < ApplicationController
     end
 
     def register
+        existing_registration @league.registration_for(current_user)
+
+        if (existing_registration)
+            case existing_registration.status
+            when 'active'
+                redirect_to registrations_user_path(current_user), notice: "You've already registered for that league."
+                return                
+            when 'registering'
+                render "registrations/edit"
+                return
+            when 'waitlisted'
+                redirect_to league_path(@league), flash: {error: "You're currently on the wait list. Please watch your email to see if you'll get in."}
+                return    
+            end
+
+            # We deal with canceled, queued, and expired registrations as if the person has never registered
+        end
+
         if (@league.registration_open_for?(current_user) == false)
             redirect_to league_path(@league), notice: "Registration is not open for that league yet."
-            return
-        end
-        if (Registration.where(league_id: @league._id, user_id: current_user._id).count > 0)
-            redirect_to registrations_user_path(current_user), notice: "You've already registered for that league."
             return
         end
 
         # Gender permitted check
         if @league.gender_permitted?(current_user.gender) == false
-            redirect_to league_path(@league), flash: {error: "No #{current_user.gender} registrants allowed."} and return
+            redirect_to league_path(@league), flash: {error: "No #{current_user.gender} registrants allowed."}
+            return
         end
 
         unless current_user.valid?
@@ -84,9 +99,41 @@ class LeaguesController < ApplicationController
             return
         end
 
-        @registration = Registration.new()
-        @registration.league = @league
-        @registration.user = current_user;
+        if (@league.waitlisted.where(gender: current_user.gender).count > 0)
+            # TODO: Add Waitlist Path
+            redirect_to league_path(@league), flash: {error: "This league is full."}
+            return
+        end
+
+        # Create placeholder registration -- eliminates a race condition that allows too many people to register
+        # We first create queued registrations for everyone 
+
+        @registration = existing_registration
+        @registration ||= Registration.new(league: @league, user: current_user)
+
+        @registration.status = 'queued'
+        @registration.save!
+
+        registrations = @league.registrations.where(gender: @registration.gender)
+
+        limit       = @league.gender_limit(@registration.gender)
+        active      = registrations.active.count
+        registering = registrations.registering.count
+        earlier_q   = registrations.queued.where(:_id.lt => @registration._id)
+
+        # TODO: Add a check to see if the league is full and redirect to the waitlist path
+
+        if (limit <= active + registering + earlier_q) 
+            # League is not full, but it might be if everyone currently registering pays
+            redirect_to league_path(@league), flash: {error: "Enough players are registering now to fill up the league. Check back in 10 minutes to see if anyone backed out."}
+            return
+        end
+
+        @registration.update(
+            status:     'registering',
+            expires_at: @league.current_expiration_time
+        )
+
         render "registrations/edit"
     end
 

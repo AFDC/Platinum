@@ -181,8 +181,12 @@ class League
     end
   end
 
+  def current_expiration_time
+    10.minutes.from_now
+  end
+
   def current_expiration_times
-    { male: 10.minutes.from_now, female: 10.minutes.from_now }
+    { male: current_expiration_time, female: current_expiration_time }
   end
 
   def invite!(player)
