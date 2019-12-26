@@ -5,6 +5,11 @@ class PaymentsController < ApplicationController
         redirect_to registrations_user_path(current_user), flash: {error: "Registration not found."} and return 
     end
 
+    if registration.is_expired?
+      redirect_to register_league_path(registration.league), flash: {error: "You took too long to register. Please try again."}
+      return
+    end
+
     price    = registration.price
 
     result = Braintree::Transaction.sale(

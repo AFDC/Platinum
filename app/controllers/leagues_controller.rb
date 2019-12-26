@@ -59,17 +59,21 @@ class LeaguesController < ApplicationController
     end
 
     def register
-        existing_registration @league.registration_for(current_user)
+        existing_registration = @league.registration_for(current_user)
 
         if (existing_registration)
-            case existing_registration.status
-            when 'active'
+            if existing_registration.status == 'active'
                 redirect_to registrations_user_path(current_user), notice: "You've already registered for that league."
                 return                
-            when 'registering'
+            end
+
+            if existing_registration.is_registering?
+                @registration = existing_registration
                 render "registrations/edit"
                 return
-            when 'waitlisted'
+            end
+
+            if existing_registration.status == 'waitlisted'
                 redirect_to league_path(@league), flash: {error: "You're currently on the wait list. Please watch your email to see if you'll get in."}
                 return    
             end
@@ -99,41 +103,19 @@ class LeaguesController < ApplicationController
             return
         end
 
-        if (@league.waitlisted.where(gender: current_user.gender).count > 0)
-            # TODO: Add Waitlist Path
-            redirect_to league_path(@league), flash: {error: "This league is full."}
-            return
-        end
-
         # Create placeholder registration -- eliminates a race condition that allows too many people to register
         # We first create queued registrations for everyone 
 
         @registration = existing_registration
         @registration ||= Registration.new(league: @league, user: current_user)
 
-        @registration.status = 'queued'
-        @registration.save!
+        update_registration_status!(@registration)
 
-        registrations = @league.registrations.where(gender: @registration.gender)
-
-        limit       = @league.gender_limit(@registration.gender)
-        active      = registrations.active.count
-        registering = registrations.registering.count
-        earlier_q   = registrations.queued.where(:_id.lt => @registration._id)
-
-        # TODO: Add a check to see if the league is full and redirect to the waitlist path
-
-        if (limit <= active + registering + earlier_q) 
-            # League is not full, but it might be if everyone currently registering pays
+        if (@registration.status == 'queued')
             redirect_to league_path(@league), flash: {error: "Enough players are registering now to fill up the league. Check back in 10 minutes to see if anyone backed out."}
             return
         end
-
-        @registration.update(
-            status:     'registering',
-            expires_at: @league.current_expiration_time
-        )
-
+        
         render "registrations/edit"
     end
 
@@ -596,6 +578,43 @@ class LeaguesController < ApplicationController
     end
 
     private
+
+    def update_registration_status!(registration)
+        league = registration.league
+        user   = registration.user
+
+        if (league.registrations.waitlisted.where(gender: user.gender).count > 0)
+            registration.status = 'registering_waitlisted'
+            registration.save!(validate: false)
+            return
+        end
+
+        registration.status = 'queued'
+        registration.save!(validate: false)
+
+        registrations = league.registrations.where(gender: registration.gender)
+
+        limit       = league.gender_limit(registration.gender)
+        active      = registrations.active.count
+        registering = registrations.registering.count
+        earlier_q   = registrations.queued.where(:_id.lt => registration._id).count
+
+        # League is full; add to waitlist
+        if limit <= active
+            registration.status = 'registering_waitlisted'
+            registration.save!(validate: false)
+            return
+        end
+
+        # League is not full, but it might be if everyone currently registering pays
+        if (limit <= active + registering + earlier_q)
+            return
+        end
+
+        registration.status     = 'registering'
+        registration.expires_at = league.current_expiration_time
+        registration.save!(validate: false)
+    end
 
     def load_league_from_params
         begin

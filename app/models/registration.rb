@@ -40,14 +40,16 @@ class Registration
 
     before_save :ensure_price
     after_save  :bust_league_cache
+    after_initialize :load_user_info, if: :new_record?
 
     scope :active, where(status: 'active')
-    scope :registering, where(status: 'registering')
+    scope :registering, where(status: 'registering', :expires_at.gt => Time.now)
     scope :pending, where(status: 'pending')
     scope :canceled, where(status: 'canceled')
     scope :waitlisted, where(status: 'waitlisted')
-    scope :queued, where(status: 'queued', :expires_at.gt => Time.now)
-    scope :expired, where(status: 'expired').or(status: 'registering', :expires_at.lte => Time.now)
+    scope :registering_waitlisted, where(status: 'registering_waitlisted')
+    scope :queued, where(status: 'queued')
+    scope :expired, any_of( {status: 'expired'}, {status: 'registering', :expires_at.lte => Time.now} )
 
     scope :male, where(gender: 'male')
     scope :female, where(gender: 'female')
@@ -129,6 +131,17 @@ class Registration
         save!
     end
 
+    def is_expired?
+        return true  if status     == "expired"
+        return false if expires_at == nil
+        
+        return (expires_at <= Time.now)
+    end
+
+    def is_registering?
+        return (status == 'registering') && (is_expired? == false)
+    end
+
     def rank
         self.commish_rank || self.g_rank || self.self_rank
     end
@@ -145,6 +158,26 @@ class Registration
 
     def waiver_accepted
         !waiver_acceptance_date.nil?
+    end
+
+    def memoize_user_info(new_user = nil)
+        self.user = new_user unless new_user.nil?
+
+        if user.nil?
+            raise "User not set"
+        end
+
+        self.gender = user.gender
+
+        self.user_data = {
+            birthdate: user.birthdate,
+            firstname: user.firstname,
+            middlename: user.middlename,
+            lastname: user.lastname,
+            gender: user.gender,
+            height: user.height,
+            weight: user.weight
+        }
     end
 
     # Validators
@@ -178,6 +211,10 @@ class Registration
     end
 
     private
+
+    def load_user_info
+        memoize_user_info if user
+    end
 
     def bust_league_cache
         self.league.touch

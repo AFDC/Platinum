@@ -16,7 +16,6 @@ Platinum::Application.routes.draw do
     member do
       put 'cancel'
       get 'pay'
-      get 'waitlist_check'
     end
   end
 
