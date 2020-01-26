@@ -71,6 +71,33 @@ $(function(){
             e.preventDefault();
         }
     });
+
+    $(".countdown").each(function(i, el){
+        if (this.getAttribute("data-expiration")) {
+            var expirationDate = el.getAttribute("data-expiration");
+            var updateExpiration = function() {
+                var cd = countdown(expirationDate * 1000);
+
+                console.log(cd);
+                var msg = cd.toString();
+
+                if (cd.minutes < 3) {
+                    msg = "<b>" + msg + "</b>";
+                }
+
+                if (cd.value >= 0) {
+                    msg = "<b>REGISTRATION EXPIRED</b>";
+                    clearInterval(myInverval);
+                }
+
+                el.innerHTML = msg;
+            };
+
+            updateExpiration();
+
+            var myInverval = setInterval(updateExpiration, 1000);
+        }
+    });
 });
 
 
