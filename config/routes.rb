@@ -23,6 +23,7 @@ Platinum::Application.routes.draw do
     member do
       get 'register'
       get 'registrations'
+      get 'registration_queue'
       post 'registrations'
 
       get 'preview_capture'

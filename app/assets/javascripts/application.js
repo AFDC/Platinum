@@ -74,11 +74,11 @@ $(function(){
 
     $(".countdown").each(function(i, el){
         if (this.getAttribute("data-expiration")) {
+            var expiredMessage = this.getAttribute("data-expire-message");
             var expirationDate = el.getAttribute("data-expiration");
             var updateExpiration = function() {
                 var cd = countdown(expirationDate * 1000);
 
-                console.log(cd);
                 var msg = cd.toString();
 
                 if (cd.minutes < 3) {
@@ -86,7 +86,7 @@ $(function(){
                 }
 
                 if (cd.value >= 0) {
-                    msg = "<b>REGISTRATION EXPIRED</b>";
+                    msg = "<b>" + expiredMessage + "</b>";
                     clearInterval(myInverval);
                 }
 

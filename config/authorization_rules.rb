@@ -28,7 +28,7 @@ authorization do
 		has_permission_on :registration_groups, to: [:index]
 		has_permission_on :registrations, to: [:create]
 		has_permission_on :payments, to: [:create]
-		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair, :missing_spirit_reports]
+		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair, :missing_spirit_reports, :registration_queue]
 		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
 		has_permission_on :spirit_reports, to: [:index, :new, :create, :show, :edit, :update]
 

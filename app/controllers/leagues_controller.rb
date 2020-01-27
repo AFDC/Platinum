@@ -112,11 +112,34 @@ class LeaguesController < ApplicationController
         update_registration_status!(@registration)
 
         if (@registration.status == 'queued')
-            redirect_to league_path(@league), flash: {error: "Enough players are registering now to fill up the league. Check back in 10 minutes to see if anyone backed out."}
+            redirect_to registration_queue_league_path(@league)
             return
         end
         
         render "registrations/edit"
+    end
+
+    def registration_queue
+        if @league.registration_open_for?(current_user) == false
+            redirect_to league_path(@league), flash: {error: "You're not able to register for that league yet."} and return
+        end
+
+        current_user_reg = @league.registration_for(current_user)
+        
+        update_registration_status!(current_user_reg)
+        
+        if current_user_reg.nil? || current_user_reg.status == 'registering' || current_user_reg.status == 'registering_waitlisted'
+            redirect_to register_league_path(@league) and return
+        end
+
+        @total_spots = @league.gender_limit(current_user.gender)
+
+        registrations_by_gender = @league.registrations.where(gender: current_user.gender)
+
+        @regs_active         = registrations_by_gender.active.count
+        @regs_registering    = registrations_by_gender.registering.count
+        @regs_queued_earlier = current_user_reg.count_earlier_queued_registrations
+
     end
 
     def registrations
@@ -580,6 +603,7 @@ class LeaguesController < ApplicationController
     private
 
     def update_registration_status!(registration)
+        return if registration.nil?
         league = registration.league
         user   = registration.user
 
@@ -589,7 +613,13 @@ class LeaguesController < ApplicationController
             return
         end
 
-        registration.status = 'queued'
+        registration.status     = 'queued'
+        registration.expires_at = 3.minutes.from_now
+
+        if (registration.queued_at.nil? || registration.is_expired?)
+            registration.queued_at  = Time.now
+        end
+
         registration.save!(validate: false)
 
         registrations = league.registrations.where(gender: registration.gender)
@@ -597,7 +627,7 @@ class LeaguesController < ApplicationController
         limit       = league.gender_limit(registration.gender)
         active      = registrations.active.count
         registering = registrations.registering.count
-        earlier_q   = registrations.queued.where(:_id.lt => registration._id).count
+        earlier_q   = registration.count_earlier_queued_registrations
 
         # League is full; add to waitlist
         if limit <= active

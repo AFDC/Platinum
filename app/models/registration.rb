@@ -17,6 +17,7 @@ class Registration
     
     field :acceptance_expires_at, type: DateTime # DEPRECATED
     field :expires_at, type: DateTime
+    field :queued_at, type: DateTime
     field :warning_email_sent_at, type: DateTime  
 
     field :waiver_acceptance_date, type: DateTime
@@ -48,7 +49,7 @@ class Registration
     scope :canceled, where(status: 'canceled')
     scope :waitlisted, where(status: 'waitlisted')
     scope :registering_waitlisted, where(status: 'registering_waitlisted')
-    scope :queued, where(status: 'queued')
+    scope :queued, where(status: 'queued', :expires_at.gt => Time.now)
     scope :expired, any_of( {status: 'expired'}, {status: 'registering', :expires_at.lte => Time.now} )
 
     scope :male, where(gender: 'male')
@@ -178,6 +179,18 @@ class Registration
             height: user.height,
             weight: user.weight
         }
+    end
+
+    def count_earlier_queued_registrations
+        return 0 unless status == 'queued'
+        count = 0
+
+        league.registrations.queued.where(gender: gender).each do |reg|
+            next  if reg._id == self._id
+            count += 1 if reg.queued_at < self.queued_at
+        end
+
+        count
     end
 
     # Validators

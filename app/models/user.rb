@@ -56,6 +56,10 @@ class User
     Team.where({ '$or' => [{'captains' => id}, {'reporters' => id}]})
   end
 
+  def gender_noun
+    {"male" => "man", "female" => "woman"}[gender]
+  end
+
   def braintree_customer_id
     cid = id.to_s
     begin
