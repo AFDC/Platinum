@@ -1,6 +1,7 @@
 namespace :league do
     desc 'Expire old registrations and send warning emails'
     task expire_registrations: :environment do
+        raise "This rake task is deprecated"
         League.not_started.each do |l|
             print "#{l.name} (#{l.id})\n"
             expirations = l.current_expiration_times
