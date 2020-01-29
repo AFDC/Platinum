@@ -37,6 +37,11 @@
                                 %button{type: "submit", class: 'btn btn-primary'} Do it!
 
     .span7
+        - if @registration.status == "registering_waitlisted"
+            .alert.alert-block
+                %h4 Waitlist Registration
+                This league is full. By submitting your registration you will be added to the waitlist
+                and notified if a spot opens up for you. 
         %h4= @registration.user.name
         %dl.dl-horizontal
             %dt Gender:

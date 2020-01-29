@@ -1,4 +1,4 @@
--if (@registration.status != 'active') && (@registration.league.comped? (@registration.new_record? ? current_user : @registration.user))
+-if (@registration.status != 'active') && (@registration.league.comped? (@registration.user))
     .alert.alert-info This registration will be comped by the league
 
 = bootstrap_form_for(@registration, html: { class: 'form-horizontal' }, help: :block) do |f|
@@ -24,7 +24,7 @@
                     = check_box_tag :subscribe, 1, checked: true
                     Send Me AFDC Updates
 
-    - if @registration.new_record?
+    - if @registration.status == 'registering' || @registration.status == 'registering_waitlisted'
         .control-group
             .controls
                 = f.check_box :waiver_accepted, value: 1, label: raw('I have read, understand, and accept the <br /> AFDC\'s <a href="http://blog.afdc.com/wp-content/uploads/2012/05/2012-AFDC-Waiver-Minors.pdf">liability waiver</a> and <a href="http://www.afdc.com/refund-policy/">refund policy</a>.')

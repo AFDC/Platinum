@@ -15,7 +15,9 @@ class Registration
     field :g_rank, type: Float
     field :shirt_size
     
-    field :acceptance_expires_at, type: DateTime
+    field :acceptance_expires_at, type: DateTime # DEPRECATED
+    field :expires_at, type: DateTime
+    field :queued_at, type: DateTime
     field :warning_email_sent_at, type: DateTime  
 
     field :waiver_acceptance_date, type: DateTime
@@ -39,12 +41,16 @@ class Registration
 
     before_save :ensure_price
     after_save  :bust_league_cache
+    after_initialize :load_user_info, if: :new_record?
 
     scope :active, where(status: 'active')
-    scope :accepted, where(status: 'accepted')
+    scope :registering, where(status: 'registering', :expires_at.gt => Time.now)
     scope :pending, where(status: 'pending')
     scope :canceled, where(status: 'canceled')
     scope :waitlisted, where(status: 'waitlisted')
+    scope :registering_waitlisted, where(status: 'registering_waitlisted')
+    scope :queued, where(status: 'queued', :expires_at.gt => Time.now)
+    scope :expired, any_of( {status: 'expired'}, {status: 'registering', :expires_at.lte => Time.now} )
 
     scope :male, where(gender: 'male')
     scope :female, where(gender: 'female')
@@ -78,9 +84,9 @@ class Registration
     end
 
     def accept(expires_at = nil)
-        self.status                = 'accepted'
+        self.status                = 'registering'
         self.warning_email_sent_at = nil
-        self.acceptance_expires_at = expires_at
+        self.expires_at = expires_at
 
         if self.save
             RegistrationMailer.delay.registration_accepted(self._id.to_s)
@@ -126,6 +132,17 @@ class Registration
         save!
     end
 
+    def is_expired?
+        return true  if status     == "expired"
+        return false if expires_at == nil
+        
+        return (expires_at <= Time.now)
+    end
+
+    def is_registering?
+        return (status == 'registering') && (is_expired? == false)
+    end
+
     def rank
         self.commish_rank || self.g_rank || self.self_rank
     end
@@ -142,6 +159,38 @@ class Registration
 
     def waiver_accepted
         !waiver_acceptance_date.nil?
+    end
+
+    def memoize_user_info(new_user = nil)
+        self.user = new_user unless new_user.nil?
+
+        if user.nil?
+            raise "User not set"
+        end
+
+        self.gender = user.gender
+
+        self.user_data = {
+            birthdate: user.birthdate,
+            firstname: user.firstname,
+            middlename: user.middlename,
+            lastname: user.lastname,
+            gender: user.gender,
+            height: user.height,
+            weight: user.weight
+        }
+    end
+
+    def count_earlier_queued_registrations
+        return 0 unless status == 'queued'
+        count = 0
+
+        league.registrations.queued.where(gender: gender).each do |reg|
+            next  if reg._id == self._id
+            count += 1 if reg.queued_at < self.queued_at
+        end
+
+        count
     end
 
     # Validators
@@ -175,6 +224,10 @@ class Registration
     end
 
     private
+
+    def load_user_info
+        memoize_user_info if user
+    end
 
     def bust_league_cache
         self.league.touch

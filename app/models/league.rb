@@ -181,18 +181,12 @@ class League
     end
   end
 
+  def current_expiration_time
+    10.minutes.from_now
+  end
+
   def current_expiration_times
-    expirations = { male: nil, female: nil }
-
-    unless male_limit.nil?
-        expirations[:male]   = (registrations.male.count >= male_limit)? 48.hours.from_now : nil
-    end
-
-    unless female_limit.nil?
-        expirations[:female] = (registrations.female.count >= female_limit)? 48.hours.from_now : nil
-    end
-
-    return expirations
+    { male: current_expiration_time, female: current_expiration_time }
   end
 
   def invite!(player)

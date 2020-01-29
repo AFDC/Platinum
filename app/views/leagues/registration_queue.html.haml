@@ -1,0 +1,38 @@
+- content_for :title, @league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'League Registration', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registration' => nil}}
+
+.well
+    %h4 #{@league.name} Registration Queue
+
+    %p
+        The league isn't quite full yet, but it could fill up soon. Players will have a chance to register on a
+        first-come, first-served basis. Here's the current league registration stats:
+
+    %dl
+        %dt Total Spots for #{current_user.gender_noun.pluralize}
+        %dd #{@total_spots}
+
+        %dt Registered
+        %dd #{@regs_active}
+
+        %dt Registering Now
+        %dd #{@regs_registering}
+
+        %dt Queued Ahead of You
+        %dd #{@regs_queued_earlier}
+
+        %dt Next Update In:
+        %dd
+            <span class="countdown" data-expiration="#{60.seconds.from_now.to_i}" data-expire-message="Refresh page now">60 seconds</span>
+    
+    %h5 
+        Please stay on this page to retain your spot in line. If you leave, 
+        you may be pushed to the end of the line.
+
+- content_for :page_scripts do
+    :javascript
+        $(function(){
+            setTimeout(function() {
+                location.reload(true);
+            }, 59*1000);
+        });

@@ -11,19 +11,19 @@
                             You're in!
                         %p
                             You've registered and paid. There's nothing left to do! Enjoy #{@registration.league.name}!
-                    - when 'accepted'
+                    - when 'registering'
                         %h2
                             = fa_icon 'warning-sign'
                             You're Almost Done...
                         %p
                             We haven't received your payment for this league!
                             #{link_to("Click here to pay now!", pay_registration_path(@registration))}
-                        - if @registration.acceptance_expires_at
+                        - if @registration.expires_at
                             %p
                                 %em Note:
                                 Your registration will expire in approximately
                                 %strong
-                                    #{distance_of_time_in_words Time.now, @registration.acceptance_expires_at}. 
+                                    #{distance_of_time_in_words Time.now, @registration.expires_at}. 
                                 After that, you'll be put on the wait list and may not get a chance to play.
                     - when 'waitlisted'
                         %h2

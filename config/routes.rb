@@ -16,7 +16,6 @@ Platinum::Application.routes.draw do
     member do
       put 'cancel'
       get 'pay'
-      get 'waitlist_check'
     end
   end
 
@@ -24,6 +23,7 @@ Platinum::Application.routes.draw do
     member do
       get 'register'
       get 'registrations'
+      get 'registration_queue'
       post 'registrations'
 
       get 'preview_capture'

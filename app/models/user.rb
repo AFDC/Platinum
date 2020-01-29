@@ -56,6 +56,10 @@ class User
     Team.where({ '$or' => [{'captains' => id}, {'reporters' => id}]})
   end
 
+  def gender_noun
+    {"male" => "man", "female" => "woman"}[gender]
+  end
+
   def braintree_customer_id
     cid = id.to_s
     begin
@@ -188,6 +192,6 @@ class User
   end
 
   def registrations_with_payment_due
-    registrations.accepted.select {|reg| reg.league.started? == false}
+    registrations.registering.select {|reg| reg.league.started? == false}
   end
 end

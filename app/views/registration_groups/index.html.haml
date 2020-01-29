@@ -108,7 +108,7 @@
                   - else
                     - label_type = 'important'
                     - label_type = 'success' if reg.status == 'active'
-                    - label_type = 'info' if reg.status == 'accepted'
+                    - label_type = 'info' if reg.status == 'registering'
                     - label_type = 'inverse' if reg.status == 'canceled'
                     %td
                       %span{class: "label label-#{label_type}"}=reg.status

@@ -11,6 +11,10 @@
     = stylesheet_link_tag '//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css'
     = javascript_include_tag '/javascripts/jquery-2.1.0.min.js'
     = javascript_include_tag '//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js'
+    = javascript_include_tag "application"
+    = javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js')
+    = javascript_include_tag('///cdnjs.cloudflare.com/ajax/libs/countdown/2.6.0/countdown.min.js')
+
 
     = yield :page_scripts
     = yield :page_styles
@@ -75,13 +79,14 @@
       - if flash[:error]
         .alert.alert-error= flash[:error]
       - if current_user
-        - regs_due = current_user.registrations_with_payment_due
+        - regs_due = current_user.registrations.registering
         - if regs_due.count > 0
           .alert.alert-success
-            %h4 Please pay the following registration fees to join the league:
+            %h4 Time is ticking!
+            %p The following registrations need to be finished and paid for soon!
             %ul
-              -current_user.registrations_with_payment_due.each do |reg|
-                %li #{link_to(reg.league.name, pay_registration_path(reg))} ($#{number_with_precision(reg.price, precision: 2)})
+              -regs_due.each do |reg|
+                %li #{link_to(reg.league.name, register_league_path(reg.league))} ($#{number_with_precision(reg.price, precision: 2)}) Expires in: <span class="countdown" data-expiration="#{reg.expires_at.to_i}" data-expire-message="Registration Expired.">#{distance_of_time_in_words_to_now(reg.expires_at)}</span>
       = yield
       - if Rails.env.development?
         %div{style: 'margin-top: 50px'}

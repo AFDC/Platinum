@@ -7,7 +7,7 @@ class RegistrationPaymentReminderWorker
 
     return unless r.present?
 
-    if r.status == 'accepted'
+    if r.status == 'registering'
         logger.info { "#{registration_id} Not yet paid. :(" }
         RegistrationMailer.stale_accepted_registration(registration_id).deliver
     end
