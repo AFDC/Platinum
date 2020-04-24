@@ -112,7 +112,7 @@ class Registration
         self.save
     end
 
-    def refund!
+    def refund!(amount = nil)
         return false unless status == 'active'
         return false if comped
 
@@ -125,7 +125,13 @@ class Registration
             raise result.errors.first.message
         end
 
-        pt.refunded_amount = pt.amount
+        refund_amount = amount || pt.amount
+
+        if refund_amount > pt.amount
+            raise "Attempted to refund $#{refund_amount} but registration was only $#{pt.amount}"
+        end
+
+        pt.refunded_amount = refund_amount
         pt.save
 
         self.status = 'canceled'
