@@ -6,10 +6,11 @@
     "image": "mailhog/mailhog",
     "ports": ["8025:8025"]
   },
-  "web": {
+  "sut": {
     "image": "afdc/platinum",
     "ports": ["3000:3000"],
     "links": ["mongodb", "redis", "memcached", "mailhog"],
+    "command": ["bundle", "exec", "rspec", "--color", "spec", "--format", "progress"],
     "environment": {
       "REDIS_URL": "redis://redis:6379",
       "MONGO_HOST": "mongodb",
