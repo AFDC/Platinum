@@ -7,7 +7,7 @@
     "ports": ["8025:8025"]
   },
   "sut": {
-    "image": "afdc/platinum",
+    "build": ".",
     "ports": ["3000:3000"],
     "links": ["mongodb", "redis", "memcached", "mailhog"],
     "command": ["bundle", "exec", "rspec", "--color", "spec", "--format", "progress"],
