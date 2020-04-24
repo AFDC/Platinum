@@ -118,17 +118,15 @@ class Registration
 
         pt = payment_transactions.first
 
-        result = Braintree::Transaction.refund(pt.transaction_id)
+        refund_amount = amount || pt.amount
+        if refund_amount > pt.amount
+            raise "Attempted to refund $#{refund_amount} but registration was only $#{pt.amount}"
+        end
 
+        result = Braintree::Transaction.refund(pt.transaction_id, amount: refund_amount)
 
         unless result.success?
             raise result.errors.first.message
-        end
-
-        refund_amount = amount || pt.amount
-
-        if refund_amount > pt.amount
-            raise "Attempted to refund $#{refund_amount} but registration was only $#{pt.amount}"
         end
 
         pt.refunded_amount = refund_amount
