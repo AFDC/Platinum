@@ -123,7 +123,7 @@ class Registration
             raise "Attempted to refund $#{refund_amount} but registration was only $#{pt.amount}"
         end
 
-        result = Braintree::Transaction.refund(pt.transaction_id, amount: ("%.2f" % pt.amount))
+        result = Braintree::Transaction.refund(pt.transaction_id, amount: ("%.2f" % refund_amount))
 
         unless result.success?
             raise result.errors.first.message
