@@ -162,7 +162,7 @@ GEM
       coderay (~> 1.0.5)
       method_source (~> 0.8)
       slop (~> 3.4)
-    puma (3.6.2)
+    puma (3.12.6)
     rack (1.4.7)
     rack-cache (1.7.1)
       rack (>= 0.4)
