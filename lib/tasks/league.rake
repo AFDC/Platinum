@@ -28,7 +28,7 @@ namespace :league do
                     r.acceptance_expires_at = nil
                     r.warning_email_sent_at = nil
                     if r.save
-                        RegistrationMailer.unpaid_registration_canceled(r.id.to_s).deliver
+                        RegistrationMailer.unpaid_registration_cancelled(r.id.to_s).deliver
                     end
                     next
                 end

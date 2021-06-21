@@ -1,12 +1,8 @@
 %p #{@user.firstname},
 
 %p
-  It's been 48 hours since your registration was accepted into #{link_to(@league.name, league_url(@league))} and we have not yet 
-  received your payment. In order to make room for other players, your registration has been returned to the 'pending' status and 
-  you've been moved to the back of the line.
-
-%p
-  If there is room left in the league, you will be re-accepted at some point in the future. Keep an eye out for further emails!
+  Your spot to register in #{link_to(@league.name, league_url(@league))} has expired because you did not complete your
+  in time. Please return to the league page to complete your registration if you wish to play.
 
 %p
   If you have any questions, please contact the league commissioner. For technical issues or

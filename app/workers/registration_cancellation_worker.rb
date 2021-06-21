@@ -34,7 +34,7 @@ class RegistrationCancellationWorker
       registration: reg
     )
 
-    RegistrationMailer.unpaid_registration_canceled(reg.id.to_s).deliver
+    RegistrationMailer.unpaid_registration_cancelled(reg.id.to_s).deliver
   end
 
   def send_warning(reg)

@@ -34,7 +34,7 @@ class RegistrationMailer < ActionMailer::Base
     mail(to: @registration.user.email_address, subject: '[AFDC] Please pay for your ' + @league.name + ' registration before it expires!')
   end
 
-  def unpaid_registration_canceled(registration_id)
+  def unpaid_registration_cancelled(registration_id)
     @registration = Registration.find(registration_id)
     @user = @registration.user
     @league = @registration.league
