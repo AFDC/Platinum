@@ -3,6 +3,7 @@ class RegistrationCancellationWorker
 
   def perform
     open_leagues = League.not_started
+    logger.info "RegistrationCancellationWorker performing job... (open leagues: #{open_leagues.count})"
 
     open_leagues.each do |league|
       logger.info "Processing Cancellations for #{league.name}"
