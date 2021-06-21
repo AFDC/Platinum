@@ -6,7 +6,7 @@ class RegistrationCancellationWorker
     logger.info "RegistrationCancellationWorker performing job... (open leagues: #{open_leagues.count})"
 
     open_leagues.each do |league|
-      logger.info "Processing Cancellations for #{league.name} (count: #{league.registrations.expired.where(:status.ne => "expired").count}"
+      logger.info "Processing Cancellations for #{league.name} (count: #{league.registrations.expired.where(:status.ne => "expired").count})"
 
       # Process expirations
       league.registrations.expired.where(:status.ne => "expired").each do |reg|
