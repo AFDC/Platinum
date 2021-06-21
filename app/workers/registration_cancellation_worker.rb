@@ -26,20 +26,15 @@ class RegistrationCancellationWorker
     reg.status                = 'expired'
     reg.expires_at            = nil
     reg.warning_email_sent_at = nil
-    if reg.save
-        AuditLog.create(
-          action: 'Expire',
-          league: reg.league,
-          registration: reg
-        )
-        RegistrationMailer.unpaid_registration_canceled(reg.id.to_s).deliver
-        logger.info "\t...cancelled."
-    else
-      logger.info "\tsave failed."
-      reg.errors.full_messages.each do |msg|
-        logger.info "\t\t#{msg}"
-      end
-    end    
+    reg.save!(validate: false) # registrations that haven't been filled out yet won't be valid
+
+    AuditLog.create(
+      action: 'Expire',
+      league: reg.league,
+      registration: reg
+    )
+
+    RegistrationMailer.unpaid_registration_canceled(reg.id.to_s).deliver
   end
 
   def send_warning(reg)
