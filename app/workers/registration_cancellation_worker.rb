@@ -5,12 +5,12 @@ class RegistrationCancellationWorker
     open_leagues = League.not_started
 
     open_leagues.each do |league|
-      puts "Processing Cancellations for #{league.name}"
+      logger.info "Processing Cancellations for #{league.name}"
       expirations   = league.current_expiration_times
 
       # Process expirations
       league.registrations.expired.where(:status.ne => "expired").each do |reg|
-        puts "Cancelling registration for #{reg.user_data['firstname']} #{reg.user_data['lastname']}"
+        logger.info "Cancelling registration for #{reg.user_data['firstname']} #{reg.user_data['lastname']}"
         expire_registration(reg)
       end
 
@@ -32,7 +32,7 @@ class RegistrationCancellationWorker
           registration: reg
         )
         RegistrationMailer.unpaid_registration_canceled(reg.id.to_s).deliver
-        puts "\t...cancelled."
+        logger.info "\t...cancelled."
     end    
   end
 
