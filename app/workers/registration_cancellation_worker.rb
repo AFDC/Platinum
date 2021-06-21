@@ -6,19 +6,18 @@ class RegistrationCancellationWorker
     logger.info "RegistrationCancellationWorker performing job... (open leagues: #{open_leagues.count})"
 
     open_leagues.each do |league|
-      logger.info "Processing Cancellations for #{league.name} (count: #{league.registrations.expired.where(:status.ne => "expired").count})"
+      expired_regs = league.registrations.expired.where(:status.ne => "expired").to_a
+
+      logger.info "Processing Cancellations for #{league.name} (count: #{expired_regs.count})"
 
       # Process expirations
-      league.registrations.expired.where(:status.ne => "expired").each do |reg|
+      expired_regs.each do |reg|
         logger.info "Cancelling registration for #{reg.user_data['firstname']} #{reg.user_data['lastname']}"
         expire_registration(reg)
       end
+    end
 
-      # Process warning emails
-      league.registrations.registering.where(:acceptance_expires_at.lte => 24.hours.from_now, warning_email_sent_at: nil).each do |reg|
-        # send_warning(reg)
-      end
-    end    
+    open_leagues = nil
   end
 
   def expire_registration(reg)
