@@ -34,6 +34,11 @@ class RegistrationCancellationWorker
         )
         RegistrationMailer.unpaid_registration_canceled(reg.id.to_s).deliver
         logger.info "\t...cancelled."
+    else
+      logger.info "\tsave failed."
+      reg.errors.full_messages.each do |msg|
+        logger.info "\t\t#{msg}"
+      end
     end    
   end
 
