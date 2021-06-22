@@ -205,6 +205,23 @@ class League
     User.find(invited_player_ids)
   end
 
+  def self.expire_stale_registrations
+    open_leagues = League.not_started
+    puts "RegistrationCancellationWorker performing job... (open leagues: #{open_leagues.count})"
+
+    open_leagues.each do |league|
+      expired_regs = league.registrations.expired.where(:status.ne => "expired").to_a
+
+      puts "Processing Cancellations for #{league.name} (count: #{expired_regs.count})"
+
+      # Process expirations
+      expired_regs.each do |reg|
+        puts "Cancelling registration for #{reg.user_data['firstname']} #{reg.user_data['lastname']}"
+        # reg.process_expiration
+      end
+    end
+  end
+
   private
 
   def build_options_if_nil

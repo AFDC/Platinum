@@ -143,6 +143,21 @@ class Registration
         return (expires_at <= Time.now)
     end
 
+    def process_expiration
+        self.status                = 'expired'
+        self.expires_at            = nil
+        self.warning_email_sent_at = nil
+        save!(validate: false) # registrations that haven't been filled out yet won't be valid
+    
+        AuditLog.create(
+          action: 'Expire',
+          league: league,
+          registration: self
+        )
+    
+        RegistrationMailer.unpaid_registration_cancelled(id.to_s).deliver        
+    end
+
     def is_registering?
         return (status == 'registering') && (is_expired? == false)
     end
