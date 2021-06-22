@@ -1,4 +1,0 @@
-registration_cancellation:
-  cron: "*/2 * * * *"
-  class: "RegistrationCancellationWorker"
-  queue: default

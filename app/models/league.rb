@@ -217,7 +217,7 @@ class League
       # Process expirations
       expired_regs.each do |reg|
         puts "Cancelling registration for #{reg.user_data['firstname']} #{reg.user_data['lastname']}"
-        # reg.process_expiration
+        reg.process_expiration
       end
     end
   end
