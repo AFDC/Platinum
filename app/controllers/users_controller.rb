@@ -61,7 +61,34 @@ class UsersController < ApplicationController
 	end
 
 	def update
-		if @user.update_attributes(user_params)
+		filtered_params = user_params
+
+		editable_perms = {
+			admin: :perm_admin, 
+			:"steering-committee" => :perm_steering_committee,
+			:"league-manager" => :perm_league_manager, 
+			:"covid-admin" => :perm_covid_admin
+		}
+		if permitted_to? :edit_permissions, @user
+			new_perms = []
+			@user.role_symbols.each do |role|
+				if (editable_perms.keys.include?(role) == false)
+					new_perms << role
+				end
+			end
+
+			editable_perms.keys.each do |role|
+				field_name = editable_perms[role]
+				if params[field_name]
+					new_perms << role
+				end
+			end
+
+			filtered_params[:permission_groups] = new_perms
+		end
+
+
+		if @user.update_attributes(filtered_params)
 			MailChimpWorker.perform_async(@user._id.to_s, params[:subscribe])
 			redirect_to user_path(@user), notice: "User Updated Successfully"
 		else

@@ -29,6 +29,24 @@
 				= f.text_field :city
 				= f.text_field :state
 				= f.text_field :postal_code
+				- if permitted_to? :edit_permissions, @user
+					%h3 Site Permissions
+					.control-group
+						.controls
+							%label.checkbox
+								= check_box_tag :perm_admin, 1, @user.role_symbols.include?(:admin)
+								Full Admin
+							%label.checkbox
+								= check_box_tag :perm_steering_committee, 1, @user.role_symbols.include?(:"steering-committee")
+								Steering Committee
+							%label.checkbox
+								= check_box_tag :perm_league_manager, 1, @user.role_symbols.include?(:"league-manager")
+								League Manager
+							%label.checkbox
+								= check_box_tag :perm_covid_admin, 1, @user.role_symbols.include?(:"covid-admin")
+								COVID Admin
+
+
 	= f.actions do 
 		- if @user.new_record?
 			= f.primary "Create my Account"
