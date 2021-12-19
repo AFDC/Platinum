@@ -31,6 +31,7 @@ class League
   field :track_spirit_scores, type: Boolean, default: false
   field :display_spirit_scores, type: Boolean, default: false
   field :invited_player_ids, type: Array, default: []
+  field :covid_vax_required, type: Boolean, default: false
   embeds_one :core_options, class_name: 'LeagueCoreOptions'
 
   after_initialize :build_options_if_nil

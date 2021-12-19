@@ -133,6 +133,13 @@
                                 Allow Pairs
 
                     .control-group
+                        %label.control-label Vaccination
+                        .controls
+                            %label.checkbox
+                                = f.check_box :covid_vax_required
+                                COVID Vaccine Required
+
+                    .control-group
                         %label.control-label Spirit
                         .controls
                             %label.checkbox

@@ -16,6 +16,7 @@ authorization do
 		has_permission_on :teams, to: [:show, :index, :search]
 		has_permission_on :fields, to: [:index, :show]
 		has_permission_on :auth, to: [:index, :login, :logout, :forgot_password, :reset_password]
+		has_permission_on :covid, to: [:index]
 	end
 
 	role :user do
@@ -104,9 +105,14 @@ authorization do
 		has_permission_on :leagues, to: [:manage_spirit]
 	end
 
+	role :'covid-admin' do
+		has_permission_on :covid, to: [:confirm_vax_status]
+	end
+
 	role :admin do
 		includes :'league-manager'
 		includes :'spirit-manager'
+		includes :'covid-admin'
 
 		has_permission_on :global, :to => [:see_debug]
 

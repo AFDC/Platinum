@@ -1,5 +1,5 @@
 - include_shirt_size = (@league.created_at > Date.new(2019, 4, 11))
-- headers = %w(user_id pair_id draft_id team_id status official_rank self_rank firstname lastname email gender availability notes birthdate height EOST)
+- headers = %w(user_id pair_id draft_id team_id status official_rank self_rank firstname lastname email gender covid_vax availability notes birthdate height EOST)
 - if include_shirt_size
     - headers << 'shirt_size'
 = headers.join(',')
@@ -21,6 +21,7 @@
     - row << r.user_data['lastname']
     - row << r.user.email_address
     - row << r.gender
+    - row << r.user.confirmed_covid_vax
     - row << r.gen_availability
     - row << r.notes
     - row << r.user.age

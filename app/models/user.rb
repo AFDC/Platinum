@@ -20,6 +20,7 @@ class User
   field :privacy
   field :state
   field :weight, type: Integer
+  field :confirmed_covid_vax, type: Boolean, default: false
   field :permission_groups, type: Array, default: ['user']
 
   field :password_digest

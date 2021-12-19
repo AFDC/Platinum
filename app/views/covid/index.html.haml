@@ -1,0 +1,64 @@
+- content_for :title, 'COVID-19 Procedures'
+= render :partial => '/pageheader'
+
+.row 
+  .span12
+    %h3 Are COVID-19 Vaccines Required to Play in AFDC Leagues?
+    %p
+      Some AFDC leagues require proof of COVID-19 Vaccination Status to participate.
+      Whether or not a league requires vaccination is determined by the AFDC after consideration of
+      reccomendations of the CDC and USAU, local vaccination and community transmission rates, and
+      other factors.
+    
+    %p
+      In leagues where vaccines are required, no waivers or exemptions will be permitted.
+
+    %h3 How do I confirm my vaccination status with the AFDC?
+    %p
+      In order to particpate in leagues that require vaccination, you'll need to upload a photo of 
+      your vaccine card to the AFDC via 
+      %a{:href => "https://docs.google.com/forms/d/e/1FAIpQLSf7te4KGYHExZX_uhQs1YlXcrf4W5la5mrD-iVSrS3n6PM7fg/viewform?usp=sf_link"} this Google Form.
+
+    %p 
+      An AFDC official will review the documents provided and then mark AFDC leagues site account as confirmed
+      vaccinated. League commissioners will have access to vaccine status of players in their leagues, but will
+      not have access to the uploaded documents. 
+
+    %p
+      Please keep in mind that supplying falsified vaccine records or those belonging to someone else is a 
+      violation of federal law and could result in consequences including a lifetime ban from AFDC activities 
+      and referral to law enforcement.
+    
+    %h3 Your Current Status:
+    - if current_user == nil
+      Please log in to see your current status.
+    - elsif current_user and current_user.confirmed_covid_vax?
+      You are confirmed vaccinated!
+    - else
+      Your status has not yet been confirmed. If you haven't yet, please fill out
+      %a{:href => "https://docs.google.com/forms/d/e/1FAIpQLSf7te4KGYHExZX_uhQs1YlXcrf4W5la5mrD-iVSrS3n6PM7fg/viewform?usp=sf_link"} this Google Form.
+
+- if permitted_to? :confirm_vax_status, :covid
+  %hr
+  .row
+    .span12
+      %h3 Confirm Vax Status
+      = form_tag '/covid', method: 'POST', class: 'form-horizontal' do
+        = render partial: '/user_multiselect', locals: {fieldname: 'vax_confirmed_player_ids', label: "Confirm Players", users: []}
+        .span2.offset2
+          %button.btn.btn-primary.btn-block{type: 'submit'} Confirm
+  .row
+    .span12
+      %h3 Confirmed Players
+      %table.table.table-striped
+        %thead
+          %tr
+            %th First Name
+            %th Last Name
+            %th Email
+        %tbody
+          - @vaxed_players.each do |p|
+            %tr
+              %td=p.firstname
+              %td=p.lastname
+              %td=p.email_address

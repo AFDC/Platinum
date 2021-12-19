@@ -87,6 +87,10 @@ Platinum::Application.routes.draw do
     end
   end
 
+# COVID
+  get 'covid', to: 'covid#index'
+  post 'covid', to: 'covid#confirm_vax_status'
+
   get 'help/login', to: 'help#login', as: 'login_help'
   get 'help/registration', to: 'help#registration', as: 'registration_help'
 
