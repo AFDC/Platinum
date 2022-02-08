@@ -67,6 +67,12 @@ class Registration
         self.price = league.price unless self.price.present?
     end
 
+    def formatted_signup_timestamp(format = :long)
+        return "None" if signup_timestamp.nil?
+        
+        signup_timestamp.to_formatted_s(format)
+    end
+
     # Pairing Stuff:
 
     def old_pair

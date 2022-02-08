@@ -105,7 +105,7 @@
                     n/a
 
             %dt Signup Time:
-            %dd= @registration.signup_timestamp.to_formatted_s(:long)
+            %dd= @registration.formatted_signup_timestamp
 
             - if @registration.notes
 

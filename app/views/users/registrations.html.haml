@@ -21,7 +21,7 @@
                             = reg._id
                     %td= link_to reg.league.name, league_path(reg.league)
                     %td= number_to_currency(reg.league.price)
-                    %td= reg.signup_timestamp.to_formatted_s(:long)
+                    %td= reg.formatted_signup_timestamp
                     %td
                         = reg.status
                         - if reg.status == 'registering'

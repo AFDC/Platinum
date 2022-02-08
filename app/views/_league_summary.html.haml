@@ -1,4 +1,4 @@
-- if @league.covid_vax_required?
+- if league.covid_vax_required?
     .row
         .span5
             .alert.alert-warning
@@ -16,7 +16,7 @@
 .row
     .span2{style: 'font-weight: bold;'} COVID Vaccine:
     .span3{style: 'text-transform: capitalize'}
-        - if @league.covid_vax_required?
+        - if league.covid_vax_required?
             %strong Required
         - else
             Not Required
