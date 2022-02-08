@@ -29,6 +29,14 @@
 				= f.text_field :city
 				= f.text_field :state
 				= f.text_field :postal_code
+				- if permitted_to? :confirm_vax_status, :covid
+					.control-group
+						%label.control-label COVID
+						.controls
+							%label.checkbox
+								= f.check_box :confirmed_covid_vax, label: "Vaccinated"
+							%label.checkbox
+								= f.check_box :confirmed_covid_booster, label: "Boosted"
 				- if permitted_to? :edit_permissions, @user
 					%h3 Site Permissions
 					.control-group

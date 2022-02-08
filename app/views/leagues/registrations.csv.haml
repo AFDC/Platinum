@@ -9,6 +9,9 @@
     - else
         - r = Registraiton.find(reg_item)
     - next unless r
+    - reg_vax = ""
+    - reg_vax << "V" if r.user.confirmed_covid_vax
+    - reg_vax << "B" if r.user.confirmed_covid_booster
     - row = []
     - row << r.user_id
     - row << (Digest::MD5.hexdigest [r.user_id, r.pair_id].sort.join('_') if r.pair)
@@ -21,7 +24,7 @@
     - row << r.user_data['lastname']
     - row << r.user.email_address
     - row << r.gender
-    - row << r.user.confirmed_covid_vax
+    - row << reg_vax
     - row << r.gen_availability
     - row << r.notes
     - row << r.user.age

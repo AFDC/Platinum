@@ -56,9 +56,17 @@
             %th First Name
             %th Last Name
             %th Email
+            %th Shots
+            %th &nbsp;
         %tbody
           - @vaxed_players.each do |p|
             %tr
               %td=p.firstname
               %td=p.lastname
               %td=p.email_address
+              %td
+                - if p.confirmed_covid_vax
+                  V
+                - if p.confirmed_covid_booster
+                  B
+              %td=link_to 'Edit', edit_user_path(p)

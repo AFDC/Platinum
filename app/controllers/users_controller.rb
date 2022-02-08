@@ -87,7 +87,6 @@ class UsersController < ApplicationController
 			filtered_params[:permission_groups] = new_perms
 		end
 
-
 		if @user.update_attributes(filtered_params)
 			MailChimpWorker.perform_async(@user._id.to_s, params[:subscribe])
 			redirect_to user_path(@user), notice: "User Updated Successfully"
@@ -121,6 +120,11 @@ class UsersController < ApplicationController
 			:middlename, :address, :city, :state, :postal_code, :height, :weight,
 			:occupation, :password, :password_confirmation
 		]
+
+		if permitted_to? :confirm_vax_status, :covid
+			permitted_params << :confirmed_covid_vax
+			permitted_params << :confirmed_covid_booster
+		end		
 
 		params.require(:user).permit(*permitted_params)
 	end

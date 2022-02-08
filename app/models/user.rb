@@ -21,6 +21,7 @@ class User
   field :state
   field :weight, type: Integer
   field :confirmed_covid_vax, type: Boolean, default: false
+  field :confirmed_covid_booster, type: Boolean, default: false
   field :permission_groups, type: Array, default: ['user']
 
   field :password_digest
