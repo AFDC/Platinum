@@ -67,9 +67,9 @@
                     .alert.alert-warning
                       %strong There aren't enough spots left to activate this core:
                       - if male_spots.present?
-                        %p Male Spots Remaining: #{male_spots}
+                        %p Man-matching Spots Remaining: #{male_spots}
                       - if female_spots.present?
-                        %p Female Spots Remaining: #{female_spots}    
+                        %p Woman-matching Spots Remaining: #{female_spots}    
                 - else
                   - if permitted_to? :preview_capture, @league
                     =link_to 'Accept registered players on this core', preview_capture_league_path(@league, registration_group_id: rg._id), class: 'btn btn-block btn-small btn-primary', style: 'margin-top: 30px'

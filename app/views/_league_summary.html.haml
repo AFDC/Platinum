@@ -36,7 +36,7 @@
     .span3{style: 'text-transform: capitalize'}
         - %w(male female).each do |gender|
             - limit = league["#{gender}_limit"] || "None"
-            %strong #{gender.capitalize}:
+            %strong #{User::gender_noun(gender).capitalize}:
             #{limit}
             %br
 

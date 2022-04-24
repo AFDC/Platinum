@@ -164,7 +164,7 @@
 								%br
 								%span.muted=player.email_address
 							%td
-								%span{class: "#{player.gender} label"}=player.gender.capitalize
+								%span{class: "#{player.gender} label"}=player.gender_noun.capitalize
 								%br
 								=reg.try(:rank)
 

@@ -21,20 +21,22 @@
         = render partial: 'navbar'
 
         - if @league.registrations.count > 0
-            %h4 Registration Details
             - %w(male female).each do |gender|
                 - limit = @league["#{gender}_limit"]
                 - next if limit == 0
+                .row 
+                    .span6
+                        %h5 #{User::gender_noun(gender).capitalize}
                 .row
                     .span2
-                        %strong Active (#{gender.capitalize}):
+                        %strong Active: 
                         =active = Registration.where(league: @league, status: 'active', gender: gender).count
                         ="/#{limit}" if limit
                     .span2
                         %strong Registering: 
                         =registering = Registration.where(league: @league, status: 'registering', gender: gender).count
                     .span2
-                        %strong Total Registered:
+                        %strong Registered:
                         -waitlisted =  Registration.where(league: @league, status: 'waitlisted', gender: gender).count
                         =Registration.where(league: @league, gender: gender).count
                 .row{style: 'margin-bottom: 30px'}

@@ -17,8 +17,8 @@
     %table.table.table-striped
       %thead
         %th &nbsp;
-        %th Male
-        %th Female
+        %th Man-matching
+        %th Woman-matching
         %th Total
       %tbody
         %tr
@@ -82,7 +82,7 @@
             - %w(male female).each do |gender|
               - limit = @league.gender_limit(gender)
               - spots = stats["spots_#{gender}".to_sym]
-              %h5=gender.capitalize
+              %h5=User::gender_noun(gender).capitalize
               - if limit.nil?
                 .well There is no limit set; in order to use this tool, a limit must be specified.
               - elsif spots <= 0

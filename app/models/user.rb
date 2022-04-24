@@ -59,7 +59,11 @@ class User
   end
 
   def gender_noun
-    {"male" => "man", "female" => "woman"}[gender]
+    User::gender_noun(gender)
+  end
+
+  def self.gender_noun(gender)
+    {"male" => "man-matching", "female" => "woman-matching"}[gender.to_s]
   end
 
   def braintree_customer_id

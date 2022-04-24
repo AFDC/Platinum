@@ -3,7 +3,7 @@
 	.row
 		.span6
 			%h3 Required Fields
-			= f.select :gender, ['male', 'female'], prompt: true
+			= f.select :gender, [["Man-matching", :male], ["Woman-matching", :female]], prompt: true
 			= f.text_field :firstname, label: "First name"
 			= f.text_field :lastname, label: "Last name"
 			= f.text_field :email_address
