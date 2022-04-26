@@ -4,7 +4,7 @@
 		.span6
 			%h3 Required Fields
 			= f.select :gender, [["Woman-matching", :female], ["Man-matching", :male]], prompt: true
-			= f.collection_select :pronouns_id, Pronoun.all, :_id, :display, prompt: true
+			= f.collection_select :pronouns_id, Pronoun.all, :_id, :display, prompt: true, help: "For other pronouns, contact webmaster@afdc.com"
 			= f.text_field :firstname, label: "First name"
 			= f.text_field :lastname, label: "Last name"
 			= f.text_field :email_address
