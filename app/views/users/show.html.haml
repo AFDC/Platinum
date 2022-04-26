@@ -15,10 +15,14 @@
 	.span8
 		.row
 			.span4
-				%h3= "#{@user.firstname} #{@user.middlename} #{@user.lastname}"
+				%h3
+					#{@user.firstname} #{@user.middlename} #{@user.lastname} 
+					- if @user.pronouns.display
+						%small
+							(#{@user.pronouns.display})
 				.row
-					.span1{style: "font-weight: bold;"} Gender
-					.span3= @user.gender.try(:capitalize)
+					.span1{style: "font-weight: bold;"} Matchup
+					.span3= @user.gender_noun().try(:capitalize)
 				.row
 					.span1{style: "font-weight: bold;"} Handedness
 					.span3= @user.handedness.try(:capitalize)

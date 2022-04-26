@@ -34,6 +34,8 @@ class User
     styles: {profile: '330x330>', roster: '160x160#', thumbnail: '32x32#'},
     escape_url: false
 
+  belongs_to :pronouns
+
   has_many :g_rank_results, order: :_id.desc
   has_many :registrations
   has_many :payment_transactions

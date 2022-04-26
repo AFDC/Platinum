@@ -159,14 +159,17 @@
 							%td{width: '45px'}=image_tag player.avatar.url(:thumbnail), class: 'img-polaroid', style: 'width: 32px; height: 32px'
 							%td
 								=link_to player.name, player
-								- if reg.try(:cored?)
-									.label.label-success cored
+								- if player.pronouns.display
+									%small (#{player.pronouns.display})
 								%br
 								%span.muted=player.email_address
 							%td
 								%span{class: "#{player.gender} label"}=player.gender_noun.capitalize
 								%br
 								=reg.try(:rank)
+								- if reg.try(:cored?)
+									.label.label-success core
+
 
 		- else
 			.alert.alert-info For privacy, league rosters are restricted to AFDC members only. Please log-in to view them.
