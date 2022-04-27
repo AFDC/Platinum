@@ -3,7 +3,7 @@
     <li class="registrant-row" id="<%=_id%>">
       <div class="pic"><img class="img-polaroid img-rounded" src="<%=thumbnail_img_url%>" style="max-width: 32px; height: auto;"></div>
       <div class="userdata">
-          <div class="main col"><strong><span class="<%=gender%> label"><% print(gender[0].toUpperCase()); %></span> <%=name%></strong></div>
+          <div class="main col"><strong><span class="<%=gender.substring(0,3)%> label"><% print(gender[0].toUpperCase()); %></span> <%=name%></strong></div>
           <div class="col"><strong>Role:</strong> <%=player_type%></div>
           <div class="col"><strong>Rank:</strong> <%=rank%></div>
           <div class="col" style="width: 100px; text-align: right; text-transform: capitalize"><%

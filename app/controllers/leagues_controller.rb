@@ -196,7 +196,7 @@ class LeaguesController < ApplicationController
                             registration_url: registration_path(reg),
                             registration_group: rg.try(:_id),
                             pair_id: reg.pair_id,
-                            gender: reg.gender,
+                            gender: reg.user.gender_noun,
                             gen_availability: reg.gen_availability,
                             rank: reg.rank,
                             eos: reg.eos_availability,

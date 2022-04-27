@@ -57,11 +57,11 @@ td.forfeit-score {
     display: block;
 }
 
-span.label.female {
+span.label.wom {
   font-family: monospace;
   background-color: #B94A48;
 }
-span.label.male {
+span.label.man {
   font-family: monospace;
   background-color: #3A87AD;
 }
