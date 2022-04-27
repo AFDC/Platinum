@@ -128,7 +128,19 @@ class RegistrationsController < ApplicationController
             'attend_tourney_eos' => (reg_params[:eos_availability] == '1')
         }
         @registration.player_strength = reg_params[:player_strength]
-        @registration.self_rank = reg_params[:self_rank]
+
+        if @registration.league.self_rank_type == "simple"
+            @registration.self_rank = reg_params[:self_rank]
+        end
+
+        if @registration.league.self_rank_type == "detailed"
+            @registration.detailed_self_rank = {
+                "experience" => reg_params[:self_rank_experience],
+                "athleticism" => reg_params[:self_rank_athleticism],
+                "skills" => reg_params[:self_rank_skills]
+            }
+        end
+
         @registration.notes = reg_params[:notes]
         @registration.shirt_size = reg_params[:shirt_size]
         if reg_params[:pair_id]

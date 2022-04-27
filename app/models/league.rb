@@ -25,6 +25,7 @@ class League
   # Options
   field :max_grank_age, type: Integer, default: nil
   field :allow_self_rank, type: Boolean, default: true
+  field :self_rank_type, type: String
   field :allow_pairs, type: Boolean, default: true
   field :eos_tourney, type: Boolean, default: true
   field :mst_tourney, type: Boolean, default: false
@@ -35,6 +36,7 @@ class League
   embeds_one :core_options, class_name: 'LeagueCoreOptions'
 
   after_initialize :build_options_if_nil
+  after_find :migrate_self_rank_opts
 
   has_many :games
   has_many :teams, order: {league_rank: :asc}
@@ -49,6 +51,7 @@ class League
 
   validates :name, :presence => true
   validates :price, :numericality => { integer_only: true, greater_than: 0, less_than: 250, allow_blank: false  }
+  validates :self_rank_type, :inclusion => { in: %w(simple detailed none) }
   validates :age_division, :inclusion => { in: %w(adult juniors) }
   validates :season, :inclusion => { in: %w(fall winter spring summer saturday) }
   validates :sport, :inclusion => { in: %w(ultimate goaltimate) }
@@ -227,6 +230,12 @@ class League
 
   def build_options_if_nil
     build_core_options if core_options.nil?
+  end
+
+  def migrate_self_rank_opts
+    return unless self_rank_type.nil?
+    self["self_rank_type"] = "simple" if allow_self_rank == true
+    self["self_rank_type"] = "none" if allow_self_rank == false
   end
 
   def open_time_on_date(open_date)

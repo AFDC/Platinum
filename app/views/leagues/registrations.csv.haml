@@ -1,5 +1,8 @@
 - include_shirt_size = (@league.created_at > Date.new(2019, 4, 11))
-- headers = %w(user_id pair_id draft_id team_id status official_rank self_rank firstname lastname pronouns email gender covid_vax availability notes birthdate height EOST)
+- headers = %w(user_id pair_id draft_id team_id status official_rank)
+- headers << "self_rank" if @league.self_rank_type == 'simple'
+- headers.push(*%w(exp_rank ath_rank skl_rank)) if @league.self_rank_type == "detailed"
+- headers.push(*%w(firstname lastname pronouns email gender covid_vax availability notes birthdate height EOST))
 - if include_shirt_size
     - headers << 'shirt_size'
 = headers.join(',')
@@ -19,7 +22,12 @@
     - row << r.league.team_for(r.user).try(:_id)
     - row << r.status
     - row << r.rank
-    - row << r.self_rank
+    - if @league.self_rank_type == "simple"
+        - row << r.self_rank
+    - if @league.self_rank_type == "detailed"
+        - row << r.detailed_self_rank["experience"]
+        - row << r.detailed_self_rank["athleticism"]
+        - row << r.detailed_self_rank["skills"]
     - row << r.user_data['firstname']
     - row << r.user_data['lastname']
     - row << r.user.pronouns.display

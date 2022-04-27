@@ -11,6 +11,7 @@ class Registration
     field :availability, type: Hash
     field :team_style_pref, type: Hash
     field :self_rank, type: Float
+    field :detailed_self_rank, type: Hash
     field :commish_rank, type: Float
     field :g_rank, type: Float
     field :shirt_size
@@ -61,6 +62,67 @@ class Registration
 
     def eos_availability
         availability['attend_tourney_eos'] if availability
+    end
+
+    def self_rank_experience
+        detailed_self_rank['experience'] if detailed_self_rank
+    end
+
+    def self.self_rank_options(type)
+        if type == "experience"
+            return [
+                ["0 - Most experience is pick-up. No knowledge of strategy", 0],
+                [1,1],
+                ["2 - League experience. Understands vertical stack and person defense", 2],
+                [3,3],
+                ["4 - College/Club ultimate experience. Solid understanding of a couple basic offensive and defensive strategies", 4],
+                [5,5],
+                ["6 - Advanced college/club experience. Strong understanding of multiple different offensive and defensive strategies", 6],
+                [7,7],
+                [8,8],
+                ["9 - Many years of elite college/club experience. Advanced understanding of a wide variety of offensive and defensive strategies", 9]
+            ]
+        end
+
+        if type == "athleticism"
+            return [
+                ["0 - Below average pickup player", 0],
+                [1, 1],
+                [2, 2],
+                ["3 - Average league athlete",3],
+                [4, 4],
+                [5, 5],
+                ["6 - Average club athlete", 6],
+                [7, 7],
+                [8, 8],
+                ["9 - Exceptional elite/collegiate athlete", 9]
+            ]
+        end        
+
+        if type == "skills"
+            return [
+                ["0 - At most can dump the disc and catch sometimes", 0],
+                [1, 1],
+                [2, 2],
+                [3, 3],
+                ["4 - Can consistently throw a forehand & backhand, hold a force, and fill at least one role in a zone defense", 4],
+                [5, 5],
+                [6, 6],
+                [7, 7],
+                [8, 8],
+                ["9 - Can consistently throw & complete any throw and excel at any position in any offense or defense", 9]
+            ]
+        end           
+
+        return (0..9)
+    end
+
+    def self_rank_athleticism
+        detailed_self_rank['athleticism'] if detailed_self_rank
+    end
+
+    def self_rank_skills
+        detailed_self_rank['skills'] if detailed_self_rank
     end
 
     def ensure_price
@@ -169,7 +231,11 @@ class Registration
     end
 
     def rank
-        self.commish_rank || self.g_rank || self.self_rank
+        avg_detailed_rank = nil
+        if detailed_self_rank && detailed_self_rank.values.count > 0
+            avg_detailed_rank = (detailed_self_rank.values.map(&:to_i).sum.to_f / detailed_self_rank.values.count).round(1)
+        end
+        self.commish_rank || self.g_rank || self.self_rank || avg_detailed_rank
     end
 
     def core_rank
@@ -226,7 +292,7 @@ class Registration
     end
 
     def has_valid_self_rank
-        return unless league.allow_self_rank?
+        return if league.self_rank_type != "simple"
 
         max_rank = 9
         max_rank = 6 if league.sport == 'goaltimate' && user.gender == 'female'

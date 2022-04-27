@@ -101,11 +101,9 @@
                 .tab-pane.active#config
                     %h4 League Options
                     .control-group
-                        %label.control-label Ranking
+                        %label.control-label{for: 'self_rank_type'} Self-rank Type
                         .controls
-                            %label.checkbox
-                                = f.check_box :allow_self_rank
-                                Allow Slef-Rank
+                            = f.select :self_rank_type, %w{simple detailed none}.map{|r| ["#{r.capitalize}", r]}, default: "simple"
 
                     .control-group{ class: ('error' if errors[:max_grank_age].any?)}
                         %label.control-label{for: 'max_grank_age'} Max gRank Age

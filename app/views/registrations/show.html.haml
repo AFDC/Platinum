@@ -1,6 +1,6 @@
 - content_for :title, @registration.league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'Registration', breadcrumbs: {'Leagues' => leagues_path, @registration.league.name => league_path(@registration.league), "Registration for #{@registration.user.name}" => nil}}
-- if current_user && current_user = @registration.user
+- if current_user && current_user == @registration.user
     .row
         .span12
             .hero-unit
