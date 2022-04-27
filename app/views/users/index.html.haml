@@ -17,7 +17,7 @@
 		%thead
 			%tr
 				%th Name
-				%th Gender
+				%th Matchup
 				%th Email Address
 				%th City
 				%th State
@@ -26,7 +26,7 @@
 			- @user_list.each do |user|
 				%tr{:style => 'text-transform: capitalize'}
 					%td= link_to user.name, user
-					%td= user.gender
+					%td= user.gender_noun
 					%td{:style => 'text-transform: lowercase'}= user.email_address
 					%td= user.city
 					%td= user.state

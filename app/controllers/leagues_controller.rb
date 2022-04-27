@@ -190,6 +190,7 @@ class LeaguesController < ApplicationController
                             _id: reg.user._id.to_s,
                             status: reg.status,
                             name: reg.user.name,
+                            pronouns: reg.user.pronouns.display,
                             profile_img_url: reg.user.avatar.url(:roster),
                             thumbnail_img_url: reg.user.avatar.url(:thumbnail),
                             profile_url: user_path(reg.user),

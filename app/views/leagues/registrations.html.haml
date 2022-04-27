@@ -46,16 +46,21 @@
 
 %script#registrant-detail-template{type: "text/x-underscore"}
   :plain
-    <h4><a href="<%=profile_url%>" target="_blank"><%=name%></a></h4>
     <img class="img-polaroid img-rounded" src="<%=profile_img_url%>" style="max-width: 160px; height: auto;">
+    <h4>
+      <a href="<%=profile_url%>" target="_blank"><%=name%></a>
+      <% if (pronouns) { %>
+        <br /><small><%=pronouns%></small>
+      <% } %>
+    </h4>
     <ul class="unstyled">
+      <li><span class="label <%=gender.substring(0,3)%>"><%=gender%></span></li>
       <li><strong>Registration</strong>: <%=status%></li>
       <li><strong>Rank:</strong> <%=rank%></li>
       <% if (grank.score) { %>
         <li class="details-grank"><strong>gRank</strong>: <%=grank.score%> <i class="icon-question-sign"></i></li>
       <% } %>
       <li><strong>Role:</strong> <%=player_type%></li>
-      <li><strong>Gender:</strong> <%=gender%></li>
       <li><strong>Stats:</strong> <%=height%>, <%=age%> years old</li>
       <% if (pair_id) { %>
         <li><strong>Pair:</strong> <a href="#" class="show-player-details" data-user-id="<%=pair_id%>"><%= window.registrant_data[pair_id].name %></a></li>
