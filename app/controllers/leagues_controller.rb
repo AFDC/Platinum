@@ -29,7 +29,7 @@ class LeaguesController < ApplicationController
     end
 
     def update
-        # Changing the number of available slots while players are registering or on the waitlist is... not supported yet
+        # Changing the number of available slots while players are registering or on the waitlist is not supported
         if @league.registrations.registering.count > 0 ||
             @league.registrations.registering_waitlisted.count > 0 ||
             @league.registrations.waitlisted.count > 0
@@ -100,7 +100,7 @@ class LeaguesController < ApplicationController
 
         # Gender permitted check
         if @league.gender_permitted?(current_user.gender) == false
-            redirect_to league_path(@league), flash: {error: "No #{current_user.gender} registrants allowed."}
+            redirect_to league_path(@league), flash: {error: "No #{current_user.gender_noun} registrants allowed."}
             return
         end
 

@@ -135,3 +135,31 @@
         = javascript_include_tag 'https://yandex.st/highlightjs/7.4/highlight.min.js'
         :javascript
             hljs.initHighlightingOnLoad();
+            $(function(){
+                if ($('#text_notifications_cta')) {
+                    $('#text_notifications_cta').modal();
+                }
+            });
+
+- if @registration.league.start_date.end_of_day > Time.now && current_user && current_user == @registration.user
+    - if current_user.notification_methods.where(enabled: true, method: "text").count == 0
+        #text_notifications_cta.modal.hide.fade
+            .modal-header
+                %button.close{type: 'button', 'data-dismiss' => 'modal', 'aria-hidden' => 'true'} &times;
+                %h3 Can we get your number?
+            .modal-body
+                - if current_user.notification_methods.where(method: "text").count == 0
+                    %p 
+                        The league can text you updates about your league (like game cancellations), but 
+                        it looks like you don't have text notifications configured, would you like to set one up now?
+                    %div.text-center
+                        =link_to new_user_notification_method_path(current_user), class: "btn btn-large btn-primary" do
+                            Setup Text Notifications
+                - else
+                    - nm = current_user.notification_methods.where(method: "text").first
+                    %p
+                        The league can text you updates about your league (like game cancellations), but it looks
+                        like your text notification is disabled, would you like to enable it?
+                    %div.text-center
+                        =link_to edit_user_notification_method_path(current_user, nm), class: 'btn btn-large btn-primary' do
+                            Enable Text Notifications
