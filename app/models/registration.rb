@@ -64,10 +64,6 @@ class Registration
         availability['attend_tourney_eos'] if availability
     end
 
-    def self_rank_experience
-        detailed_self_rank['experience'] if detailed_self_rank
-    end
-
     def self.self_rank_options(type)
         if type == "experience"
             return [
@@ -117,12 +113,16 @@ class Registration
         return (0..9)
     end
 
+    def self_rank_experience
+        detailed_self_rank['experience'].try(:to_i) if detailed_self_rank
+    end
+
     def self_rank_athleticism
-        detailed_self_rank['athleticism'] if detailed_self_rank
+        detailed_self_rank['athleticism'].try(:to_i) if detailed_self_rank
     end
 
     def self_rank_skills
-        detailed_self_rank['skills'] if detailed_self_rank
+        detailed_self_rank['skills'].try(:to_i) if detailed_self_rank
     end
 
     def ensure_price
@@ -292,13 +292,30 @@ class Registration
     end
 
     def has_valid_self_rank
-        return if league.self_rank_type != "simple"
+        validate_simple_self_rank if league.self_rank_type == "simple"
+        validate_detailed_self_rank if league.self_rank_type == "detailed"
+    end
 
+    def validate_simple_self_rank
         max_rank = 9
         max_rank = 6 if league.sport == 'goaltimate' && user.gender == 'female'
 
         unless (1..max_rank).include?(self_rank)
             errors.add(:self_rank, "Please select a rank between 1 and #{max_rank}")
+        end
+    end
+
+    def validate_detailed_self_rank
+        unless (0..9).include?(self_rank_experience)
+            errors.add(:self_rank_experience, "Please select a rank between 0 and 9")
+        end
+
+        unless (0..9).include?(self_rank_athleticism)
+            errors.add(:self_rank_athleticism, "Please select a rank between 0 and 9")
+        end
+
+        unless (0..9).include?(self_rank_skills)
+            errors.add(:self_rank_skills, "Please select a rank between 0 and 9")
         end
     end
 

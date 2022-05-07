@@ -134,11 +134,22 @@ class RegistrationsController < ApplicationController
         end
 
         if @registration.league.self_rank_type == "detailed"
-            @registration.detailed_self_rank = {
+            dsr = {
                 "experience" => reg_params[:self_rank_experience],
                 "athleticism" => reg_params[:self_rank_athleticism],
                 "skills" => reg_params[:self_rank_skills]
             }
+
+            # Ensure these are numbers or nil
+            dsr.keys.each do |k|
+                if (dsr[k] == "")
+                   dsr[k] = nil
+                end
+
+                dsr[k] = dsr[k].try(:to_i)
+            end
+
+            @registration.detailed_self_rank = dsr
         end
 
         @registration.notes = reg_params[:notes]
