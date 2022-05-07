@@ -20,7 +20,7 @@
                         - else
                             = reg._id
                     %td= link_to reg.league.name, league_path(reg.league)
-                    %td= number_to_currency(reg.league.price)
+                    %td= number_to_currency(reg.price)
                     %td= reg.formatted_signup_timestamp
                     %td
                         = reg.status

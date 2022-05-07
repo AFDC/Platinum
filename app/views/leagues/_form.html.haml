@@ -85,6 +85,15 @@
                     - if errors[:price].any?
                         %span.help-inline=errors[:price].first
 
+            .control-group{ class: ('error' if errors[:price_women].any?)}
+                %label.control-label Women's Reg. Price
+                .controls
+                    .input-prepend
+                        %span.add-on $
+                        =f.text_field :price_women, class: 'input-small'
+                    - if errors[:price_women].any?
+                        %span.help-inline=errors[:price_women].first
+
             .control-group{ class: ('error' if errors[:description].any?)}
                 %label.control-label Description
                 .controls

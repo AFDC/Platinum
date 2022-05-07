@@ -25,7 +25,7 @@ class Registration
     field :user_data, type: Hash
     field :notes
     field :comped, type: Boolean
-    field :price, type: Float, default: ->{ league.try :price }
+    field :price, type: Float
 
     field :payment_id
 
@@ -126,7 +126,7 @@ class Registration
     end
 
     def ensure_price
-        self.price = league.price unless self.price.present?
+        self.price = league.get_price(gender) unless self.price.present?
     end
 
     def formatted_signup_timestamp(format = :long)

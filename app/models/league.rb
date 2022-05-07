@@ -12,6 +12,7 @@ class League
   field :female_limit, type: Integer
   field :male_limit, type: Integer
   field :price, type: Integer
+  field :price_women, type: Integer
   field :registration_open, type: Date, default: 2.weeks.from_now.to_date
   field :registration_close, type: Date, default: 4.weeks.from_now.to_date
 
@@ -51,6 +52,7 @@ class League
 
   validates :name, :presence => true
   validates :price, :numericality => { integer_only: true, greater_than: 0, less_than: 250, allow_blank: false  }
+  validates :price_women, :numericality => { integer_only: true, greater_than: 0, less_than: 250, allow_blank: true  }
   validates :self_rank_type, :inclusion => { in: %w(simple detailed none) }
   validates :age_division, :inclusion => { in: %w(adult juniors) }
   validates :season, :inclusion => { in: %w(fall winter spring summer saturday) }
@@ -63,6 +65,14 @@ class League
   scope :not_ended, -> { where(:end_date.gte => Time.current.to_date).order_by(start_date: :desc) }
   scope :started, -> { where(:start_date.lte => Time.current.to_date, :end_date.gte => Time.current.to_date).order_by(start_date: :desc) }
   scope :not_started, -> { where(:start_date.gte => Time.current.to_date).order_by(start_date: :desc) }
+
+  def get_price(gender = nil)
+    if gender == "female" and price_women.present?
+      return price_women
+    end
+
+    return price
+  end
 
   def general_registration_open?
     return false if registration_open.nil? || registration_close.nil?

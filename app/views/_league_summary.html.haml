@@ -31,6 +31,12 @@
     .span2{style: 'font-weight: bold;'} Price:
     .span3{style: 'text-transform: capitalize'}=number_to_currency(league.price)
 
+- if league.price_women.present?
+    .row
+        .span2{style: 'font-weight: bold;'} Women's Price:
+        .span3{style: 'text-transform: capitalize'}=number_to_currency(league.price_women)
+
+
 .row
     .span2{style: 'font-weight: bold;'} Player Limits:
     .span3{style: 'text-transform: capitalize'}
