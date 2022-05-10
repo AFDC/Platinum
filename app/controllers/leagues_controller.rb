@@ -34,8 +34,8 @@ class LeaguesController < ApplicationController
             @league.registrations.registering_waitlisted.count > 0 ||
             @league.registrations.waitlisted.count > 0
             
-            if league_params[:male_limit] != @league.male_limit || 
-                league_params[:female_limit] != @league.female_limit
+            if (league_params[:male_limit] && (league_params[:male_limit] != @league.male_limit)) || 
+                (league_params[:female_limit] && (league_params[:female_limit] != @league.female_limit))
                 @league.errors.add(:male_limit, "Changing player limits while players are registering is not permitted.")
                 render :edit and return
             end
