@@ -25,6 +25,17 @@ class NotificationMethod
         :enabled
     end
 
+    def send_text(message)
+        return if method != 'text'
+        
+        twilio_client = Twilio::REST::Client.new
+        twilio_client.account.messages.create({ 
+            from: ENV['twilio_number'], 
+            to:   target,
+            body: message
+        })        
+    end
+
     private
 
     def strip_phonenumber

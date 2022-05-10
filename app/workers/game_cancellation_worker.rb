@@ -64,12 +64,7 @@ class GameCancellationWorker
         next unless nm.enabled?
 
         if nm.method == 'text'
-            twilio_client = Twilio::REST::Client.new
-            twilio_client.account.messages.create({ 
-                from: ENV['twilio_number'], 
-                to:   nm.target,
-                body: text_message
-            })
+            nm.send_text(text_message)
         end
 
         if nm.method == 'email'
