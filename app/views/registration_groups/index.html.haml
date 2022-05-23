@@ -97,7 +97,7 @@
                 - reg = @league.registration_for(m)
                 %tr{class: "#{"error" unless reg}"}
                   %td=link_to m.name, m
-                  - if @league.registration_open_for?(m) == false
+                  - if (@league.registration_open_for?(m) == false) && (@league.registration_close.end_of_day > Time.now)
                     %td
                       %span.label.label-important n/a
                     %td{colspan: 3} Player not invited
