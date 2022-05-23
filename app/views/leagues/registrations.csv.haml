@@ -25,9 +25,14 @@
     - if @league.self_rank_type == "simple"
         - row << r.self_rank
     - if @league.self_rank_type == "detailed"
-        - row << r.detailed_self_rank["experience"]
-        - row << r.detailed_self_rank["athleticism"]
-        - row << r.detailed_self_rank["skills"]
+        - if r.detailed_self_rank.present?
+            - row << r.detailed_self_rank["experience"]
+            - row << r.detailed_self_rank["athleticism"]
+            - row << r.detailed_self_rank["skills"]
+        - else
+            - row << ""
+            - row << ""
+            - row << ""
     - row << r.user_data['firstname']
     - row << r.user_data['lastname']
     - row << r.user.pronouns.display
