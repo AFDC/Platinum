@@ -1,5 +1,5 @@
 {
-  "mongodb":   {"image": "mongo"},
+  "mongodb":   {"image": "mongo:4"},
   "redis":     {"image": "redis"},
   "memcached": {"image": "memcached"},
   "mailhog":   {
