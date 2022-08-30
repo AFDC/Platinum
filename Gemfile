@@ -25,7 +25,7 @@ gem 'twilio-ruby'
 gem 'puma'
 gem 'bugsnag'
 gem 'skylight'
-gem 'gibbon', '~> 3.0'
+gem 'gibbon', '~> 3.4'
 
 # Job Processing
 gem 'sidekiq'
