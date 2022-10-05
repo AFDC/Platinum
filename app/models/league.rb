@@ -220,7 +220,7 @@ class League
   end
 
   def self.expire_stale_registrations
-    open_leagues = League.not_started
+    open_leagues = League.not_ended
     puts "RegistrationCancellationWorker performing job... (open leagues: #{open_leagues.count})"
 
     open_leagues.each do |league|
