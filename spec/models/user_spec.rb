@@ -51,8 +51,8 @@ describe User do
 		FactoryGirl.build(:user, :birthdate => 'orangutang').should_not be_valid
 	end
 
-	it "should not allow users under 13 years of age" do
-		FactoryGirl.build(:user, :birthdate => 12.years.ago.strftime('%Y-%m-%d')).should_not be_valid
+	it "should not allow users under 6 years of age" do
+		FactoryGirl.build(:user, :birthdate => 5.years.ago.strftime('%Y-%m-%d')).should_not be_valid
 	end
 
 	it "should downcase email addresses before save" do
