@@ -135,6 +135,10 @@ class Registration
         signup_timestamp.to_formatted_s(format)
     end
 
+    def gender_noun
+        User::gender_noun(gender)
+    end
+
     # Pairing Stuff:
 
     def old_pair

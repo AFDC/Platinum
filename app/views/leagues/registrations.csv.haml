@@ -2,7 +2,7 @@
 - headers = %w(user_id pair_id draft_id team_id status official_rank)
 - headers << "self_rank" if @league.self_rank_type == 'simple'
 - headers.push(*%w(exp_rank ath_rank skl_rank)) if @league.self_rank_type == "detailed"
-- headers.push(*%w(firstname lastname pronouns email gender covid_vax availability notes birthdate height EOST))
+- headers.push(*%w(firstname lastname pronouns email matchup covid_vax availability notes birthdate height EOST))
 - if include_shirt_size
     - headers << 'shirt_size'
 = headers.join(',')
@@ -37,7 +37,7 @@
     - row << r.user_data['lastname']
     - row << r.user.pronouns.display
     - row << r.user.email_address
-    - row << r.gender
+    - row << r.gender_noun
     - row << reg_vax
     - row << r.gen_availability
     - row << r.notes
