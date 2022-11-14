@@ -52,6 +52,15 @@ class Team
       opponent = game.opponent_for(self)
       next unless opponent
 
+      if game.forfeited?
+        if game.winning_team == self
+          self.wins += 1
+        else
+          self.losses += 1
+        end
+        next
+      end
+
       team_score = game.score_for(self)
       opnt_score = game.score_for(opponent)
       next if team_score.nil? || opnt_score.nil?
