@@ -49,7 +49,7 @@ class User
   validates :weight, :numericality => { integer_only: true, greater_than: 60, less_than: 400, allow_blank: true }
   validates :handedness, :inclusion => { in: %w(left right both), message: "%{value} is not a valid option", allow_blank: true }
   validates :gender, :presence => true, :inclusion => { in: %w(male female) }
-  validates :birthdate, :required_age => 13, :date_string => true
+  validates :birthdate, :required_age => 6, :date_string => true
 
   validates_attachment :avatar, content_type: { content_type: ["image/jpg", "image/jpeg", "image/png", "image/gif"] }
 
