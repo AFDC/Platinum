@@ -71,7 +71,8 @@ class LeaguesController < ApplicationController
     end
 
     def register
-        existing_registration = @league.registration_for(current_user)
+        registrar = PlayerRegistrar.new(@league, current_user)
+        existing_registration = registrar.registration
 
         if (existing_registration)
             if existing_registration.status == 'active'
@@ -93,23 +94,17 @@ class LeaguesController < ApplicationController
             # We deal with canceled, queued, and expired registrations as if the person has never registered
         end
 
-        if (@league.registration_open_for?(current_user) == false)
+        if (registrar.open? == false)
             redirect_to league_path(@league), notice: "Registration is not open for that league yet."
             return
         end
 
-        # Gender permitted check
-        if @league.gender_permitted?(current_user.gender) == false
-            redirect_to league_path(@league), flash: {error: "No #{current_user.gender_noun} registrants allowed."}
-            return
-        end
-
-        unless current_user.valid?
+        if registrar.needs_profile_update?
             redirect_to edit_user_path(current_user), notice: "Your user profile is incomplete, you must update it before registering."
             return
         end
 
-        if @league.require_grank? && (current_user.g_rank_results.first.nil? || current_user.g_rank_results.first.timestamp.end_of_day < @league.max_grank_age.months.ago)
+        if registrar.needs_grank_update?
             session[:post_grank_redirect] = @league._id.to_s
             redirect_to edit_g_rank_profile_path, notice: "Your gRank score is out of date, please complete the survey before registering."
             return
@@ -118,10 +113,7 @@ class LeaguesController < ApplicationController
         # Create placeholder registration -- eliminates a race condition that allows too many people to register
         # We first create queued registrations for everyone 
 
-        @registration = existing_registration
-        @registration ||= Registration.new(league: @league, user: current_user)
-
-        update_registration_status!(@registration)
+        @registration = registrar.initialize_registration!
 
         render "registrations/edit"
     end
@@ -586,52 +578,6 @@ class LeaguesController < ApplicationController
     end
 
     private
-
-    def update_registration_status!(registration)
-        return if registration.nil?
-        league = registration.league
-        user   = registration.user
-
-        if (league.registrations.waitlisted.where(gender: user.gender).count > 0)
-            registration.status = 'registering_waitlisted'
-            registration.save!(validate: false)
-            return
-        end
-
-        registration.status     = 'queued'
-        registration.expires_at = 3.minutes.from_now
-
-        if (registration.queued_at.nil? || registration.is_expired?)
-            registration.queued_at  = Time.now
-        end
-
-        registration.save!(validate: false)
-
-        registrations = league.registrations.where(gender: registration.gender)
-
-        limit       = league.gender_limit(registration.gender)
-        active      = registrations.active.count
-        registering = registrations.registering.count
-        earlier_q   = registration.count_earlier_queued_registrations
-
-        # League is full; add to waitlist
-        if limit <= active
-            registration.status = 'registering_waitlisted'
-            registration.save!(validate: false)
-            return
-        end
-
-        # League is not full, but it might be if everyone currently registering pays
-        if (limit <= active + registering + earlier_q)
-            registration.status = 'registering_waitlisted'
-            registration.save!(validate: false)
-            return
-        end
-
-        registration.status     = 'registering'
-        registration.expires_at = league.current_expiration_time
-        registration.save!(validate: false)
-    end
 
     def load_league_from_params
         begin
