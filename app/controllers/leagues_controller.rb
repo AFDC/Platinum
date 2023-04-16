@@ -123,35 +123,7 @@ class LeaguesController < ApplicationController
 
         update_registration_status!(@registration)
 
-        if (@registration.status == 'queued')
-            redirect_to registration_queue_league_path(@league)
-            return
-        end
-        
         render "registrations/edit"
-    end
-
-    def registration_queue
-        if @league.registration_open_for?(current_user) == false
-            redirect_to league_path(@league), flash: {error: "You're not able to register for that league yet."} and return
-        end
-
-        current_user_reg = @league.registration_for(current_user)
-        
-        update_registration_status!(current_user_reg)
-        
-        if current_user_reg.nil? || current_user_reg.status == 'registering' || current_user_reg.status == 'registering_waitlisted'
-            redirect_to register_league_path(@league) and return
-        end
-
-        @total_spots = @league.gender_limit(current_user.gender)
-
-        registrations_by_gender = @league.registrations.where(gender: current_user.gender)
-
-        @regs_active         = registrations_by_gender.active.count
-        @regs_registering    = registrations_by_gender.registering.count
-        @regs_queued_earlier = current_user_reg.count_earlier_queued_registrations
-
     end
 
     def registrations
@@ -651,6 +623,8 @@ class LeaguesController < ApplicationController
 
         # League is not full, but it might be if everyone currently registering pays
         if (limit <= active + registering + earlier_q)
+            registration.status = 'registering_waitlisted'
+            registration.save!(validate: false)
             return
         end
 
