@@ -1,6 +1,7 @@
-{
+version: '2'
+services: {
   "mongodb":   {
-    "image": "mongo",
+    "image": "mongo:3.2",
     "volumes": ["./mongo_import:/var/import"]
   },
   "redis":     {"image": "redis"},
