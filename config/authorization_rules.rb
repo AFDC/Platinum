@@ -99,6 +99,8 @@ authorization do
 
 	role :'league-manager' do
 		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps]
+
+		has_permission_on :comp_groups, :to => [:index, :show, :new, :create, :edit, :update]
 	end
 
 	role :'spirit-manager' do 
@@ -117,8 +119,6 @@ authorization do
 		has_permission_on :global, :to => [:see_debug]
 
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :login_as, :edit_permissions]
-
-		has_permission_on :comp_groups, :to => [:index, :show, :new, :create, :edit, :update]
 
 		has_permission_on :dashboard, to: [:audit_logs]
 	end
