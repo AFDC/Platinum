@@ -43,11 +43,7 @@ class RegistrationsController < ApplicationController
 
         # This player doesn't have to pay
         if @registration.league.comped? @registration.user
-            @registration.comped = true
-            @registration.update_attributes(
-                waitlist_timestamp: Time.now,
-                status: "waitlisted"
-            )
+            @registration.waitlist
             redirect_to registration_path(@registration), notice: 'Your league dues will be comped. You are now on the waitlist.'
             return
         end

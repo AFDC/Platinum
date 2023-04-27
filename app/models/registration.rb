@@ -171,6 +171,15 @@ class Registration
         RegistrationMailer.delay.registration_active(self._id.to_s)
     end
 
+    def waitlist(pre_auth = nil)
+        update_attributes(
+            pre_authorization: pre_auth,
+            waitlist_timestamp: Time.now,
+            status: "waitlisted"
+        )
+        RegistrationMailer.delay.registration_waitlisted(self._id.to_s)
+    end
+
     def can_cancel?
         return false if ['active', 'canceled'].include?(status)
         return false if new_record?

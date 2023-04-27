@@ -100,11 +100,7 @@ class PaymentsController < ApplicationController
       return
     end
     
-    registration.update_attributes(
-      pre_authorization: {auth_tx_id: result.transaction.id, stored_payment_token: payment_token},
-      waitlist_timestamp: Time.now,
-      status: "waitlisted"
-    )
+    registration.waitlist(pre_auth: {auth_tx_id: result.transaction.id, stored_payment_token: payment_token})
 
     redirect_to registration_path(registration), notice: "Success! You are now on the waitlist for #{registration.league.name}."
   end
