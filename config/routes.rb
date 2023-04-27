@@ -12,10 +12,17 @@ Platinum::Application.routes.draw do
     end
   end
 
+  resources :payments do
+    collection do
+      post 'pre_authorize'
+    end
+  end
+
   resources :registrations do
     member do
       put 'cancel'
       get 'pay'
+      get 'waitlist_authorize'
     end
   end
 

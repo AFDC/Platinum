@@ -210,6 +210,8 @@ class Registration
 
     def is_expired?
         return true  if status     == "expired"
+        return false if status     == "active"
+        return false if status     == "waitlisted"
         return false if expires_at == nil
         
         return (expires_at <= Time.now)

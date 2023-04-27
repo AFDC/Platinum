@@ -1,5 +1,5 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :canceled, :show, :pay]
+    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :canceled, :show, :pay, :waitlist_authorize]
     filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay], attribute_check: true
 
     def create
@@ -11,7 +11,6 @@ class RegistrationsController < ApplicationController
             message = "Can't pay for that registration; your current status is: '#{@registration.status}'."
             message = "You are already in that league, you don't need to pay again!" if @registration.status == 'active'
             message = "You have canceled your registration. Please contact help@afdc.com if you want to un-cancel." if @registration.status == 'canceled'
-            message = "It's not your turn to register yet, so we can't accept your payment at this time." if @registration.status == 'queued'
             redirect_to registration_path(@registration), flash: {error: message} and return 
         end
 
@@ -29,6 +28,31 @@ class RegistrationsController < ApplicationController
         end
     end
 
+    def waitlist_authorize
+        unless @registration.status == 'registering_waitlisted'
+            message = "Can't authorize payment for that registration; your current status is: '#{@registration.status}'."
+            message = "You are already in that league, you don't need to pay again!" if @registration.status == 'active'
+            message = "You have canceled your registration. Please contact help@afdc.com if you want to un-cancel." if @registration.status == 'canceled'
+            redirect_to registration_path(@registration), flash: {error: message} and return             
+        end
+
+        if @registration.is_expired?
+            redirect_to register_league_path(@registration.league), flash: {error: "You took too long to register. Please try again."}
+            return
+        end
+
+        # This player doesn't have to pay
+        if @registration.league.comped? @registration.user
+            @registration.comped = true
+            @registration.update_attributes(
+                waitlist_timestamp: Time.now,
+                status: "waitlisted"
+            )
+            redirect_to registration_path(@registration), notice: 'Your league dues will be comped. You are now on the waitlist.'
+            return
+        end
+    end
+
     def edit
     end
 
@@ -42,7 +66,7 @@ class RegistrationsController < ApplicationController
         status_types["active"]      = :edit
         
         status_types["registering_waitlisted"] = :new
-        status_types["waitlist"]             = :edit
+        status_types["waitlisted"]             = :edit
 
         reg_status_type = status_types[@registration.status]
 
@@ -85,9 +109,7 @@ class RegistrationsController < ApplicationController
         MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
 
         if @registration.status == "registering_waitlisted"
-            @registration.update(status: "waitlist")
-            RegistrationMailer.delay.registration_waitlisted(@registration._id.to_s)
-            redirect_to league_path(@registration.league), notice: "You have been added to the waitlist."
+            redirect_to waitlist_authorize_registration_path(@registration)
             return
         end
 

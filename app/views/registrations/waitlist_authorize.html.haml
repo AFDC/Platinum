@@ -1,0 +1,48 @@
+- content_for :title, @registration.league.name
+= render :partial => '/pageheader', :locals => {subtitle: 'Join the Waitlist', breadcrumbs: {'Leagues' => leagues_path, @registration.league.name => league_path(@registration.league), "Registration for #{@registration.user.name}" => nil}}
+
+.row
+  .span12
+    .hero-unit
+      %h2
+        = fa_icon 'warning-sign'
+        The league is full; THIS IS A WAITLIST!
+      %p
+        This page is signing you up for the #{@registration.league.name} WAITLIST. By submitting
+        this authorization you are agreeing that the AFDC can charge your card if a spot opens up
+        and add you to the league, but you are not guaranteed a spot.
+      %p
+        Here's what happens when you submit this form:
+      %ul
+        %li We authorize a charge to your payment method for the price of the league
+        %li If that succeeds, we add you to the waitlist and void the transaction
+        %li The transaction may still appear as pending on your account for a few days
+        %li If a spot opens up, we'll charge this payment method and add you to the league.
+      %p
+        If that all sounds good to you, continue below. Otherwise close this browser window and your
+        spot in the waitlist will be given up when it expires.
+.row
+  .span6.offset3
+    = form_tag pre_authorize_payments_path do
+      %p.lead
+        #{@registration.user.name}'s registration for #{@registration.league.name}:
+      %p.lead{style: 'font-size: 400%; font-weight: bold; text-align: center'}=number_to_currency @registration.price
+      #braintree_dropin
+      =hidden_field_tag 'registration_id', @registration._id
+      %button.btn.btn-block.btn-success.btn-large{type: :submit}
+        %i.icon-lock
+        Authorize now to join the waitlist!
+    .alert.alert-success
+      %strong{style: 'color: #222'}
+        %i.icon-lock
+        Relax! This transaction is secured by a 128 Bit SSL connection
+      %p{style: 'font-size: 80%'} Your payment details will be submitted directly from your browser to our payment processor over a secure connection; the AFDC will never see your credit card information.
+
+- content_for :page_scripts do
+  = javascript_include_tag "https://js.braintreegateway.com/v2/braintree.js"
+  :javascript
+    $(function(){
+      braintree.setup("#{current_user.braintree_token}", 'dropin', {
+        container: 'braintree_dropin'
+      });
+    });
