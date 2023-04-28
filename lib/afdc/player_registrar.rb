@@ -51,7 +51,7 @@ class PlayerRegistrar
 
     def queue_registration!
         registration.status     = 'queued'
-        registration.expires_at = 3.minutes.from_now
+        registration.expires_at = 10.minutes.from_now
 
         if (registration.queued_at.nil? || registration.is_expired?)
             registration.queued_at  = Time.now
