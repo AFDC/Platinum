@@ -1,7 +1,7 @@
 class LeaguesController < ApplicationController
     before_filter :load_league_from_params, except: [:index, :new, :create]
     before_filter :initialize_roster_csv, only: [:manage_roster, :upload_roster, :setup_roster_import, :import_roster]
-    filter_access_to [:accept_players, :preview_capture, :update_invites], attribute_check: true
+    filter_access_to [:update_invites], attribute_check: true
 
     def index
     end
@@ -476,52 +476,6 @@ class LeaguesController < ApplicationController
         game_list.delete_all
 
         redirect_to setup_schedule_import_league_path(@league), notice: "#{deleted} future games deleted."
-    end
-
-    def preview_capture
-        if params[:registration_group_id] && @rg = RegistrationGroup.find(params[:registration_group_id])
-            @registrant_list = {male: [], female: []}
-            @rg.members.each do |m|
-                if reg = @league.registration_for(m)
-                    @registrant_list[reg.gender.to_sym] << reg if reg.status == 'waitlisted'
-                end
-            end
-        else
-            @registrant_list = {}
-            %w(male female).each do |gender|
-                @registrant_list[gender.to_sym] = @league.registrations.waitlisted.where(gender: gender).sort('signup_timestamp' => 1)
-            end
-        end
-    end
-
-    def accept_players
-        @errors = []
-        registrations = []
-
-        submitted_ids = params[:reg_id] || []
-
-        submitted_ids.each do |reg_id|
-            r = Registration.find(reg_id)
-
-            if r
-                if r.status == 'canceled'
-                    @errors << "Registration canceled for #{r.user.name}."
-                end
-
-                registrations << r
-            else
-                @errors << "Registration not found for #{reg_id}"
-            end
-        end
-
-        if @errors.count > 0
-            flash[:error] = "Errors were found in your submission, see below"
-            render 'league/preview_capture' and return
-        else
-            expirations = @league.current_expiration_times
-            registrations.each { |r| r.accept(expirations[r.gender.to_sym]) }
-            redirect_to league_path(@league), notice: "#{registrations.count} registrants accepted. They will be invited to pay and join the league."
-        end
     end
 
     def rainout_games

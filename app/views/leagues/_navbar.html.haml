@@ -37,11 +37,6 @@
                                 = link_to manage_roster_league_path(@league) do
                                     %i.icon.icon-group
                                     Manage Roster
-                        - if permitted_to? :preview_capture, @league
-                            %li
-                                = link_to preview_capture_league_path(@league) do
-                                    %i.icon-bolt
-                                    Activate Players
                         - if permitted_to? :import_schedule, @league
                             %li
                                 = link_to setup_schedule_import_league_path do

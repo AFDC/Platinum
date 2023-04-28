@@ -70,10 +70,6 @@
                         %p Man-matching Spots Remaining: #{male_spots}
                       - if female_spots.present?
                         %p Woman-matching Spots Remaining: #{female_spots}    
-                - else
-                  - if permitted_to? :preview_capture, @league
-                    =link_to 'Accept registered players on this core', preview_capture_league_path(@league, registration_group_id: rg._id), class: 'btn btn-block btn-small btn-primary', style: 'margin-top: 30px'
-
               - elsif registrations[:active] == member_count
                 - if permitted_to? :add_to_team, rg
                   = form_tag add_to_team_league_registration_group_path(@league,rg), method: 'PUT', style: 'margin-top: 30px' do
