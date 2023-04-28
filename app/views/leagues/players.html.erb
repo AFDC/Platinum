@@ -1,0 +1,69 @@
+<% content_for :title, @league.name %>
+<%=render :partial => '/pageheader', :locals => {subtitle: 'Manage Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Players' => nil}} %>
+
+<div style="text-align: right">
+    <button id="clear-filters" class="btn btn-xs btn-info">Clear Filters</button>
+</div>
+<div id="table-container" style="display: flex; height: 80%;">
+    <div id="example-table" style="height: 100%; width: 100%;"></div>
+</div>
+
+<% content_for :page_scripts do %>
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+    <script type="text/javascript">
+        //define some sample data
+        $(function(){
+            //create Tabulator on DOM element with id "example-table"
+            var table = new Tabulator("#example-table", {
+                // height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+                ajaxURL:"<%=reg_list_league_path(@league, :json)%>",
+                layout:"fitColumns", //fit columns to width of table (optional)
+                columns:[ //Define Table Columns
+                    {title:"Name", field:"name", headerFilter:true},
+                    {title:"Status", field:"status", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"status", clearable: true}, hozAlign:"left"},
+                    {
+                        title:"Expiration", 
+                        field:"expires_at", 
+                        formatter: "datetimediff", 
+                        formatterParams:{
+                            inputFormat:"iso",
+                            unit:["minutes", "seconds"],
+                            humanize: true,
+                            invalidPlaceholder:true
+                        }
+                    },
+                    {title:"Availability", field:"gen_availability", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"gen_availability", clearable: true}, hozAlign:"left"},
+                    {
+                        title:"Matchup", 
+                        field:"matchup",
+                        formatter: "lookup",
+                        formatterParams: {
+                            "man-matching": "<span class=\"man label\">MM</span>",
+                            "woman-matching": "<span class=\"wom label\">WM</span>",
+                        },
+                        headerFilter:"list", 
+                        headerFilterParams:{valuesLookup: "all", valuesLookupField:"matchup", clearable: true}, 
+                        hozAlign:"left"
+                    }
+                ],
+            });
+
+            //trigger an alert message when the row is clicked
+            table.on("rowClick", function(e, row){ 
+                alert("Row " + row.getData().id + " Clicked!!!!");
+            });
+
+            $('#clear-filters').on('click', function() {
+                table.clearFilter(true);
+            });
+        });
+    </script>
+<% end %>
+
+<% content_for :page_styles do %>
+    <link href="https://unpkg.com/tabulator-tables@5.4.4/dist/css/tabulator.min.css" rel="stylesheet">
+    <style>
+        input[type=search]::-webkit-search-cancel-button { -webkit-appearance: searchfield-cancel-button; }
+    </style>
+<% end %>

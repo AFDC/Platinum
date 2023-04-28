@@ -1,5 +1,5 @@
 !!! 5
-%html
+%html{style: "height: 90%"}
   %head
     %title
       = specified_title = yield(:title)
@@ -38,7 +38,7 @@
     %meta{content: "/favicons/mstile-144x144.png", name: "msapplication-TileImage"}
 
     = csrf_meta_tags
-  %body
+  %body{style: "display: flex; flex-flow: column; height: 100%;"}
     #navBar.navbar.navbar-fixed-top
       .navbar-inner
         .container
@@ -76,7 +76,7 @@
                 %li= link_to 'Log In', auth_path
     - unless Rails.env.production?
       .alert.alert-success{:style => 'margin: 0 5px;'}= "Current Rails Environment: #{Rails.env}"
-    .container
+    .container{style: "display: flex; height: 100%; flex-flow: column; flex-grow: 1"}
       - if flash[:notice]
         .alert.alert-info= flash[:notice]
       - if flash[:error]

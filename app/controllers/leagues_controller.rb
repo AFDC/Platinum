@@ -118,6 +118,46 @@ class LeaguesController < ApplicationController
         render "registrations/edit"
     end
 
+    # This powers the league-manager player list
+    def reg_list
+        respond_to do |format|
+            format.json do
+                registrant_data = []
+                @league.registrations.each do |reg|
+                    u = reg.user
+
+                    pronouns = u.pronouns.display
+                    name = u.name
+                    if pronouns.present?
+                        name = "#{name} (#{pronouns})"
+                    end
+                    
+                    expires_at = ""
+                    if ["registering", "registering_waitlisted", "queued"].include?(reg.status)
+                        expires_at = reg.expires_at
+                        if expires_at < Time.now
+                            expires_at = "Expired"
+                        end
+                    end
+                    
+                    reg_hash = {
+                        id: reg._id.to_s,
+                        name: name,
+                        status: reg.status,
+                        expires_at: expires_at,
+                        gen_availability: reg.gen_availability,
+                        matchup: reg.gender_noun                        
+                    }
+
+                    registrant_data << reg_hash
+                end
+
+                render json: registrant_data
+            end
+        end
+    end
+
+    # This powers the player-visible registraiton list
     def registrations
         respond_to do |format|
             format.html do

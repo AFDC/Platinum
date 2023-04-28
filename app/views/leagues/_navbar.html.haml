@@ -23,6 +23,11 @@
                                 = link_to edit_league_path(@league) do
                                     %i.icon.icon-pencil
                                     Edit
+                        - if permitted_to? :players, @league
+                            %li
+                                = link_to players_league_path(@league) do
+                                    %i.icon.icon-group
+                                    Manage Players
                         - if permitted_to? :create, :teams
                             %li
                                 =link_to new_league_team_path(@league) do
@@ -32,11 +37,6 @@
                             =link_to registrations_league_path(@league, :csv) do
                                 %i.icon.icon-download-alt
                                 Registrant CSV 
-                        - if permitted_to? :manage_roster, @league
-                            %li
-                                = link_to manage_roster_league_path(@league) do
-                                    %i.icon.icon-group
-                                    Manage Roster
                         - if permitted_to? :import_schedule, @league
                             %li
                                 = link_to setup_schedule_import_league_path do
