@@ -12,6 +12,7 @@ class PaymentsController < ApplicationController
 
     price    = registration.price
 
+    # COPIED TO league.rb
     result = Braintree::Transaction.sale(
       amount: price,
       payment_method_nonce: params['payment_method_nonce'],
@@ -100,7 +101,7 @@ class PaymentsController < ApplicationController
       return
     end
     
-    registration.waitlist(pre_auth: {auth_tx_id: result.transaction.id, stored_payment_token: payment_token})
+    registration.waitlist({auth_tx_id: result.transaction.id, stored_payment_token: payment_token})
 
     redirect_to registration_path(registration), notice: "Success! You are now on the waitlist for #{registration.league.name}."
   end

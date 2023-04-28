@@ -219,6 +219,90 @@ class League
     User.find(invited_player_ids)
   end
 
+  def fill_slots_from_waitlist
+    return if general_registration_open? == false
+    slots_filled = 0
+
+    genders = ["male", "female"]
+    genders.each do |gender|
+      next if registrations.waitlisted.where(gender: gender).count == 0
+
+      gender_limit = gender_limit(gender)
+      current_slots_filled = registrations.where(gender: gender, :status.in => ["active", "registering", "queued", "waitlisted_paying"])
+      while registrations.where(gender: gender, :status.in => ["active", "registering", "queued", "waitlisted_paying"]).count < gender_limit
+        break if registrations.where(gender: gender, status: "waitlisted", :waitlist_timestamp.exists => true).count == 0
+
+        reg = registrations.where(gender: gender, status: "waitlisted", :waitlist_timestamp.exists => true).order_by([:waitlist_timestamp, :asc]).first
+        reg.update_attributes(status: "waitlisted_paying")
+        puts "Attempting to activate registration for #{reg.user.name}"
+
+        if comped?(reg.user) == false
+          if reg["pre_authorization"].nil? || reg["pre_authorization"]["stored_payment_token"].nil?
+            puts "\tNo payment method token found for #{reg.user.name}"
+            reg.update_attributes(status: "canceled")
+            #TODO: Send error email
+            next
+          end
+
+          price = reg.price
+
+          # COPIED FROM league.rb
+          result = Braintree::Transaction.sale(
+            amount: price,
+            payment_method_token: reg["pre_authorization"]["stored_payment_token"],
+            channel: 'leagues.afdc.com',
+            options: {
+              submit_for_settlement: true
+            },
+            custom_fields: {
+              registration_id: reg._id.to_s,
+              league_id:       reg.league._id.to_s,
+              user_id:         reg.user._id.to_s
+            },
+            order_id: "registration:#{reg._id.to_s}"
+          )
+
+          if result.success?
+            PaymentTransaction.create({
+              transaction_id: result.transaction.id,
+              payment_method: result.transaction.payment_instrument_type,
+              amount:         result.transaction.amount,
+              currency:       result.transaction.currency_iso_code,
+              registration:   reg,
+              user:           reg.user,
+              league:         reg.league
+            })
+            reg.paid = true
+            #log_audit('Pay', league: reg.league, registration: reg)
+          else
+            puts "\tPayment method failed for #{reg.user.name} (#{result.message})"
+            reg.update_attributes(status: "canceled")
+            #TODO: Send Error Email
+            next
+          end
+        end
+        puts "\tActivated!"
+        reg.activate!
+        slots_filled += 1
+      end
+    end
+
+    return slots_filled
+  end
+
+  def self.fill_open_slots
+    open_leagues = League.not_started
+    puts "Filling Open Slots worker performing job... (open leagues: #{open_leagues.count})"
+
+    open_leagues.each do |league|
+      puts ":: #{league.name}"
+      slots_filled = league.fill_slots_from_waitlist
+      puts ":: #{league.name}: #{slots_filled} filled"
+    end
+
+    return nil
+  end
+
   def self.expire_stale_registrations
     open_leagues = League.not_ended
     puts "RegistrationCancellationWorker performing job... (open leagues: #{open_leagues.count})"

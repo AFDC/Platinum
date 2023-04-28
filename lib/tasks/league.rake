@@ -4,6 +4,11 @@ namespace :league do
         League.expire_stale_registrations
     end
 
+    desc 'Fill open slots from waitlist'
+    task fill_slots: :environment do
+        League.fill_open_slots
+    end
+
     desc 'Refund all Registrations'
     task :refund, [:league_id] => [:environment] do |t, args|
         league = League.find(args[:league_id])
