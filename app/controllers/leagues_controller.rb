@@ -138,7 +138,7 @@ class LeaguesController < ApplicationController
                     core.members.order_by(gender: :asc).each do |user|
                         reg = @league.registration_for(user)
                         processed << reg._id unless reg.nil?
-                        reg ||= Registration.new(league: league, user: user)
+                        reg ||= Registration.new(league: @league, user: user)
 
                         non_active_statuses += 1 if reg.status != 'active'
                         mm_players += 1 if reg.gender == 'male'
