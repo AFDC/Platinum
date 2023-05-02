@@ -122,39 +122,143 @@ class LeaguesController < ApplicationController
     def reg_list
         respond_to do |format|
             format.json do
+                # found cache
+                processed = Set.new
                 registrant_data = []
-                @league.registrations.each do |reg|
-                    u = reg.user
 
-                    pronouns = u.pronouns.display
-                    name = u.name
-                    if pronouns.present?
-                        name = "#{name} (#{pronouns})"
+                # cores
+                cores = {}
+                core_index = 0
+                @league.registration_groups.each do |core|
+                    core_index += 1
+                    non_active_statuses = 0
+                    mm_players = 0
+                    wm_players = 0
+                    core_regs = []
+                    core.members.order_by(gender: :asc).each do |user|
+                        reg = @league.registration_for(user)
+                        processed << reg._id unless reg.nil?
+                        reg ||= Registration.new(league: league, user: user)
+
+                        non_active_statuses += 1 if reg.status != 'active'
+                        mm_players += 1 if reg.gender == 'male'
+                        wm_players += 1 if reg.gender == 'female'
+
+                        core_regs << reg_data(reg)
                     end
+
+                    next if core_regs.count == 0
                     
-                    expires_at = ""
-                    if ["registering", "registering_waitlisted", "queued"].include?(reg.status)
-                        expires_at = reg.expires_at
-                        if expires_at < Time.now
-                            expires_at = "Expired"
-                        end
-                    end
-                    
-                    reg_hash = {
-                        id: reg._id.to_s,
-                        name: name,
-                        status: reg.status,
-                        expires_at: expires_at,
-                        gen_availability: reg.gen_availability,
-                        matchup: reg.gender_noun                        
+                    core_status = 'Complete'
+                    core_status = 'Incomplete' if non_active_statuses > 0
+
+                    core_gender = 'Mixed'
+                    core_gender = 'Man-matching' if wm_players == 0
+                    core_gender = 'Woman-matching' if mm_players == 0
+
+                    registrant_data << {
+                        id: "c%04d" % core_index,
+                        name: "Core<#{core._id}>",
+                        status: core_status,
+                        matchup: core_gender,
+                        _children: core_regs
                     }
+                end
 
-                    registrant_data << reg_hash
+                # pairs
+                pairs = {
+                    mw: [],
+                    ww: [],
+                    mm: []
+                }
+                
+                @league.registrations.where(:pair_id.ne => nil).each do |reg|
+                    pair_reg = @league.registration_for(reg.pair)
+
+                    # Breaks the pair if:
+                    # - the pair_reg isn't found
+                    # - either is already in a different pair
+                    # - either is on a core
+                    next if pair_reg.nil?
+                    next if processed.member?(reg._id)
+                    next if processed.member?(pair_reg._id)
+
+                    processed << reg._id
+                    processed << pair_reg._id
+
+                    pair_data = [reg_data(reg), reg_data(pair_reg)]
+
+                    if reg.gender != pair_reg.gender
+                        pairs[:mw] << pair_data
+                        next
+                    end
+
+                    if reg.gender == 'female'
+                        pairs[:ww] << pair_data
+                        next
+                    end
+
+                    if reg.gender == 'male'
+                        pairs[:mm] << pair_data
+                        next
+                    end
+                end
+
+                pair_index = 0
+                pairs.keys.each do |pair_type|
+                    pairs[pair_type].each do |pair|
+                        pair_gender = pair[0][:matchup]
+                        pair_gender = "Mixed" if pair_type == :mw
+
+                        pair_name = "#{pair[0][:name].split(' ')[0]} & #{pair[1][:name].split(' ')[0]}"
+
+                        pair_index += 1
+                        registrant_data << {
+                            id: "p%04d" % pair_index,
+                            name: pair_name,
+                            status: "",
+                            matchup: pair_gender,
+                            _children: pair
+                        }
+                    end
+                end
+
+                # individuals
+                @league.registrations.each do |reg|
+                    next if processed.member?(reg._id)
+                    registrant_data << reg_data(reg)
                 end
 
                 render json: registrant_data
             end
         end
+    end
+
+    def reg_data(reg)
+        u = reg.user
+
+        pronouns = u.pronouns.display
+        name = u.name
+        if pronouns.present?
+            name = "#{name} (#{pronouns})"
+        end
+        
+        expires_at = ""
+        if ["registering", "registering_waitlisted", "queued"].include?(reg.status)
+            expires_at = reg.expires_at
+            if expires_at < Time.now
+                expires_at = "Expired"
+            end
+        end
+        
+        {
+            id: reg._id.to_s,
+            name: name,
+            status: reg.status,
+            expires_at: expires_at,
+            gen_availability: reg.gen_availability,
+            matchup: reg.gender_noun                        
+        }
     end
 
     # This powers the player-visible registraiton list
