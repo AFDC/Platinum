@@ -118,6 +118,34 @@ class LeaguesController < ApplicationController
         render "registrations/edit"
     end
 
+    def team_list
+        respond_to do |format|
+            format.json do
+                teams_data = []
+
+                @league.teams.each do |t|
+                    player_counts = {
+                        'male' => 0,
+                        'female' => 0
+                    }
+    
+                    t.players.each do |p|
+                        player_counts[p.gender]+=1
+                    end
+    
+                    teams_data << {
+                        name: t.name,
+                        man_matching: player_counts['male'],
+                        woman_matching: player_counts['female'],
+                        total: player_counts['male']+player_counts['female']
+                    }
+                end
+
+                render json: teams_data
+            end
+        end
+    end
+
     # This powers the league-manager player list
     def reg_list
         respond_to do |format|
@@ -135,11 +163,18 @@ class LeaguesController < ApplicationController
                     mm_players = 0
                     wm_players = 0
                     core_regs = []
+                    team_counts = {}
                     core.members.order_by(gender: :asc).each do |user|
                         reg = @league.registration_for(user)
                         reg ||= Registration.new(league: @league, user: user)
                         processed << reg._id
 
+                        team = @league.team_for(user)
+                        team_name = ""
+                        team_name = team.name unless team.nil?
+                        team_counts[team_name] = 0 unless team_counts.include?(team_name)
+                        team_counts[team_name] += 1
+                        
                         non_active_statuses += 1 if reg.status != 'active'
                         mm_players += 1 if reg.gender == 'male'
                         wm_players += 1 if reg.gender == 'female'
@@ -149,16 +184,22 @@ class LeaguesController < ApplicationController
 
                     next if core_regs.count == 0
                     
-                    core_status = 'Complete'
-                    core_status = 'Incomplete' if non_active_statuses > 0
+                    core_status = 'active'
+                    core_status = 'incomplete' if non_active_statuses > 0
 
                     core_gender = 'Mixed'
                     core_gender = 'Man-matching' if wm_players == 0
                     core_gender = 'Woman-matching' if mm_players == 0
 
+                    team_name = "unassigned"
+                    if team_counts.count == 1
+                        team_name = team_counts.keys.first
+                    end
+
                     registrant_data << {
                         id: "c%04d" % core_index,
                         name: "Core<#{core._id}>",
+                        team: team_name,
                         status: core_status,
                         matchup: core_gender,
                         _children: core_regs
@@ -212,11 +253,17 @@ class LeaguesController < ApplicationController
 
                         pair_name = "#{pair[0][:name].split(' ')[0]} & #{pair[1][:name].split(' ')[0]}"
 
+                        pair_team = "<i>unassigned</i>"
+                        pair_team = pair[0][:team] if pair[0][:team] == pair[1][:team]
+
+                        pair_status = pair[0][:status] if pair[0][:status] == pair[1][:status]
+
                         pair_index += 1
                         registrant_data << {
                             id: "p%04d" % pair_index,
                             name: pair_name,
-                            status: "",
+                            team: pair_team,
+                            status: pair_status,
                             matchup: pair_gender,
                             _children: pair
                         }
@@ -250,11 +297,22 @@ class LeaguesController < ApplicationController
                 expires_at = "Expired"
             end
         end
+
+
+        team = @league.team_for(u)
+
+        team_name = ""
+        if reg.status == 'active'
+            team_name = "unassigned"
+        end
+        team_name = team.name unless team.nil?
         
         {
             id: reg._id.to_s,
             name: name,
             status: reg.status,
+            rank: reg.rank,
+            team: team_name,
             expires_at: expires_at,
             gen_availability: reg.gen_availability,
             matchup: reg.gender_noun                        

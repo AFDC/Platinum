@@ -34,6 +34,7 @@ Platinum::Application.routes.draw do
 
       get 'players'
       get 'reg_list'
+      get 'team_list'
 
       post 'update_invites'
 

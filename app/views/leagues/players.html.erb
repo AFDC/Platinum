@@ -1,31 +1,143 @@
 <% content_for :title, @league.name %>
 <%=render :partial => '/pageheader', :locals => {subtitle: 'Manage Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Players' => nil}} %>
 
-<div style="text-align: right">
-    <button id="clear-filters" class="btn btn-xs btn-info">Clear Filters</button>
-</div>
-<div id="table-container" style="display: flex; height: 80%;">
-    <div id="example-table" style="height: 100%; width: 100%;"></div>
+<div class="row" style="height: 100%">
+    <div class="span3">
+        <h2>Teams</h2>
+        <div id="team-data"></div>
+    </div>
+    <div class="span9" style="height: 100%">
+        <div class="row">
+            <div class="span3">
+                <h2>Registrants</h2>
+            </div>
+            <div class="span6">
+                <h2>
+                <div style="text-align: right">
+                    <button id="clear-filters" class="btn btn-xs btn-info">Clear Filters</button>
+                    <button id="refresh-data" class="btn btn-xs btn-info">Refresh Data</button>
+                </div>
+                </h2>
+            </div>
+        </div>
+        <div id="table-container" style="display: flex; height: 80%;">
+            <div id="registrant-data" style="height: 100%; width: 100%;"></div>
+        </div>
+    </div>
 </div>
 
 <% content_for :page_scripts do %>
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
     <script type="text/javascript">
-        //define some sample data
         $(function(){
-            //create Tabulator on DOM element with id "example-table"
-            var table = new Tabulator("#example-table", {
-                // height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
-                ajaxURL:"<%=reg_list_league_path(@league, :json)%>",
+            var teamDataURL = "<%=team_list_league_path(@league, :json)%>";
+            
+            var reg_table = new Tabulator("#team-data", {
+                ajaxURL:teamDataURL,
                 layout:"fitColumns", //fit columns to width of table (optional)
+                columns:[ //Define Table Columns
+                    {title:"Team", field:"name"},
+                    {title:"MM", field:"man_matching", width: 64},
+                    {title:"WM", field:"woman_matching", width: 64},
+                ]
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        $(function(){
+            var ajaxURL = "<%=reg_list_league_path(@league, :json)%>";
+
+            var minMaxFilterEditor = function(cell, onRendered, success, cancel, editorParams){
+
+                var end;
+
+                var container = document.createElement("span");
+
+                //create and style inputs
+                var start = document.createElement("input");
+                start.setAttribute("type", "number");
+                start.setAttribute("placeholder", "Min");
+                start.setAttribute("min", 0);
+                start.setAttribute("max", 10);
+                start.style.padding = "4px";
+                start.style.width = "50%";
+                start.style.boxSizing = "border-box";
+
+                start.value = cell.getValue();
+
+                function buildValues(){
+                    success({
+                        start:start.value,
+                        end:end.value,
+                    });
+                }
+
+                function keypress(e){
+                    if(e.keyCode == 13){
+                        buildValues();
+                    }
+
+                    if(e.keyCode == 27){
+                        cancel();
+                    }
+                }
+
+                end = start.cloneNode();
+                end.setAttribute("placeholder", "Max");
+
+                start.addEventListener("change", buildValues);
+                start.addEventListener("blur", buildValues);
+                start.addEventListener("keydown", keypress);
+
+                end.addEventListener("change", buildValues);
+                end.addEventListener("blur", buildValues);
+                end.addEventListener("keydown", keypress);
+
+
+                container.appendChild(start);
+                container.appendChild(end);
+
+                return container;
+            }
+
+            //custom max min filter function
+            function minMaxFilterFunction(headerValue, rowValue, rowData, filterParams){
+                //headerValue - the value of the header filter element
+                //rowValue - the value of the column in this row
+                //rowData - the data for the row being filtered
+                //filterParams - params object passed to the headerFilterFuncParams property
+
+                    if(rowValue){
+                        if(headerValue.start != ""){
+                            if(headerValue.end != ""){
+                                return rowValue >= headerValue.start && rowValue <= headerValue.end;
+                            }else{
+                                return rowValue >= headerValue.start;
+                            }
+                        }else{
+                            if(headerValue.end != ""){
+                                return rowValue <= headerValue.end;
+                            }
+                        }
+                    }
+
+                return true; //must return a boolean, true if it passes the filter.
+            }
+
+            var reg_table = new Tabulator("#registrant-data", {
+                // height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+                ajaxURL:ajaxURL,
+                layout:"fitDataFill", //fit columns to width of table (optional)
                 dataTree:true,
-                dataTreeStartExpanded:false,                
+                dataTreeStartExpanded:false,   
+                dataTreeFilter: true,             
                 columns:[ //Define Table Columns
                     {title:"Name", field:"name", headerFilter:true},
                     {title:"Status", field:"status", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"status", clearable: true}, hozAlign:"left"},
                     {
-                        title:"Expiration", 
+                        title:"Expiration",
+                        visible: false,
                         field:"expires_at", 
                         formatter: "datetimediff", 
                         formatterParams:{
@@ -35,6 +147,13 @@
                             invalidPlaceholder:true
                         }
                     },
+                    {title:"Team", field:"team", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"team", clearable: true}, hozAlign:"left"},
+                    {title:"Rank", field:"rank",
+                        sorter:"number", 
+                        headerFilter:minMaxFilterEditor, 
+                        headerFilterFunc:minMaxFilterFunction, 
+                        headerFilterLiveFilter:false
+                    },
                     {title:"Availability", field:"gen_availability", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"gen_availability", clearable: true}, hozAlign:"left"},
                     {
                         title:"Matchup", 
@@ -43,6 +162,7 @@
                         formatterParams: {
                             "man-matching": "<span class=\"man label\">MM</span>",
                             "woman-matching": "<span class=\"wom label\">WM</span>",
+                            "Mixed": "<span class=\"label\">MX</span>"
                         },
                         headerFilter:"list", 
                         headerFilterParams:{valuesLookup: "all", valuesLookupField:"matchup", clearable: true}, 
@@ -52,12 +172,16 @@
             });
 
             //trigger an alert message when the row is clicked
-            table.on("rowClick", function(e, row){ 
-                alert("Row " + row.getData().id + " Clicked!!!!");
-            });
+            // table.on("rowClick", function(e, row){ 
+            //     alert("Row " + row.getData().id + " Clicked!!!!");
+            // });
 
             $('#clear-filters').on('click', function() {
-                table.clearFilter(true);
+                reg_table.clearFilter(true);
+            });
+
+            $('#refresh-data').on('click', function(){
+                reg_table.setData(ajaxURL);
             });
         });
     </script>
