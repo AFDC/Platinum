@@ -302,7 +302,7 @@ class LeaguesController < ApplicationController
 
                         pair_name = "#{pair[0][:name].split(' ')[0]} & #{pair[1][:name].split(' ')[0]}"
 
-                        pair_team = "<i>unassigned</i>"
+                        pair_team = "DIFFERENT_TEAMS"
                         pair_team = pair[0][:team] if pair[0][:team] == pair[1][:team]
 
                         pair_status = pair[0][:status] if pair[0][:status] == pair[1][:status]
@@ -364,8 +364,8 @@ class LeaguesController < ApplicationController
         
         {
             id: reg._id.to_s,
-            name: u.name,
-            name_with_pronouns: u.name_with_pronouns,
+            name: u.name_with_pronouns,
+            name_without_pronouns: u.name,
             email: u.email_address,
             profile_url: user_path(u),
             registration_url: registration_path(reg),

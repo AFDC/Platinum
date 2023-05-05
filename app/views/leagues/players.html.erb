@@ -19,6 +19,9 @@
             <div class="span6">
                 <h2>
                 <div style="text-align: right">
+                    <% if @league.registration_groups.count > 0 %>
+                    <button id="toggle-cores" class="btn btn-xs btn-info">Toggle Cores</button>
+                    <% end %>
                     <button id="clear-filters" class="btn btn-xs btn-info">Clear Filters</button>
                     <button id="refresh-data" class="btn btn-xs btn-info">Refresh Data</button>
                 </div>
@@ -152,7 +155,7 @@
                 dataTreeStartExpanded:false,   
                 dataTreeFilter: true,             
                 columns:[ //Define Table Columns
-                    {title:"Name", field:"name_with_pronouns", headerFilter:true},
+                    {title:"Name", field:"name", headerFilter:true},
                     {title:"Status", field:"status", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"status", clearable: true}, hozAlign:"left"},
                     {
                         title:"Expiration",
@@ -257,12 +260,28 @@
             $('#refresh-data').on('click', function(){
                 reg_table.setData(ajaxURL);
             });
+
+            $('#toggle-cores').on('click', function(){
+                var filterList = reg_table.getFilters();
+                var alreadyFiltered = false;
+                for (i = 0; i < filterList.length; i++) {
+                    if (filterList[i]["field"] == "type") {
+                        alreadyFiltered = true;
+                    }
+                }
+
+                if (alreadyFiltered) {
+                    reg_table.removeFilter("type", "!=", "core");
+                } else {
+                    reg_table.addFilter("type", "!=", "core");
+                }
+            });
         });
     </script>
 
     <script id="registrant-detail-template" type="text/x-underscore">
         <h4>
-            <a href="{{=profile_url}}" target="_blank">{{=name}}</a>
+            <a href="{{=profile_url}}" target="_blank">{{=name_without_pronouns}}</a>
             <small>{{=email}}</small>
         </h4>
         <ul class="unstyled">
