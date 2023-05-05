@@ -65,6 +65,7 @@
     <script type="text/javascript">
         $(function(){
             var ajaxURL = "<%=reg_list_league_path(@league, :json)%>";
+            var CSRF_TOKEN = $('meta[name=csrf-token]').attr('content');
 
             var minMaxFilterEditor = function(cell, onRendered, success, cancel, editorParams){
 
@@ -151,7 +152,7 @@
                 dataTreeStartExpanded:false,   
                 dataTreeFilter: true,             
                 columns:[ //Define Table Columns
-                    {title:"Name", field:"name", headerFilter:true},
+                    {title:"Name", field:"name_with_pronouns", headerFilter:true},
                     {title:"Status", field:"status", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"status", clearable: true}, hozAlign:"left"},
                     {
                         title:"Expiration",
@@ -201,16 +202,49 @@
                 }
             }
 
-            // trigger an alert message when the row is clicked
-            reg_table.on("rowClick", function(e, row){ 
-                var rowData = row.getData();
+            function render_player_details(rowData) {
                 var domTarget = $('#player-details');
                 var registrant_profile = _.template($('#registrant-detail-template').html());
 
+                domTarget.html(registrant_profile(rowData));
+                render_team_updater(rowData["team_id"]);
+                $("#player-details-container").show();
+
+                var cancelButton = $("#cancel-registration-button");
+                var cancelPath = "<%=cancel_registration_league_path(@league, :json)%>";
+                var errorMessageElement = $("#registrant-error-message");
+                var successMessageElement = $("#registrant-success-message");
+
+                if (cancelButton) {
+                    cancelButton.on('click', function(){
+                        var xhr = $.ajax({
+                            headers: {
+                                'X-CSRF-Token': CSRF_TOKEN
+                            },
+                            url: cancelPath,
+                            method: "POST",
+                            data: {registration_id: rowData["id"]}
+                        }).done(function(data) {
+                            console.log(data);
+                            successMessageElement.html(data["msg"])
+                            successMessageElement.show();
+                            errorMessageElement.hide();
+                            reg_table.setData(ajaxURL);
+                        }).fail(function(jqXHR,textStatus,errorThrown){
+                            errorMessageElement.html(jqXHR.responseJSON["msg"]);
+                            errorMessageElement.show();
+                            successMessageElement.hide();
+                        });
+                    });
+                }
+            }
+
+            // trigger an alert message when the row is clicked
+            reg_table.on("rowClick", function(e, row){ 
+                var rowData = row.getData();
+
                 if (rowData.type == "individual") {
-                    domTarget.html(registrant_profile(rowData));
-                    render_team_updater(rowData["team_id"]);
-                    $("#player-details-container").show();
+                    render_player_details(rowData);
                 } else {
                     alert(rowData.type);
                 }
@@ -239,6 +273,13 @@
                 <li><strong>gRank</strong>: {{=grank.score}}</li>
             {{ } }}
         </ul>
+        <div class="alert alert-error hide" id="registrant-error-message"></div>
+        <div class="alert alert-success hide" id="registrant-success-message"></div>
+        <div id="team-selection-container_hide"></div>
+        <%=link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info'%>
+        {{ if (status == "active") { }}
+            <button class="btn btn-block btn-small btn-warning" id="cancel-registration-button">Cancel & Refund</button>
+        {{ } }}
     </script>
 
     <script id="team-selection-template" type="text/x-underscore">

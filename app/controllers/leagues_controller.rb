@@ -48,6 +48,54 @@ class LeaguesController < ApplicationController
         end
     end
 
+    def cancel_registration
+        respond_to do |format|
+            format.json do
+                reg = Registration.find(params["registration_id"])
+
+                if reg.nil?
+                    render json: {msg: "Registration not found."}, status: 404
+                    return
+                end
+
+                if @league.started?
+                    render json: {msg: "Once the league has started, please work with the treasurer for a partial refund."}, status: 400
+                    return
+                end
+
+                if reg.status == "canceled"
+                    render json: {msg: "Registration already canceled."}, status: 400
+                    return
+                end
+
+                success_message = nil
+
+                if reg.status != "active" || reg.paid == false
+                    reg.update_attributes(status: "canceled")
+                    success_message = "Registration canceled."
+                    log_audit("CancelRegistration", league: @league, user: reg.user)
+                end
+
+                if reg.status == "active"
+                    begin
+                        reg.refund!
+                        success_message = "Registration refunded and canceled."
+                        log_audit("RefundRegistration", league: @league, user: reg.user)
+                    rescue StandardError => e
+                        render json: {msg: e.message}, status: 400
+                        return
+                    end
+                end
+
+                if success_message.nil?
+                    render json: {msg: "Unknown error."}, status: 400
+                end
+
+                render json: {msg: success_message}, status: 200
+            end
+        end        
+    end
+
     def update_invites
         new_invites_list = params[:invited_player_ids].reject { |id| id.blank? }
         new_invites_list = new_invites_list.map {|id| Moped::BSON::ObjectId.from_string(id)}
