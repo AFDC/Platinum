@@ -202,6 +202,7 @@ class LeaguesController < ApplicationController
                         team: team_name,
                         status: core_status,
                         matchup: core_gender,
+                        type: "core",
                         _children: core_regs
                     }
                 end
@@ -265,6 +266,7 @@ class LeaguesController < ApplicationController
                             team: pair_team,
                             status: pair_status,
                             matchup: pair_gender,
+                            type: "pair",
                             _children: pair
                         }
                     end
@@ -285,10 +287,6 @@ class LeaguesController < ApplicationController
         u = reg.user
 
         pronouns = u.pronouns.display
-        name = u.name
-        if pronouns.present?
-            name = "#{name} (#{pronouns})"
-        end
         
         expires_at = ""
         if ["registering", "registering_waitlisted", "queued"].include?(reg.status)
@@ -302,20 +300,39 @@ class LeaguesController < ApplicationController
         team = @league.team_for(u)
 
         team_name = ""
+        team_id = ""
         if reg.status == 'active'
             team_name = "unassigned"
         end
         team_name = team.name unless team.nil?
+        team_id   = team.id   unless team.nil?
+
+        grank = {};
+        if @league.require_grank? && reg.g_rank_result
+            grank[:score] = reg.g_rank_result.score
+            grank[:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
+            # grank[:history] = reg.user.g_rank_results.map(&:score).slice(0,12).reverse
+        end
         
         {
             id: reg._id.to_s,
-            name: name,
+            name: u.name,
+            name_with_pronouns: u.name_with_pronouns,
+            email: u.email_address,
+            profile_url: user_path(u),
+            registration_url: registration_path(reg),
             status: reg.status,
             rank: reg.rank,
+            grank: grank,
+            player_type: reg.player_strength,
+            height: u.height_in_feet_and_inches,
+            age: u.age,
             team: team_name,
+            team_id: team_id,
             expires_at: expires_at,
             gen_availability: reg.gen_availability,
-            matchup: reg.gender_noun                        
+            matchup: reg.gender_noun,
+            type: "individual"                     
         }
     end
 

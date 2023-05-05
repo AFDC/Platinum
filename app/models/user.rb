@@ -154,6 +154,14 @@ class User
     "#{firstname} #{lastname}"
   end
 
+  def name_with_pronouns
+    pronoun_text = ""
+    if pronouns.present?
+        pronoun_text = " (#{pronouns.display})"
+    end
+    return "#{name}#{pronoun_text}"
+  end
+
   def remember_me
     unless remember_me_cookie
       self.remember_me_cookie = SecureRandom.hex(32)

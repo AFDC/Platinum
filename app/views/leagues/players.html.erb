@@ -3,6 +3,11 @@
 
 <div class="row" style="height: 100%">
     <div class="span3">
+        <div id="player-details-container" class="well well-small hide">
+            <div style="text-align: right"><button class="close" id="hide-player-details">&times;</button></div>
+            <div id="player-details"></div>
+        </div>
+        
         <h2>Teams</h2>
         <div id="team-data"></div>
     </div>
@@ -27,8 +32,21 @@
 </div>
 
 <% content_for :page_scripts do %>
+    <%=javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js')%>
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+    <script type="text/javascript">
+        _.templateSettings = {
+            interpolate: /\{\{\=(.+?)\}\}/g,
+            evaluate: /\{\{(.+?)\}\}/g
+        };
+
+        $(function(){
+            $("#hide-player-details").click(function(){
+                $("#player-details-container").hide();
+            });
+        });
+    </script>
     <script type="text/javascript">
         $(function(){
             var teamDataURL = "<%=team_list_league_path(@league, :json)%>";
@@ -171,10 +189,32 @@
                 ],
             });
 
-            //trigger an alert message when the row is clicked
-            // table.on("rowClick", function(e, row){ 
-            //     alert("Row " + row.getData().id + " Clicked!!!!");
-            // });
+            function render_team_updater(team_id) {
+                var team_updater = _.template($("#team-selection-template").html());
+                var teamUpdaterDomTarget = $("#team-selection-container");
+
+                if (teamUpdaterDomTarget) {
+                    teamUpdaterDomTarget.html(team_updater());
+                    if (team_id) {
+                        $("#team-selector").val(team_id);
+                    }
+                }
+            }
+
+            // trigger an alert message when the row is clicked
+            reg_table.on("rowClick", function(e, row){ 
+                var rowData = row.getData();
+                var domTarget = $('#player-details');
+                var registrant_profile = _.template($('#registrant-detail-template').html());
+
+                if (rowData.type == "individual") {
+                    domTarget.html(registrant_profile(rowData));
+                    render_team_updater(rowData["team_id"]);
+                    $("#player-details-container").show();
+                } else {
+                    alert(rowData.type);
+                }
+            });
 
             $('#clear-filters').on('click', function() {
                 reg_table.clearFilter(true);
@@ -184,6 +224,58 @@
                 reg_table.setData(ajaxURL);
             });
         });
+    </script>
+
+    <script id="registrant-detail-template" type="text/x-underscore">
+        <h4>
+            <a href="{{=profile_url}}" target="_blank">{{=name}}</a>
+            <small>{{=email}}</small>
+        </h4>
+        <ul class="unstyled">
+            <li><strong>Registration</strong>: {{=status}}</li>
+            <li><strong>Team:</strong> {{=team}}</li>
+            <li><strong>Rank:</strong> {{=rank}}</li>
+            {{ if (grank.score) { }}
+                <li><strong>gRank</strong>: {{=grank.score}}</li>
+            {{ } }}
+        </ul>
+    </script>
+
+    <script id="team-selection-template" type="text/x-underscore">
+    <% if (@league.teams.count > 0) %>
+        <select id="team-selector">
+            <option value="">Select Team</option>
+            <% @league.teams.each do |t| %>
+            <option value="<%=t.id%>"><%=t.name%></option>
+            <% end %>
+        </select>
+        <button class="btn btn-small btn-block" type="button">Update Team</button>
+        <hr />
+    <% end %>
+    </script>
+
+    <script id="registrant-detail-template-original" type="text/x-underscore">
+        <img class="img-polaroid img-rounded" src="{{=profile_img_url}}" style="max-width: 160px; height: auto;">
+        <h4><a href="{{=profile_url}}" target="_blank">{{=name}}</a></h4>
+        <ul class="unstyled">
+            <li><strong>Registration:</strong> {{=status}}</li>
+            <li><strong>Rank:</strong> {{=rank}}</li>
+            {{ if (grank.score) { }}
+                <li class="details-grank"><strong>gRank</strong>: {{=grank.score}} <i class="icon-question-sign"></i></li>
+            {{ } }}
+            <li><strong>Role:</strong> {{=player_type}}</li>
+            <li><strong>Stats:</strong> {{=height}}, {{=age}} years old</li>
+            {{ if (pair_id) { }}
+                <li><strong>Pair:</strong> <a href="#" class="show-player-details" data-user-id="{{=pair_id}}">{{= window.registrant_data[pair_id].name }}</a></li>
+            {{ } }}
+            {{ if (registration_group) { }}
+                <li><strong style="text-transform: capitalize">{{=window.core_type}}:</strong> <a href="#" class="show-group-details" data-group-id="{{=registration_group}}">{{= registration_group.substr(0,8) }}</a></li>
+            {{ } }}
+            {{ if (timestamps['pending']) { }}
+                <li><strong>Reg:</strong> {{=moment.unix(timestamps['pending']).format('MMM Do, h:mm a')}}</li>
+            {{ } }}
+        </ul>
+        <%=link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '{{=registration_id}}').html_safe, class: 'btn btn-block btn-small btn-info'%>
     </script>
 <% end %>
 
