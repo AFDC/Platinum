@@ -190,7 +190,7 @@
                 ],
             });
 
-            function render_team_updater(team_id) {
+            function render_team_updater(team_id, reg_ids) {
                 var team_updater = _.template($("#team-selection-template").html());
                 var teamUpdaterDomTarget = $("#team-selection-container");
 
@@ -200,6 +200,36 @@
                         $("#team-selector").val(team_id);
                     }
                 }
+
+                var setTeamPath = "<%=add_player_to_team_league_path(@league, :json)%>";
+                var setTeamButton = $("#update-team-button");
+
+                var errorMessageElement = $("#registrant-error-message");
+                var successMessageElement = $("#registrant-success-message");
+
+                if (setTeamButton) {
+                    setTeamButton.on('click', function(){
+                        var xhr = $.ajax({
+                            headers: { 'X-CSRF-Token': CSRF_TOKEN },
+                            url: setTeamPath,
+                            method: "POST",
+                            data: {
+                                registration_id_list: reg_ids,
+                                team_id: $("#team-selector").val()
+                            }
+                        }).done(function(data) {
+                            successMessageElement.html(data["msg"])
+                            successMessageElement.show();
+                            errorMessageElement.hide();
+                            reg_table.setData(ajaxURL);
+                            team_table.setData(teamDataURL);
+                        }).fail(function(jqXHR,textStatus,errorThrown){
+                            errorMessageElement.html(jqXHR.responseJSON["msg"]);
+                            errorMessageElement.show();
+                            successMessageElement.hide();
+                        });
+                    });
+                }
             }
 
             function render_player_details(rowData) {
@@ -207,15 +237,12 @@
                 var registrant_profile = _.template($('#registrant-detail-template').html());
 
                 domTarget.html(registrant_profile(rowData));
-                render_team_updater(rowData["team_id"]);
+                render_team_updater(rowData["team_id"], [rowData["id"]]);
                 $("#player-details-container").show();
 
                 var cancelButton = $("#cancel-registration-button");
                 var cancelPath = "<%=cancel_registration_league_path(@league, :json)%>";
                 
-                var setTeamPath = "<%=add_player_to_team_league_path(@league, :json)%>";
-                var setTeamButton = $("#update-team-button");
-
                 var errorMessageElement = $("#registrant-error-message");
                 var successMessageElement = $("#registrant-success-message");
 
@@ -238,30 +265,15 @@
                         });
                     });
                 }
+            }
 
-                if (setTeamButton) {
-                    setTeamButton.on('click', function(){
-                        var xhr = $.ajax({
-                            headers: { 'X-CSRF-Token': CSRF_TOKEN },
-                            url: setTeamPath,
-                            method: "POST",
-                            data: {
-                                registration_id: rowData["id"],
-                                team_id: $("#team-selector").val()
-                            }
-                        }).done(function(data) {
-                            successMessageElement.html(data["msg"])
-                            successMessageElement.show();
-                            errorMessageElement.hide();
-                            reg_table.setData(ajaxURL);
-                            team_table.setData(teamDataURL);
-                        }).fail(function(jqXHR,textStatus,errorThrown){
-                            errorMessageElement.html(jqXHR.responseJSON["msg"]);
-                            errorMessageElement.show();
-                            successMessageElement.hide();
-                        });
-                    });
-                }
+            function render_pair_details(rowData) {
+                var domTarget = $('#player-details');
+                var pair_profile = _.template($('#pair-detail-template').html());
+
+                domTarget.html(pair_profile(rowData));
+                render_team_updater(rowData["team_id"], [rowData._children[0]["id"], rowData._children[1]["id"]]);
+                $("#player-details-container").show();
             }
 
             // trigger an alert message when the row is clicked
@@ -270,6 +282,8 @@
 
                 if (rowData.type == "individual") {
                     render_player_details(rowData);
+                } else if (rowData.type == "pair") {
+                    render_pair_details(rowData);
                 } else {
                     alert(rowData.type);
                 }
@@ -318,14 +332,35 @@
         <div class="alert alert-error hide" id="registrant-error-message"></div>
         <div class="alert alert-success hide" id="registrant-success-message"></div>
         <div id="team-selection-container"></div>
+        <hr />
         <%=link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info'%>
         {{ if (status == "active") { }}
             <button class="btn btn-block btn-small btn-warning" id="cancel-registration-button">Cancel & Refund</button>
         {{ } }}
     </script>
 
+    <script id="pair-detail-template" type="text/x-underscore">
+        <h4>{{=name}} <small>(pair)</small></h4>
+        {{ for (var i = 0; i < _children.length; i++) { }}
+            {{ var row = _children[i]; }}
+            {{ var matchup = '<span class="label ' + row["matchup"].substring(0,3) + '">' + row["matchup"][0].toUpperCase() + 'M</span>'; }}
+            <strong>{{=matchup}} {{=row["name"]}}</strong>
+            <ul class="unstyled">
+                <li><strong>Registration</strong>: {{=row["status"]}}</li>
+                <li><strong>Rank:</strong> {{=row["rank"]}}</li>
+                {{ if (row["grank"].score) { }}
+                    <li><strong>gRank</strong>: {{=row["grank"].score}}</li>
+                {{ } }}
+            </ul>
+        {{ } }}
+        <div class="alert alert-error hide" id="registrant-error-message"></div>
+        <div class="alert alert-success hide" id="registrant-success-message"></div>
+        <div id="team-selection-container"></div>
+    </script>
+
     <script id="team-selection-template" type="text/x-underscore">
     <% if (@league.teams.count > 0) %>
+        <hr />
         <select id="team-selector">
             <option value="">Select Team</option>
             <% @league.teams.each do |t| %>
@@ -333,7 +368,6 @@
             <% end %>
         </select>
         <button class="btn btn-small btn-block" type="button" id="update-team-button">Update Team</button>
-        <hr />
     <% end %>
     </script>
 

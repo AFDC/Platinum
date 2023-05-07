@@ -104,39 +104,50 @@ class LeaguesController < ApplicationController
     def add_player_to_team
         respond_to do |format|
             format.json do
-                reg  = Registration.find(params["registration_id"])
                 team = Team.find(params["team_id"])
-
-                if reg.nil?
-                    render json: {msg: "Registration not found."}, status: 404
-                    return
-                end
 
                 if team.nil?
                     render json: {msg: "Team not found."}, status: 404
                     return
                 end
 
-                if team.league != @league || reg.league != @league
-                    render json: {msg: "Team and registration do not belong to the correct league."}, status: 400
+                if team.league != @league
+                    render json: {msg: "Team does not belong to the correct league."}, status: 400
                     return
                 end
 
-                u = reg.user
+                params["registration_id_list"].each do |reg_id|
+                    reg = Registration.find(reg_id)
 
-                if @league.team_for(u) == team
-                    render json: {msg: "#{u.name} is already on #{team.name}."}, status: 400
-                    return
+                    if reg.nil?
+                        render json: {msg: "Registration ##{reg_id} not found."}, status: 404
+                        return
+                    end
+
+                    u = reg.user
+
+                    if reg.league != @league
+                        render json: {msg: "Registration for #{u.name} does not belong to the correct league."}, status: 400
+                        return
+                    end
+
+                    if reg.status != "active"
+                        render json: {msg: "Only active players may be added to teams."}, status: 400
+                        return
+                    end                        
                 end
 
-                if reg.status != "active"
-                    render json: {msg: "Only active players may be added to teams."}, status: 400
-                    return
-                end
-                
-                @league.add_player_to_team(u, team, false)
+                user_list = []
 
-                render json: {msg: "#{u.name} added to #{team.name}."}
+                params["registration_id_list"].each do |reg_id|
+                    reg = Registration.find(reg_id)
+                    u   = reg.user
+
+                    @league.add_player_to_team(u, team, false)
+                    user_list << u.name
+                end
+
+                render json: {msg: "#{user_list.join(" & ")} added to #{team.name}."}
             end
         end
     end
@@ -349,6 +360,9 @@ class LeaguesController < ApplicationController
 
                         pair_team = "DIFFERENT_TEAMS"
                         pair_team = pair[0][:team] if pair[0][:team] == pair[1][:team]
+                        
+                        pair_team_id = nil
+                        pair_team_id = pair[0][:team_id] if pair[0][:team_id] == pair[1][:team_id]
 
                         pair_status = pair[0][:status] if pair[0][:status] == pair[1][:status]
 
@@ -357,6 +371,7 @@ class LeaguesController < ApplicationController
                             id: "p%04d" % pair_index,
                             name: pair_name,
                             team: pair_team,
+                            team_id: pair_team_id,
                             status: pair_status,
                             matchup: pair_gender,
                             type: "pair",
