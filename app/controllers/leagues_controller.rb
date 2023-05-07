@@ -68,6 +68,11 @@ class LeaguesController < ApplicationController
                     return
                 end
 
+                if reg.league != @league
+                    render json: {msg: "Registration doesn't belong to this league."}, status: 400
+                    return
+                end
+
                 success_message = nil
 
                 if reg.status != "active" || reg.paid == false
@@ -97,6 +102,43 @@ class LeaguesController < ApplicationController
     end
 
     def add_player_to_team
+        respond_to do |format|
+            format.json do
+                reg  = Registration.find(params["registration_id"])
+                team = Team.find(params["team_id"])
+
+                if reg.nil?
+                    render json: {msg: "Registration not found."}, status: 404
+                    return
+                end
+
+                if team.nil?
+                    render json: {msg: "Team not found."}, status: 404
+                    return
+                end
+
+                if team.league != @league || reg.league != @league
+                    render json: {msg: "Team and registration do not belong to the correct league."}, status: 400
+                    return
+                end
+
+                u = reg.user
+
+                if @league.team_for(u) == team
+                    render json: {msg: "#{u.name} is already on #{team.name}."}, status: 400
+                    return
+                end
+
+                if reg.status != "active"
+                    render json: {msg: "Only active players may be added to teams."}, status: 400
+                    return
+                end
+                
+                @league.add_player_to_team(u, team, false)
+
+                render json: {msg: "#{u.name} added to #{team.name}."}
+            end
+        end
     end
 
     def update_invites

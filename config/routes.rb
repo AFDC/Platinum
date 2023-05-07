@@ -36,6 +36,7 @@ Platinum::Application.routes.draw do
       get 'reg_list'
       get 'team_list'
       post 'cancel_registration'
+      post 'add_player_to_team'
 
       post 'update_invites'
 

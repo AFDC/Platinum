@@ -141,7 +141,7 @@ class League
     end
   end
 
-  def add_player_to_team(user,team)
+  def add_player_to_team(user,team,send_mail=true)
     raise ArgumentError.new "Must supply a user account to add" unless user.instance_of?(User)
     raise ArgumentError.new "Must supply a team to be added to" unless team.instance_of?(Team)
     raise ArgumentError.new "Team not a part of this league" unless team.league == self
@@ -160,7 +160,9 @@ class League
     # add team to player
     User.collection.find(_id: user._id).update({"$addToSet" => {teams: team._id}})
 
-    TeamMailer.delay.added_to_team(user._id.to_s, team._id.to_s)
+    if (send_mail)
+      TeamMailer.delay.added_to_team(user._id.to_s, team._id.to_s)
+    end
   end
 
   def handle_accepted_invite(invitation)

@@ -54,7 +54,7 @@
         $(function(){
             var teamDataURL = "<%=team_list_league_path(@league, :json)%>";
             
-            var reg_table = new Tabulator("#team-data", {
+            var team_table = new Tabulator("#team-data", {
                 ajaxURL:teamDataURL,
                 layout:"fitColumns", //fit columns to width of table (optional)
                 columns:[ //Define Table Columns
@@ -63,10 +63,7 @@
                     {title:"WM", field:"woman_matching", width: 64},
                 ]
             });
-        });
-    </script>
-    <script type="text/javascript">
-        $(function(){
+
             var ajaxURL = "<%=reg_list_league_path(@league, :json)%>";
             var CSRF_TOKEN = $('meta[name=csrf-token]').attr('content');
 
@@ -225,14 +222,11 @@
                 if (cancelButton) {
                     cancelButton.on('click', function(){
                         var xhr = $.ajax({
-                            headers: {
-                                'X-CSRF-Token': CSRF_TOKEN
-                            },
+                            headers: { 'X-CSRF-Token': CSRF_TOKEN },
                             url: cancelPath,
                             method: "POST",
                             data: {registration_id: rowData["id"]}
                         }).done(function(data) {
-                            console.log(data);
                             successMessageElement.html(data["msg"])
                             successMessageElement.show();
                             errorMessageElement.hide();
@@ -246,7 +240,27 @@
                 }
 
                 if (setTeamButton) {
-                    setTeamButton.on('click', function(){});
+                    setTeamButton.on('click', function(){
+                        var xhr = $.ajax({
+                            headers: { 'X-CSRF-Token': CSRF_TOKEN },
+                            url: setTeamPath,
+                            method: "POST",
+                            data: {
+                                registration_id: rowData["id"],
+                                team_id: $("#team-selector").val()
+                            }
+                        }).done(function(data) {
+                            successMessageElement.html(data["msg"])
+                            successMessageElement.show();
+                            errorMessageElement.hide();
+                            reg_table.setData(ajaxURL);
+                            team_table.setData(teamDataURL);
+                        }).fail(function(jqXHR,textStatus,errorThrown){
+                            errorMessageElement.html(jqXHR.responseJSON["msg"]);
+                            errorMessageElement.show();
+                            successMessageElement.hide();
+                        });
+                    });
                 }
             }
 
@@ -303,7 +317,7 @@
         </ul>
         <div class="alert alert-error hide" id="registrant-error-message"></div>
         <div class="alert alert-success hide" id="registrant-success-message"></div>
-        <div id="team-selection-container]"></div>
+        <div id="team-selection-container"></div>
         <%=link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info'%>
         {{ if (status == "active") { }}
             <button class="btn btn-block btn-small btn-warning" id="cancel-registration-button">Cancel & Refund</button>
