@@ -176,7 +176,6 @@
                         headerFilterFunc:minMaxFilterFunction, 
                         headerFilterLiveFilter:false
                     },
-                    {title:"Availability", field:"gen_availability", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"gen_availability", clearable: true}, hozAlign:"left"},
                     {
                         title:"Matchup", 
                         field:"matchup",
@@ -189,7 +188,8 @@
                         headerFilter:"list", 
                         headerFilterParams:{valuesLookup: "all", valuesLookupField:"matchup", clearable: true}, 
                         hozAlign:"left"
-                    }
+                    },
+                    {title:"Notes", field:"notes", headerFilter:true},
                 ],
             });
 
@@ -215,6 +215,10 @@
 
                 var cancelButton = $("#cancel-registration-button");
                 var cancelPath = "<%=cancel_registration_league_path(@league, :json)%>";
+                
+                var setTeamPath = "<%=add_player_to_team_league_path(@league, :json)%>";
+                var setTeamButton = $("#update-team-button");
+
                 var errorMessageElement = $("#registrant-error-message");
                 var successMessageElement = $("#registrant-success-message");
 
@@ -239,6 +243,10 @@
                             successMessageElement.hide();
                         });
                     });
+                }
+
+                if (setTeamButton) {
+                    setTeamButton.on('click', function(){});
                 }
             }
 
@@ -291,10 +299,11 @@
             {{ if (grank.score) { }}
                 <li><strong>gRank</strong>: {{=grank.score}}</li>
             {{ } }}
+            <li><strong>Notes:</strong> {{=notes}}</li>
         </ul>
         <div class="alert alert-error hide" id="registrant-error-message"></div>
         <div class="alert alert-success hide" id="registrant-success-message"></div>
-        <div id="team-selection-container_hide"></div>
+        <div id="team-selection-container]"></div>
         <%=link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info'%>
         {{ if (status == "active") { }}
             <button class="btn btn-block btn-small btn-warning" id="cancel-registration-button">Cancel & Refund</button>
@@ -309,7 +318,7 @@
             <option value="<%=t.id%>"><%=t.name%></option>
             <% end %>
         </select>
-        <button class="btn btn-small btn-block" type="button">Update Team</button>
+        <button class="btn btn-small btn-block" type="button" id="update-team-button">Update Team</button>
         <hr />
     <% end %>
     </script>

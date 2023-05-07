@@ -96,6 +96,9 @@ class LeaguesController < ApplicationController
         end        
     end
 
+    def add_player_to_team
+    end
+
     def update_invites
         new_invites_list = params[:invited_player_ids].reject { |id| id.blank? }
         new_invites_list = new_invites_list.map {|id| Moped::BSON::ObjectId.from_string(id)}
@@ -246,7 +249,7 @@ class LeaguesController < ApplicationController
 
                     registrant_data << {
                         id: "c%04d" % core_index,
-                        name: "Core<#{core._id}>",
+                        name: "Core [#{core._id.to_s[-5..-1]}]",
                         team: team_name,
                         status: core_status,
                         matchup: core_gender,
@@ -380,6 +383,7 @@ class LeaguesController < ApplicationController
             expires_at: expires_at,
             gen_availability: reg.gen_availability,
             matchup: reg.gender_noun,
+            notes: reg.notes,
             type: "individual"                     
         }
     end
