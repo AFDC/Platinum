@@ -51,7 +51,7 @@ class Registration
     scope :waitlisted, where(status: 'waitlisted')
     scope :registering_waitlisted, where(status: 'registering_waitlisted')
     scope :queued, where(status: 'queued', :expires_at.gt => Time.now)
-    scope :expired, any_of( {status: 'expired'}, {status: 'registering', :expires_at.lte => Time.now} )
+    scope :expired, any_of( {status: 'expired'}, {:status.in => ['registering','registering_waitlisted'], :expires_at.lte => Time.now} )
 
     scope :male, where(gender: 'male')
     scope :female, where(gender: 'female')

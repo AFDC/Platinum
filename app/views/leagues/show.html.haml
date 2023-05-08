@@ -38,7 +38,7 @@
                     .span2
                         %strong Registering Now: 
                         - registering = @league.registrations.where(:status.in => ['registering'], gender: gender).count
-                        =@league.registrations.where(:status.in => ['registering', 'registering-waitlisted'], gender: gender).count
+                        =@league.registrations.where(:status.in => ['registering', 'registering_waitlisted'], gender: gender).count
 
                 .row{style: 'margin-bottom: 30px'}
                     .span7
