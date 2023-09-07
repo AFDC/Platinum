@@ -40,13 +40,10 @@
             .control-group{ class: ('error' if errors[:male_limit].any? || errors[:female_limit].any?)}
                 %label.control-label Gender Limit
                 .controls
-                    - registering_players = @league.registrations.registering.count + @league.registrations.registering_waitlisted.count + @league.registrations.waitlisted.count
                     M:
-                    =f.text_field :male_limit, class: 'span1', disabled: (registering_players > 0)
+                    =f.text_field :male_limit, class: 'span1'
                     F:
-                    =f.text_field :female_limit, class: 'span1', disabled: (registering_players > 0)
-                    - if registering_players > 0
-                        %span.help-block Limits may not be changed while players are registering.
+                    =f.text_field :female_limit, class: 'span1'
                     - if errors[:male_limit].any?
                         %span.help-block=errors[:male_limit].first
                     - if errors[:female_limit].any?

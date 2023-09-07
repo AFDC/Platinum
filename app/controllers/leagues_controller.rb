@@ -29,14 +29,15 @@ class LeaguesController < ApplicationController
     end
 
     def update
-        # Changing the number of available slots while players are registering or on the waitlist is not supported
+        # Reducing the number of available slots while players are registering or on the waitlist is not supported
         if @league.registrations.registering.count > 0 ||
             @league.registrations.registering_waitlisted.count > 0 ||
             @league.registrations.waitlisted.count > 0
-            
-            if (league_params[:male_limit] && (league_params[:male_limit] != @league.male_limit)) || 
-                (league_params[:female_limit] && (league_params[:female_limit] != @league.female_limit))
-                @league.errors.add(:male_limit, "Changing player limits while players are registering is not permitted.")
+
+            #TODO: Add limitation to not allow reducing below number registered
+            if (league_params[:male_limit] && (league_params[:male_limit] < @league.male_limit)) || 
+                (league_params[:female_limit] && (league_params[:female_limit] < @league.female_limit))
+                @league.errors.add(:male_limit, "Reducing player limits while players are registering or waitlisted is not permitted.")
                 render :edit and return
             end
         end
