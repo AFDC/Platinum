@@ -35,8 +35,8 @@ class LeaguesController < ApplicationController
             @league.registrations.waitlisted.count > 0
 
             #TODO: Add limitation to not allow reducing below number registered
-            if (league_params[:male_limit] && (league_params[:male_limit] < @league.male_limit)) || 
-                (league_params[:female_limit] && (league_params[:female_limit] < @league.female_limit))
+            if (league_params[:male_limit] && (league_params[:male_limit].to_i < @league.male_limit)) || 
+                (league_params[:female_limit] && (league_params[:female_limit].to_i < @league.female_limit))
                 @league.errors.add(:male_limit, "Reducing player limits while players are registering or waitlisted is not permitted.")
                 render :edit and return
             end
