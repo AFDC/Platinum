@@ -1,0 +1,212 @@
+<% content_for :title, @league.name %>
+<div class="row-fluid"><div class="span12">
+    <div class="container"><div class="row"><div class="span12">
+        <%=render :partial => '/pageheader', :locals => {subtitle: 'League Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'League Players' => nil}} %>
+    </div></div></div>
+</div></div>
+<div class="row-fluid" style="height: 100%">
+    <div class="span3">
+        <div id="player-details-container" class="well well-small hide">
+            <div style="text-align: right"><button class="close" id="hide-player-details">&times;</button></div>
+            <div id="player-details"></div>
+        </div>
+        
+        <h2>Teams</h2>
+        <div id="team-data"></div>
+    </div>
+    <div class="span9" style="height: 100%">
+        <div class="row-fluid">
+            <div class="span4">
+                <h2>Players</h2>
+            </div>
+            <div class="span8">
+                <h2>
+                <div style="text-align: right">
+                    <% if @league.registration_groups.count > 0 %>
+                    <button id="toggle-cores" class="btn btn-xs btn-info">Toggle Cores</button>
+                    <% end %>
+                    <button id="clear-filters" class="btn btn-xs btn-info">Clear Filters</button>
+                    <button id="refresh-data" class="btn btn-xs btn-info">Refresh Data</button>
+                </div>
+                </h2>
+            </div>
+        </div>
+        <div id="table-container" style="display: flex; height: 80%;">
+            <div id="registrant-data" style="height: 100%; width: 100%;"></div>
+        </div>
+    </div>
+</div>
+<% content_for :page_scripts do %>
+    <%=javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js')%>
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+    <script type="text/javascript">
+        _.templateSettings = {
+            interpolate: /\{\{\=(.+?)\}\}/g,
+            evaluate: /\{\{(.+?)\}\}/g
+        };
+
+        $(function(){
+            $("#hide-player-details").click(function(){
+                $("#player-details-container").hide();
+            });
+        });
+    </script>
+    <script type="text/javascript">
+       $(function(){
+        // TEAM DATA
+            var teamDataURL = "<%=team_list_league_path(@league, :json)%>";
+            var team_table  = new Tabulator("#team-data", {
+                ajaxURL:teamDataURL,
+                layout:"fitColumns", //fit columns to width of table (optional)
+                columns:[ //Define Table Columns
+                    {title:"Team", field:"name"},
+                    {title:"MM", field:"man_matching", width: 64},
+                    {title:"WM", field:"woman_matching", width: 64},
+                ]
+            });
+
+        // PLAYER DATA
+            var ajaxURL   = "<%=reg_list_league_path(@league, :json)%>?active=true";
+            var reg_table = new Tabulator("#registrant-data", {
+                // height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+                ajaxURL:ajaxURL,
+                layout:"fitDataFill", //fit columns to width of table (optional)
+                dataTree:true,
+                dataTreeStartExpanded:false,   
+                dataTreeFilter: true,             
+                columns:[ //Define Table Columns
+                    {title:"Draft ID", field:"id", headerFilter:true},
+                    {title:"Name", field:"name", headerFilter:true},
+                    {title:"Rank", field:"rank"},
+                    {
+                        title: "Avail", 
+                        field:"gen_availability",
+                        headerFilter:"list", 
+                        headerFilterParams:{valuesLookup: "all", valuesLookupField:"gen_availability", clearable: true}, 
+                    },
+                    {
+                        title: "EOST",
+                        field: "eos_availability"
+                    },
+                    {
+                        title:"Expiration",
+                        visible: false,
+                        field:"expires_at", 
+                        formatter: "datetimediff", 
+                        formatterParams:{
+                            inputFormat:"iso",
+                            unit:["minutes", "seconds"],
+                            humanize: true,
+                            invalidPlaceholder:true
+                        }
+                    },
+                    {
+                        title:"Matchup", 
+                        field:"matchup",
+                        formatter: "lookup",
+                        formatterParams: {
+                            "man-matching": "<span class=\"man label\">MM</span>",
+                            "woman-matching": "<span class=\"wom label\">WM</span>",
+                            "Mixed": "<span class=\"label\">MX</span>"
+                        },
+                        headerFilter:"list", 
+                        headerFilterParams:{valuesLookup: "all", valuesLookupField:"matchup", clearable: true}, 
+                        hozAlign:"left"
+                    },
+                    {title:"Notes", field:"notes", headerFilter:true},
+                    {title:"Team", field:"team", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"team", clearable: true}, hozAlign:"left"},
+                ],
+            });
+
+            function render_player_details(rowData) {
+                var domTarget = $('#player-details');
+                var registrant_profile = _.template($('#registrant-detail-template').html());
+
+                domTarget.html(registrant_profile(rowData));
+                $("#player-details-container").show();
+
+                var errorMessageElement = $("#registrant-error-message");
+                var successMessageElement = $("#registrant-success-message");
+            }
+
+            function render_pair_details(rowData) {
+                var domTarget = $('#player-details');
+                var pair_profile = _.template($('#pair-detail-template').html());
+
+                domTarget.html(pair_profile(rowData));
+                $("#player-details-container").show();
+            }
+
+
+            reg_table.on("rowClick", function(e, row){ 
+                var rowData = row.getData();
+
+                if (rowData.type == "individual") {
+                    render_player_details(rowData);
+                } else if (rowData.type == "pair") {
+                    render_pair_details(rowData);
+                } else {
+                    alert(rowData.type);
+                }
+            });
+
+
+            $('#clear-filters').on('click', function() {
+                reg_table.clearFilter(true);
+            });
+
+            $('#refresh-data').on('click', function(){
+                reg_table.setData(ajaxURL);
+            });            
+       });    
+    </script>
+    <script id="registrant-detail-template" type="text/x-underscore">
+        <h4>
+            <a href="{{=profile_url}}" target="_blank">{{=name_without_pronouns}}</a>
+            <small>{{=email}}</small>
+        </h4>
+        <ul class="unstyled">
+            <li><strong>Registration</strong>: {{=status}}</li>
+            <li><strong>Team:</strong> {{=team}}</li>
+            <li><strong>Rank:</strong> {{=rank}}</li>
+            {{ if (grank.score) { }}
+                <li><strong>gRank</strong>: {{=grank.score}}</li>
+            {{ } }}
+            <li><strong>Notes:</strong> {{=notes}}</li>
+        </ul>
+        <div class="alert alert-error hide" id="registrant-error-message"></div>
+        <div class="alert alert-success hide" id="registrant-success-message"></div>
+        <div id="team-selection-container"></div>
+        <% if permitted_to? :manage, @league %>
+        <hr />
+        <%=link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info'%>
+        <% end %>
+    </script>
+
+    <script id="pair-detail-template" type="text/x-underscore">
+        <h4>{{=name}} <small>(pair)</small></h4>
+        {{ for (var i = 0; i < _children.length; i++) { }}
+            {{ var row = _children[i]; }}
+            {{ var matchup = '<span class="label ' + row["matchup"].substring(0,3) + '">' + row["matchup"][0].toUpperCase() + 'M</span>'; }}
+            <strong>{{=matchup}} {{=row["name"]}}</strong>
+            <ul class="unstyled">
+                <li><strong>Registration</strong>: {{=row["status"]}}</li>
+                <li><strong>Rank:</strong> {{=row["rank"]}}</li>
+                {{ if (row["grank"].score) { }}
+                    <li><strong>gRank</strong>: {{=row["grank"].score}}</li>
+                {{ } }}
+            </ul>
+        {{ } }}
+        <div class="alert alert-error hide" id="registrant-error-message"></div>
+        <div class="alert alert-success hide" id="registrant-success-message"></div>
+        <div id="team-selection-container"></div>
+    </script>    
+<% end %>
+
+<% content_for :page_styles do %>
+    <link href="https://unpkg.com/tabulator-tables@5.4.4/dist/css/tabulator.min.css" rel="stylesheet">
+    <style>
+        input[type=search]::-webkit-search-cancel-button { -webkit-appearance: searchfield-cancel-button; }
+    </style>
+<% end %>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html style="height: 90%">
+  <head>
+    <title>
+      <%= specified_title = yield(:title) %>
+      <%= " | " unless specified_title.blank? %>
+      Atlanta Flying Disc Club
+    </title>
+    <%= favicon_link_tag %>
+    <%= stylesheet_link_tag '/bootstrap/css/bootstrap.min.css' %>
+    <%= stylesheet_link_tag '/bootstrap/datepicker/css/datepicker.css' %>
+    <%= stylesheet_link_tag '/stylesheets/cerulean.css' %>
+    <%= stylesheet_link_tag '/bootstrap/css/bootstrap-responsive.min.css' %>
+    <%= stylesheet_link_tag "application", media: "all" %>
+    <%= javascript_include_tag '/javascripts/jquery-2.1.0.min.js' %>
+    <%= javascript_include_tag '/bootstrap/js/bootstrap.min.js' %>
+    <%= javascript_include_tag "application" %>
+    <%= javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js') %>
+    <%= javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/countdown/2.6.0/countdown.min.js') %>
+    <% if Rails.env.production? %>
+      <!-- Fathom - beautiful, simple website analytics -->
+      <script src="https://cdn.usefathom.com/script.js" data-site="JPZSNWBZ" defer></script>
+      <!-- / Fathom -->      
+    <% end %>
+    <%= yield :page_scripts %>
+    <%= yield :page_styles %>
+    <link href="/favicons/apple-touch-icon-57x57.png" rel="apple-touch-icon" sizes="57x57"></link>
+    <link href="/favicons/apple-touch-icon-114x114.png" rel="apple-touch-icon" sizes="114x114"></link>
+    <link href="/favicons/apple-touch-icon-72x72.png" rel="apple-touch-icon" sizes="72x72"></link>
+    <link href="/favicons/apple-touch-icon-144x144.png" rel="apple-touch-icon" sizes="144x144"></link>
+    <link href="/favicons/apple-touch-icon-60x60.png" rel="apple-touch-icon" sizes="60x60"></link>
+    <link href="/favicons/apple-touch-icon-120x120.png" rel="apple-touch-icon" sizes="120x120"></link>
+    <link href="/favicons/apple-touch-icon-76x76.png" rel="apple-touch-icon" sizes="76x76"></link>
+    <link href="/favicons/apple-touch-icon-152x152.png" rel="apple-touch-icon" sizes="152x152"></link>
+    <link href="/favicons/favicon-196x196.png" rel="icon" sizes="196x196" type="image/png"></link>
+    <link href="/favicons/favicon-160x160.png" rel="icon" sizes="160x160" type="image/png"></link>
+    <link href="/favicons/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png"></link>
+    <link href="/favicons/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"></link>
+    <link href="/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"></link>
+    <meta content="#2b5797" name="msapplication-TileColor"/>
+    <meta content="/favicons/mstile-144x144.png" name="msapplication-TileImage"/>
+    <%= csrf_meta_tags %>
+  </head>
+  <body style="display: flex; flex-flow: column; height: 100%;">
+    <div class="navbar navbar-fixed-top" id="navBar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand">
+            AFDC League Manager
+          </a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li>
+                <%= link_to 'Home', '/' %>
+              </li>
+              <li>
+                <%= link_to 'Leagues', '/leagues' %>
+              </li>
+              <li>
+                <%= link_to 'Users', '/users' %>
+              </li>
+              <li>
+                <%= link_to 'Teams', '/teams' %>
+              </li>
+              <li>
+                <%= link_to 'Fields', '/fields' %>
+              </li>
+              <li>
+                <%= link_to 'Games', '/schedules' %>
+              </li>
+              <li>
+                <%= link_to 'COVID', '/covid' %>
+              </li>
+            </ul>
+            <ul class="nav pull-right">
+              <% if current_user %>
+                <li>
+                  <%= link_to registrations_user_path(current_user) do %>
+                    <span class="badge">
+                      <i class="icon icon-shopping-cart"></i>
+                    </span>
+                  <% end %>
+                </li>
+                <li class="dropdown" id="loggedInMenu">
+                  <%= link_to '#loggedInMenu', :class => 'dropdown-toggle', 'data-toggle' => 'dropdown' do %>
+                    <%= "Logged in as: #{current_user.firstname} #{current_user.lastname}" %>
+                    <b class="caret"></b>
+                  <% end %>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <%= link_to 'Invitations', invitations_path %>
+                    </li>
+                    <li>
+                      <%= link_to 'Your Profile', user_profile_path %>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                      <%= link_to 'Log out', logout_path %>
+                    </li>
+                  </ul>
+                </li>
+              <% else %>
+                <li>
+                  <%= link_to 'Log In', auth_path %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% unless Rails.env.production? %>
+      <div class="alert alert-success" style="margin: 0 5px;">
+        <%= "Current Rails Environment: #{Rails.env}" %>
+      </div>
+    <% end %>
+    <div class="container">
+      <% if flash[:notice] %>
+        <div class="alert alert-info">
+          <%= flash[:notice] %>
+        </div>
+      <% end %>
+      <% if flash[:error] %>
+        <div class="alert alert-error">
+          <%= flash[:error] %>
+        </div>
+      <% end %>
+      <% if current_user %>
+        <% regs_due = current_user.registrations.registering %>
+        <% if regs_due.count > 0 %>
+          <div class="alert alert-success">
+            <h4>Time is ticking!</h4>
+            <p>The following registrations need to be finished and paid for soon!</p>
+            <ul>
+              <% regs_due.each do |reg| %>
+                <li>#{link_to(reg.league.name, register_league_path(reg.league))} ($#{number_with_precision(reg.price, precision: 2)}) Expires in: <span class="countdown" data-expiration="#{reg.expires_at.to_i}" data-expire-message="Registration Expired.">#{distance_of_time_in_words_to_now(reg.expires_at)}</span></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="container-fluid" style="display: flex; height: 100%; flex-flow: column; flex-grow: 1">
+      <%= yield %>
+      <% if Rails.env.development? %>
+        <div style="margin-top: 50px">
+          <%= debug(params) %>
+        </div>
+      <% end %>
+    </div>
+  </body>
+</html>

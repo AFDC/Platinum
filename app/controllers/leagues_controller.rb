@@ -255,15 +255,18 @@ class LeaguesController < ApplicationController
     def reg_list
         respond_to do |format|
             format.json do
+                sorted_registrations_query = @league.registrations.order_by(gender: 'asc', _id: 'asc')
+                indices = {core: 0, pair_mm: 0, pair_ww: 0, pair_mw: 0, ind_m: 0, ind_f: 0}
+                prefix = {core: "core", pair_mm: "30", pair_ww: "20", pair_mw: "10", ind_m: "5", ind_f: "4"}
+
                 # found cache
                 processed = Set.new
                 registrant_data = []
 
                 # cores
                 cores = {}
-                core_index = 0
                 @league.registration_groups.each do |core|
-                    core_index += 1
+                    indices[:core] += 1
                     non_active_statuses = 0
                     mm_players = 0
                     wm_players = 0
@@ -302,7 +305,7 @@ class LeaguesController < ApplicationController
                     end
 
                     registrant_data << {
-                        id: "c%04d" % core_index,
+                        id: "%s%02d" % [prefix[:core], indices[:core]],
                         name: "Core [#{core._id.to_s[-5..-1]}]",
                         team: team_name,
                         status: core_status,
@@ -319,16 +322,19 @@ class LeaguesController < ApplicationController
                     mm: []
                 }
                 
-                @league.registrations.where(:pair_id.ne => nil).each do |reg|
+                sorted_registrations_query.where(:pair_id.ne => nil).each do |reg|
                     pair_reg = @league.registration_for(reg.pair)
 
                     # Breaks the pair if:
                     # - the pair_reg isn't found
                     # - either is already in a different pair
                     # - either is on a core
+                    # - either is non-active
                     next if pair_reg.nil?
                     next if processed.member?(reg._id)
                     next if processed.member?(pair_reg._id)
+                    next if pair_reg.status != "active"
+                    next if reg.status != "active"
 
                     processed << reg._id
                     processed << pair_reg._id
@@ -351,7 +357,6 @@ class LeaguesController < ApplicationController
                     end
                 end
 
-                pair_index = 0
                 pairs.keys.each do |pair_type|
                     pairs[pair_type].each do |pair|
                         pair_gender = pair[0][:matchup]
@@ -367,9 +372,10 @@ class LeaguesController < ApplicationController
 
                         pair_status = pair[0][:status] if pair[0][:status] == pair[1][:status]
 
-                        pair_index += 1
-                        registrant_data << {
-                            id: "p%04d" % pair_index,
+                        lookup_type = "pair_#{pair_type}".to_sym
+                        indices[lookup_type] += 1
+                        pair_data = {
+                            id: "%s%02d" % [prefix[lookup_type], indices[lookup_type]],
                             name: pair_name,
                             team: pair_team,
                             team_id: pair_team_id,
@@ -378,18 +384,33 @@ class LeaguesController < ApplicationController
                             type: "pair",
                             _children: pair
                         }
+
+                        [:gen_availability, :rank, :eos_availability].each do |i|
+                            pair_data[i] = [pair[0][i], pair[1][i]].join(',')
+                        end
+
+                        registrant_data << pair_data
                     end
                 end
 
                 # individuals
-                @league.registrations.each do |reg|
+                sorted_registrations_query.each do |reg|
                     next if processed.member?(reg._id)
-                    registrant_data << reg_data(reg)
+                    next if (params[:active] == "true" and reg.status != "active")
+                    reg_data = reg_data(reg)
+
+                    lookup_type = ("ind_%s" % reg.gender[0]).to_sym
+                    indices[lookup_type] += 1
+                    reg_data["id"] = "%s%03d" % [prefix[lookup_type], indices[lookup_type]]
+                    registrant_data << reg_data
                 end
 
                 render json: registrant_data
             end
         end
+    end
+
+    def public_reg_list 
     end
 
     def reg_data(reg)
@@ -431,7 +452,7 @@ class LeaguesController < ApplicationController
             profile_url: user_path(u),
             registration_url: registration_path(reg),
             status: reg.status,
-            rank: reg.rank,
+            rank: reg.rank.to_s.gsub(/\.0$/,''),
             grank: grank,
             player_type: reg.player_strength,
             height: u.height_in_feet_and_inches,
@@ -440,14 +461,19 @@ class LeaguesController < ApplicationController
             team_id: team_id,
             expires_at: expires_at,
             gen_availability: reg.gen_availability,
+            eos_availability: {true => "YES", false => "no"}[reg.eos_availability],
             matchup: reg.gender_noun,
             notes: reg.notes,
             type: "individual"                     
         }
     end
 
-    # This powers the player-visible registraiton list
     def registrations
+        render layout: "wide_application"
+    end
+
+    # This powers the player-visible registraiton list
+    def old_registrations
         respond_to do |format|
             format.html do
                 @user_data = {

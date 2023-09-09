@@ -79,7 +79,7 @@
                 %li= link_to 'Log In', auth_path
     - unless Rails.env.production?
       .alert.alert-success{:style => 'margin: 0 5px;'}= "Current Rails Environment: #{Rails.env}"
-    .container{style: "display: flex; height: 100%; flex-flow: column; flex-grow: 1"}
+    .container
       - if flash[:notice]
         .alert.alert-info= flash[:notice]
       - if flash[:error]
@@ -93,6 +93,7 @@
             %ul
               -regs_due.each do |reg|
                 %li #{link_to(reg.league.name, register_league_path(reg.league))} ($#{number_with_precision(reg.price, precision: 2)}) Expires in: <span class="countdown" data-expiration="#{reg.expires_at.to_i}" data-expire-message="Registration Expired.">#{distance_of_time_in_words_to_now(reg.expires_at)}</span>
+    .container{style: "display: flex; height: 100%; flex-flow: column; flex-grow: 1"}
       = yield
       - if Rails.env.development?
         %div{style: 'margin-top: 50px'}
