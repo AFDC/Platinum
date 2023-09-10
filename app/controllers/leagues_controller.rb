@@ -148,6 +148,8 @@ class LeaguesController < ApplicationController
                     user_list << u.name
                 end
 
+                @league.touch
+
                 render json: {msg: "#{user_list.join(" & ")} added to #{team.name}."}
             end
         end
@@ -255,156 +257,160 @@ class LeaguesController < ApplicationController
     def reg_list
         respond_to do |format|
             format.json do
-                sorted_registrations_query = @league.registrations.order_by(gender: 'asc', _id: 'asc')
-                indices = {core: 0, pair_mm: 0, pair_ww: 0, pair_mw: 0, ind_m: 0, ind_f: 0}
-                prefix = {core: "core", pair_mm: "30", pair_ww: "20", pair_mw: "10", ind_m: "5", ind_f: "4"}
+                registrant_data = Rails.cache.fetch("#{@league.cache_key}/registrant_data", expires_in: 24.hours, race_condition_ttl: 10) do
+                    sorted_registrations_query = @league.registrations.order_by(gender: 'asc', _id: 'asc')
+                    indices = {core: 0, pair_mm: 0, pair_ww: 0, pair_mw: 0, ind_m: 0, ind_f: 0}
+                    prefix = {core: "core", pair_mm: "30", pair_ww: "20", pair_mw: "10", ind_m: "5", ind_f: "4"}
 
-                # found cache
-                processed = Set.new
-                registrant_data = []
+                    # found cache
+                    processed = Set.new
+                    registrant_data = []
 
-                # cores
-                cores = {}
-                @league.registration_groups.each do |core|
-                    indices[:core] += 1
-                    non_active_statuses = 0
-                    mm_players = 0
-                    wm_players = 0
-                    core_regs = []
-                    team_counts = {}
-                    core.members.order_by(gender: :asc).each do |user|
-                        reg = @league.registration_for(user)
-                        reg ||= Registration.new(league: @league, user: user)
-                        processed << reg._id
+                    # cores
+                    cores = {}
+                    @league.registration_groups.each do |core|
+                        indices[:core] += 1
+                        non_active_statuses = 0
+                        mm_players = 0
+                        wm_players = 0
+                        core_regs = []
+                        team_counts = {}
+                        core.members.order_by(gender: :asc).each do |user|
+                            reg = @league.registration_for(user)
+                            reg ||= Registration.new(league: @league, user: user)
+                            processed << reg._id
 
-                        team = @league.team_for(user)
-                        team_name = ""
-                        team_name = team.name unless team.nil?
-                        team_counts[team_name] = 0 unless team_counts.include?(team_name)
-                        team_counts[team_name] += 1
-                        
-                        non_active_statuses += 1 if reg.status != 'active'
-                        mm_players += 1 if reg.gender == 'male'
-                        wm_players += 1 if reg.gender == 'female'
+                            team = @league.team_for(user)
+                            team_name = ""
+                            team_name = team.name unless team.nil?
+                            team_counts[team_name] = 0 unless team_counts.include?(team_name)
+                            team_counts[team_name] += 1
+                            
+                            non_active_statuses += 1 if reg.status != 'active'
+                            mm_players += 1 if reg.gender == 'male'
+                            wm_players += 1 if reg.gender == 'female'
 
-                        core_regs << reg_data(reg)
-                    end
-
-                    next if core_regs.count == 0
-                    
-                    core_status = 'active'
-                    core_status = 'incomplete' if non_active_statuses > 0
-
-                    core_gender = 'Mixed'
-                    core_gender = 'Man-matching' if wm_players == 0
-                    core_gender = 'Woman-matching' if mm_players == 0
-
-                    team_name = "unassigned"
-                    if team_counts.count == 1
-                        team_name = team_counts.keys.first
-                    end
-
-                    registrant_data << {
-                        id: "%s%02d" % [prefix[:core], indices[:core]],
-                        name: "Core [#{core._id.to_s[-5..-1]}]",
-                        team: team_name,
-                        status: core_status,
-                        matchup: core_gender,
-                        type: "core",
-                        _children: core_regs
-                    }
-                end
-
-                # pairs
-                pairs = {
-                    mw: [],
-                    ww: [],
-                    mm: []
-                }
-                
-                sorted_registrations_query.where(:pair_id.ne => nil).each do |reg|
-                    pair_reg = @league.registration_for(reg.pair)
-
-                    # Breaks the pair if:
-                    # - the pair_reg isn't found
-                    # - either is already in a different pair
-                    # - either is on a core
-                    # - either is non-active
-                    next if pair_reg.nil?
-                    next if processed.member?(reg._id)
-                    next if processed.member?(pair_reg._id)
-                    next if pair_reg.status != "active"
-                    next if reg.status != "active"
-
-                    processed << reg._id
-                    processed << pair_reg._id
-
-                    pair_data = [reg_data(reg), reg_data(pair_reg)]
-
-                    if reg.gender != pair_reg.gender
-                        pairs[:mw] << pair_data
-                        next
-                    end
-
-                    if reg.gender == 'female'
-                        pairs[:ww] << pair_data
-                        next
-                    end
-
-                    if reg.gender == 'male'
-                        pairs[:mm] << pair_data
-                        next
-                    end
-                end
-
-                pairs.keys.each do |pair_type|
-                    pairs[pair_type].each do |pair|
-                        pair_gender = pair[0][:matchup]
-                        pair_gender = "Mixed" if pair_type == :mw
-
-                        pair_name = "#{pair[0][:name].split(' ')[0]} & #{pair[1][:name].split(' ')[0]}"
-
-                        pair_team = "DIFFERENT_TEAMS"
-                        pair_team = pair[0][:team] if pair[0][:team] == pair[1][:team]
-                        
-                        pair_team_id = nil
-                        pair_team_id = pair[0][:team_id] if pair[0][:team_id] == pair[1][:team_id]
-
-                        pair_status = pair[0][:status] if pair[0][:status] == pair[1][:status]
-
-                        lookup_type = "pair_#{pair_type}".to_sym
-                        indices[lookup_type] += 1
-                        pair_data = {
-                            id: "%s%02d" % [prefix[lookup_type], indices[lookup_type]],
-                            name: pair_name,
-                            team: pair_team,
-                            team_id: pair_team_id,
-                            status: pair_status,
-                            matchup: pair_gender,
-                            type: "pair",
-                            _children: pair
-                        }
-
-                        [:gen_availability, :rank, :eos_availability].each do |i|
-                            pair_data[i] = [pair[0][i], pair[1][i]].join(',')
+                            core_regs << reg_data(reg)
                         end
 
-                        registrant_data << pair_data
+                        next if core_regs.count == 0
+                        
+                        core_status = 'active'
+                        core_status = 'incomplete' if non_active_statuses > 0
+
+                        core_gender = 'Mixed'
+                        core_gender = 'Man-matching' if wm_players == 0
+                        core_gender = 'Woman-matching' if mm_players == 0
+
+                        team_name = "unassigned"
+                        if team_counts.count == 1
+                            team_name = team_counts.keys.first
+                        end
+
+                        registrant_data << {
+                            draft_id: "%s%02d" % [prefix[:core], indices[:core]],
+                            id: "",
+                            name: "Core [#{core._id.to_s[-5..-1]}]",
+                            team: team_name,
+                            status: core_status,
+                            matchup: core_gender,
+                            type: "core",
+                            _children: core_regs
+                        }
                     end
+
+                    # pairs
+                    pairs = {
+                        mw: [],
+                        ww: [],
+                        mm: []
+                    }
+                    
+                    sorted_registrations_query.where(:pair_id.ne => nil).each do |reg|
+                        pair_reg = @league.registration_for(reg.pair)
+
+                        # Breaks the pair if:
+                        # - the pair_reg isn't found
+                        # - either is already in a different pair
+                        # - either is on a core
+                        # - either is non-active
+                        next if pair_reg.nil?
+                        next if processed.member?(reg._id)
+                        next if processed.member?(pair_reg._id)
+                        next if pair_reg.status != "active"
+                        next if reg.status != "active"
+
+                        processed << reg._id
+                        processed << pair_reg._id
+
+                        pair_data = [reg_data(reg), reg_data(pair_reg)]
+
+                        if reg.gender != pair_reg.gender
+                            pairs[:mw] << pair_data
+                            next
+                        end
+
+                        if reg.gender == 'female'
+                            pairs[:ww] << pair_data
+                            next
+                        end
+
+                        if reg.gender == 'male'
+                            pairs[:mm] << pair_data
+                            next
+                        end
+                    end
+
+                    pairs.keys.each do |pair_type|
+                        pairs[pair_type].each do |pair|
+                            pair_gender = pair[0][:matchup]
+                            pair_gender = "Mixed" if pair_type == :mw
+
+                            pair_name = "#{pair[0][:name].split(' ')[0]} & #{pair[1][:name].split(' ')[0]}"
+
+                            pair_team = "DIFFERENT_TEAMS"
+                            pair_team = pair[0][:team] if pair[0][:team] == pair[1][:team]
+                            
+                            pair_team_id = nil
+                            pair_team_id = pair[0][:team_id] if pair[0][:team_id] == pair[1][:team_id]
+
+                            pair_status = pair[0][:status] if pair[0][:status] == pair[1][:status]
+
+                            lookup_type = "pair_#{pair_type}".to_sym
+                            indices[lookup_type] += 1
+                            pair_data = {
+                                draft_id: "%s%02d" % [prefix[lookup_type], indices[lookup_type]],
+                                id: "",
+                                name: pair_name,
+                                team: pair_team,
+                                team_id: pair_team_id,
+                                status: pair_status,
+                                matchup: pair_gender,
+                                type: "pair",
+                                _children: pair
+                            }
+
+                            [:gen_availability, :rank, :eos_availability].each do |i|
+                                pair_data[i] = [pair[0][i], pair[1][i]].join(',')
+                            end
+
+                            registrant_data << pair_data
+                        end
+                    end
+
+                    # individuals
+                    sorted_registrations_query.each do |reg|
+                        next if processed.member?(reg._id)
+                        next if (params[:active] == "true" and reg.status != "active")
+                        reg_data = reg_data(reg)
+
+                        lookup_type = ("ind_%s" % reg.gender[0]).to_sym
+                        indices[lookup_type] += 1
+                        reg_data["draft_id"] = "%s%03d" % [prefix[lookup_type], indices[lookup_type]]
+                        registrant_data << reg_data
+                    end
+                    registrant_data
                 end
-
-                # individuals
-                sorted_registrations_query.each do |reg|
-                    next if processed.member?(reg._id)
-                    next if (params[:active] == "true" and reg.status != "active")
-                    reg_data = reg_data(reg)
-
-                    lookup_type = ("ind_%s" % reg.gender[0]).to_sym
-                    indices[lookup_type] += 1
-                    reg_data["id"] = "%s%03d" % [prefix[lookup_type], indices[lookup_type]]
-                    registrant_data << reg_data
-                end
-
                 render json: registrant_data
             end
         end
