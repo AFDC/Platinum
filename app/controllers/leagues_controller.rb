@@ -391,7 +391,7 @@ class LeaguesController < ApplicationController
                                 _children: pair
                             }
 
-                            [:gen_availability, :rank, :eos_availability].each do |i|
+                            [:gen_availability, :rank, :eos_availability, :age].each do |i|
                                 pair_data[i] = [pair[0][i], pair[1][i]].join(',')
                             end
 
