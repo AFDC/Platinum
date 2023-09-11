@@ -259,7 +259,7 @@ class LeaguesController < ApplicationController
             format.json do
                 #registrant_data = Rails.cache.fetch("#{@league.cache_key}/registrant_data", expires_in: 24.hours, race_condition_ttl: 10) do
 
-                    sorted_registrations_query = @league.registrations.order_by(gender: 'asc', _id: 'asc')
+                    sorted_registrations_query = @league.registrations.order_by(status: 'asc', gender: 'asc', _id: 'asc')
                     indices = {core: 0, pair_mm: 0, pair_ww: 0, pair_mw: 0, ind_m: 0, ind_f: 0}
                     prefix = {core: "core", pair_mm: "30", pair_ww: "20", pair_mw: "10", ind_m: "5", ind_f: "4"}
 
@@ -404,10 +404,14 @@ class LeaguesController < ApplicationController
                         next if processed.member?(reg._id)
                         next if (params[:active] == "true" and reg.status != "active")
                         reg_data = reg_data(reg)
-
-                        lookup_type = ("ind_%s" % reg.gender[0]).to_sym
-                        indices[lookup_type] += 1
-                        reg_data["draft_id"] = "%s%03d" % [prefix[lookup_type], indices[lookup_type]]
+                        
+                        if reg.status == 'active'
+                            lookup_type = ("ind_%s" % reg.gender[0]).to_sym
+                            indices[lookup_type] += 1
+                            reg_data["draft_id"] = "%s%03d" % [prefix[lookup_type], indices[lookup_type]]
+                        else
+                            reg_data["draft_id"] = 'n/a'
+                        end
                         registrant_data << reg_data
                     end
                 #    registrant_data
