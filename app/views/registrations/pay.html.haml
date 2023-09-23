@@ -8,13 +8,14 @@
         %i.icon-lock
         Relax! This transaction is secured by a 128 Bit SSL connection
       %p{style: 'font-size: 80%'} Your payment details will be submitted directly from your browser to our payment processor over a secure connection; the AFDC will never see your credit card information.
-    = form_tag payments_path do
+    = form_tag payments_path, id: "payment_form" do
       %p.lead
         #{@registration.user.name}'s registration for #{@registration.league.name}:
       %p.lead{style: 'font-size: 400%; font-weight: bold; text-align: center'}=number_to_currency @registration.price
       #braintree_dropin
+      =hidden_field_tag 'payment_method_nonce', ''
       =hidden_field_tag 'registration_id', @registration._id
-      %button.btn.btn-block.btn-success.btn-large{type: :submit}
+      %button.btn.btn-block.btn-success.btn-large{type: :submit, id: :submit_button}
         %i.icon-lock
         Pay now to join the league!
 
@@ -22,12 +23,28 @@
   = javascript_include_tag "https://js.braintreegateway.com/web/dropin/1.40.2/js/dropin.min.js"
   :javascript
     $(function(){
+      form = $("#payment_form");
       braintree.dropin.create({
         container: document.getElementById('braintree_dropin'),
         authorization: "#{current_user.braintree_token}",
       }, (error, dropinInstance) => {
         if (error) {
-          console.log(error);
+          console.error(error);
+          return;
         }
+
+        form.on('submit', function (e) {
+          e.preventDefault();
+          dropinInstance.requestPaymentMethod(function (requestPaymentMethodErr, payload) {
+            if (requestPaymentMethodErr) {
+              console.error(requestPaymentMethodErr);
+              return;
+            }
+
+            $("#payment_method_nonce").val(payload["nonce"]);
+            console.log($("#payment_method_nonce").val());
+          });
+          this.submit();
+        });
       });
     });
