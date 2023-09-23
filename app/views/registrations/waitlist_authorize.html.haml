@@ -61,8 +61,8 @@
             }
 
             $("#payment_method_nonce").val(payload["nonce"]);
+            form.off().submit();
           });
-          this.submit();
         });
       });
     });
