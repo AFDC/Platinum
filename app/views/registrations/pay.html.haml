@@ -19,10 +19,15 @@
         Pay now to join the league!
 
 - content_for :page_scripts do
-  = javascript_include_tag "https://js.braintreegateway.com/v2/braintree.js"
+  = javascript_include_tag "https://js.braintreegateway.com/web/dropin/1.40.2/js/dropin.min.js"
   :javascript
     $(function(){
-      braintree.setup("#{current_user.braintree_token}", 'dropin', {
-        container: 'braintree_dropin'
+      braintree.dropin.create({
+        container: document.getElementById('braintree_dropin'),
+        authorization: "#{current_user.braintree_token}",
+      }, (error, dropinInstance) => {
+        if (error) {
+          console.log(error);
+        }
       });
     });
