@@ -115,6 +115,12 @@
                         hozAlign:"left"
                     },
                     {title:"Age", field:"age", sorter:"number", headerFilter:true},
+                    {
+                        title:"Strength", 
+                        field:"player_type",
+                        headerFilter:"list", 
+                        headerFilterParams:{valuesLookup: "all", valuesLookupField:"player_type", clearable: true}, 
+                    },
                     {title:"Notes", field:"notes", headerFilter:true},
                     {title:"Team", field:"team", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"team", clearable: true}, hozAlign:"left"},
                 ],
