@@ -480,7 +480,18 @@ class LeaguesController < ApplicationController
     end
 
     def registrations
-        render layout: "wide_application"
+        respond_to do |format|
+            format.html do
+                render layout: "wide_application"
+            end
+            format.csv do
+                if params[:registration_ids]
+                    @registrations = User.find(params[:registration_ids])
+                else
+                    @registrations = @league.registrations
+                end
+            end
+        end        
     end
 
     # This powers the player-visible registraiton list
