@@ -494,6 +494,18 @@ class LeaguesController < ApplicationController
         end        
     end
 
+    def cachekey
+        respond_to do |format|
+            format.html do
+                redirect_to @league
+                return
+            end
+            format.json do
+                render json: {league_id: @league._id, cache_key: @league.cache_key}
+            end
+        end
+    end
+
     # This powers the player-visible registraiton list
     def old_registrations
         respond_to do |format|

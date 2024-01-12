@@ -28,6 +28,7 @@ Platinum::Application.routes.draw do
 
   resources :leagues do
     member do
+      get 'cachekey'
       get 'register'
       get 'registrations'
       post 'registrations'

@@ -67,6 +67,8 @@
             });
 
         // PLAYER DATA
+            var leagueCacheKey = "<%=@league.cache_key%>";
+            var cachekeyURL = "<%=cachekey_league_path(@league, :json)%>";
             var ajaxURL   = "<%=reg_list_league_path(@league, :json)%>?active=true";
             var reg_table = new Tabulator("#registrant-data", {
                 // height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
@@ -158,14 +160,33 @@
                 }
             });
 
+            function refresh_data() {
+                reg_table.setData(ajaxURL);
+                team_table.setData(teamDataURL);
+            }
+
+            setInterval(function() { 
+                $.ajax({
+                    url : cachekeyURL,
+                    type : 'GET',
+                    dataType:'json',
+                    success : function(data) {
+                        var newCacheKey = data["cache_key"];
+                        if (newCacheKey != leagueCacheKey) {
+                            console.log("LEAGUE CHANGED: " + newCacheKey);
+                            leagueCacheKey = newCacheKey;
+                            refresh_data();
+                        }
+                    },
+                    error: function(request,error) { console.error(error); }
+                });
+            }, 2500);
 
             $('#clear-filters').on('click', function() {
                 reg_table.clearFilter(true);
             });
 
-            $('#refresh-data').on('click', function(){
-                reg_table.setData(ajaxURL);
-            });            
+            $('#refresh-data').on('click', refresh_data);            
        });    
     </script>
     <script id="registrant-detail-template" type="text/x-underscore">
