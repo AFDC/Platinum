@@ -103,6 +103,8 @@ Platinum::Application.routes.draw do
 
   get 'help/login', to: 'help#login', as: 'login_help'
   get 'help/registration', to: 'help#registration', as: 'registration_help'
+  get 'toc', to: 'help#toc', as: 'terms_and_conditions'
+  get 'privacy', to: 'help#privacy', as: 'privacy_policy'
 
   get 'profile', to: 'profile#index', as: 'user_profile'
   get 'profile/edit', to: 'profile#edit', as: 'edit_user_profile'

@@ -9,7 +9,7 @@
 authorization do
 	role :guest do
 		has_permission_on :dashboard, to: [:homepage]
-		has_permission_on :help, to: [:login, :registration]
+		has_permission_on :help, to: [:login, :registration, :toc, :privacy]
 		has_permission_on :schedules, to: [:index, :show]
 		has_permission_on :leagues, to: [:index, :show, :cachekey]
 		has_permission_on :users, to: [:new, :create]
