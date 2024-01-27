@@ -9,7 +9,7 @@ class NotificationConfirmationWorker
 
     if notification_method.method == 'text'
         twilio_client = Twilio::REST::Client.new
-        twilio_client.account.messages.create({ 
+        twilio_client.api.account.messages.create({ 
             from: ENV['twilio_number'], 
             to:   notification_method.target,
             body: "Hello from the AFDC! Your confirmation code is #{notification_method.confirmation_code}. Please email help@afdc.com if you have any trouble."

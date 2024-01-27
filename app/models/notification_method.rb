@@ -29,7 +29,7 @@ class NotificationMethod
         return if method != 'text'
         
         twilio_client = Twilio::REST::Client.new
-        twilio_client.account.messages.create({ 
+        twilio_client.api.account.messages.create({ 
             from: ENV['twilio_number'], 
             to:   target,
             body: message

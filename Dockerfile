@@ -1,11 +1,11 @@
-FROM ruby:2.1
+FROM ruby:2.3
 MAINTAINER Pete Holiday <pete.holiday@gmail.com>
 
 RUN mkdir -p /var/app
 COPY Gemfile /var/app/Gemfile
 COPY Gemfile.lock /var/app/Gemfile.lock
 WORKDIR /var/app
-# RUN gem update bundler
+RUN gem install bundler -v 1.17
 RUN bundle install
 
 COPY . .

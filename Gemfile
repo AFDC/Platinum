@@ -21,10 +21,10 @@ gem 'dalli'
 gem 'premailer-rails'
 gem 'nokogiri'
 gem 'braintree'
-gem 'twilio-ruby'
+gem 'twilio-ruby', '~> 5.10.7'
 gem 'puma'
 gem 'bugsnag'
-gem 'skylight'
+gem 'test-unit', '~> 3.0'
 gem 'gibbon', '~> 3.0'
 
 # Job Processing
