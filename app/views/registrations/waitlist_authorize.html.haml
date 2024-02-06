@@ -43,6 +43,7 @@
   = javascript_include_tag "https://js.braintreegateway.com/web/dropin/1.40.2/js/dropin.min.js"
   :javascript
     $(function(){
+      form = $("#payment_form");
       braintree.dropin.create({
         container: document.getElementById('braintree_dropin'),
         authorization: "#{current_user.braintree_token}",

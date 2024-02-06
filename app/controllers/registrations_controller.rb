@@ -67,7 +67,10 @@ class RegistrationsController < ApplicationController
         reg_status_type = status_types[@registration.status]
 
         if reg_status_type == :invalid
-            redirect_to league_path(@registration.league), flash: {error: "'#{@registration.status}' is not a valid registration status."}
+            error_str = "'#{@registration.status}' is not a valid registration status."
+            error_str = "Your registration seems to have expired -- please try again." if @registration.status == 'expired'
+
+            redirect_to league_path(@registration.league), flash: {error: error_str}
             return
         end
 

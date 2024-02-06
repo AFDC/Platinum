@@ -80,7 +80,9 @@ class PaymentsController < ApplicationController
     )
 
     if result.success? == false
-      redirect_to waitlist_authorize_registration_path(registration), flash: {error: "Authorization Failed: #{result.message}"}
+      error_msg = "Authorization Failed: #{result.message}"
+      Bugsnag.notify(StandardError.new(error_msg))
+      redirect_to waitlist_authorize_registration_path(registration), flash: {error: error_msg}
       return
     end
 
