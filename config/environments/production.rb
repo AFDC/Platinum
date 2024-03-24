@@ -77,6 +77,8 @@ Platinum::Application.configure do
       :domain => 'leagues.afdc.com',
   }
 
-  config.cache_store = :mem_cache_store, ENV['MEMCACHE_HOST'], { :namespace => 'platinum_r4', :expires_in => 1.day, :compress => true }
+  config.log_level = :info
+
+  config.cache_store = :mem_cache_store, 'memcached', { :namespace => 'platinum_r4', :expires_in => 1.day, :compress => true }
   config.action_mailer.default_url_options = { :host => "leagues.afdc.com" }
 end
