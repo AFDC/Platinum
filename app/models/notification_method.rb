@@ -47,7 +47,7 @@ class NotificationMethod
     end
 
     def initialize_confirmation
-        if target == @user.email_address
+        if target == user.email_address
             self.confirmed = true
             self.enabled   = true
             return

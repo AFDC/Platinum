@@ -157,7 +157,7 @@ class LeaguesController < ApplicationController
 
     def update_invites
         new_invites_list = params[:invited_player_ids].reject { |id| id.blank? }
-        new_invites_list = new_invites_list.map {|id| Moped::BSON::ObjectId.from_string(id)}
+        new_invites_list = new_invites_list.map {|id| BSON::ObjectId.from_string(id)}
 
         players_to_remove = @league.invited_player_ids - new_invites_list
         players_to_add = new_invites_list - @league.invited_player_ids

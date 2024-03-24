@@ -329,6 +329,7 @@ class League
   end
 
   def migrate_self_rank_opts
+    return if self.attributes.count <= 30
     return unless self_rank_type.nil?
     self["self_rank_type"] = "simple" if allow_self_rank == true
     self["self_rank_type"] = "none" if allow_self_rank == false

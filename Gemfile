@@ -1,34 +1,30 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 3.2.22'
+gem 'rails', '~> 4.2'
 
 gem 'mimemagic', git: 'https://github.com/mimemagicrb/mimemagic', ref: '01f92d86d15d85cfd0f20dabd025dcbd36a8a60f'
 
 # Backend
-gem 'json', '~> 1.8.6'
-gem 'multi_json', '~> 1.15.0'
-gem 'mongoid', '~> 3.1.7'
-gem 'declarative_authorization', '~> 0.5.7'
+gem 'json'
+gem 'mongoid', '~> 4.0.0'
+gem 'declarative_authorization'
 gem 'mongoid-paperclip', '~> 0.0.11', require: 'mongoid_paperclip'
-gem 'strong_parameters', '~> 0.2.1'
-gem 'ruby_parser', '~> 3.2.2'
-gem 'smarter_csv', '~> 1.0.17'
-gem 'actionmailer', '~> 3.2.22.5'
-gem 'bcrypt-ruby', '~> 3.0.1'
-gem 'dalli', '~> 2.7.6'
-gem 'premailer-rails', '~> 1.12'
-gem 'nokogiri', '~> 1.9.1'
+gem 'ruby_parser'
+gem 'smarter_csv'
+gem 'actionmailer'
+gem 'bcrypt'
+gem 'dalli'
+gem 'premailer-rails'
+gem 'nokogiri'
 gem 'braintree', '~> 2.101.0'
 gem 'twilio-ruby', '~> 5.10.7'
-gem 'puma', '~> 6.4.2'
+gem 'puma'
 gem 'bugsnag', '~> 5.1.0'
-gem 'test-unit', '~> 3.0'
 gem 'gibbon', '~> 3.0'
 
 # Job Processing
-gem 'sidekiq', '~> 4.2.9'
+gem 'sidekiq', '~> 4.2.10'
 gem 'sidekiq-cron', '~> 0.4.5'
-gem 'kiqstand', '~> 1.1.0'
 gem 'sinatra', '~> 1.4.4', require: false
 gem 'slim', '~> 2.0.2'
 gem 'whenever', '~> 0.9.4'
@@ -44,25 +40,18 @@ gem 'will_paginate', '~> 3.1.6'
 gem "font-awesome-rails", '~> 3.2.1.0'
 
 
-# Gems used only for assets and not required
-# in production environments by default.
-group :assets do
-  gem 'sass-rails',   '~> 3.2.3'
-#  gem 'coffee-rails', '~> 3.2.1'
-#  gem 'uglifier', '>= 1.0.3'
-#  gem 'mini_racer', '~> 0.6.4'
-end
 
 group :development, :test do
+  gem 'sass-rails'
   gem 'faker', '~> 1.1.2'
-  gem 'guard-rspec', '~> 2.5.1'
-  gem 'guard-spork', '~> 1.5.0'
-  gem 'rspec-rails', '~> 2.13.1'
+  gem 'rspec-rails', '~> 4.1.2'
   gem 'better_errors', '~> 1.1.0'
   gem 'binding_of_caller', '~> 1.0.0'
+  gem 'dotenv', require: 'dotenv/load'
 end
 
 group :development do
+  gem "web-console", "~> 2.0"
   gem 'annotate', '~> 2.5.0'
   gem 'haml-rails', '~> 0.4'
   gem 'rb-inotify', '~> 0.9.0', require: false
@@ -75,6 +64,7 @@ end
 group :test do
   gem 'factory_girl_rails', '~> 4.2.1'
   gem 'spork', '~> 0.9.2'
+  gem 'test-unit'
 end
 
 group :ops do

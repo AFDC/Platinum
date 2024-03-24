@@ -34,7 +34,7 @@ class GamesController < ApplicationController
 
         if params['forfeit']
             new_score_report[:forfeit] = true
-            @game.winner = Moped::BSON::ObjectId.from_string(params['forfeit'])
+            @game.winner = BSON::ObjectId.from_string(params['forfeit'])
         end
 
         if params['score']
@@ -44,7 +44,7 @@ class GamesController < ApplicationController
                 new_score_report[team_id] = this_score
                 if this_score > top_score
                     top_score = this_score
-                    @game.winner = Moped::BSON::ObjectId.from_string(team_id)
+                    @game.winner = BSON::ObjectId.from_string(team_id)
                 elsif this_score == top_score
                     @game.winner = nil
                 end

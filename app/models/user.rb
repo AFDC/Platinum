@@ -200,7 +200,7 @@ class User
   end
 
   def create_initial_notification_method
-    notification_methods.create(label: "Account email notifier", method: "email", target: email_address)
+    NotificationMethod.create(user: self, method: "email", target: email_address, label: "Account email notifier")
   end
 
   def email_md5
