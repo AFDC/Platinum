@@ -56,8 +56,7 @@
 								COVID Admin
 
 
-	= f.actions do 
-		- if @user.new_record?
-			= f.primary "Create my Account"
-		- else
-			= f.primary "Update Account"
+	- if @user.new_record?
+		= f.submit "Create my Account", class: "btn btn-primary"
+	- else
+		= f.submit "Update Account", class: "btn btn-primary"

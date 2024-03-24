@@ -60,7 +60,7 @@ GEM
       sass (~> 3.2)
     bootstrap-will_paginate (1.0.0)
       will_paginate
-    bootstrap_form (0.3.2)
+    bootstrap_form (2.1.1)
     braintree (2.101.0)
       builder (>= 2.0.0)
     bson (3.2.7)
@@ -337,7 +337,7 @@ DEPENDENCIES
   binding_of_caller (~> 1.0.0)
   bootstrap-sass (~> 2.3.1.0)
   bootstrap-will_paginate (~> 1.0.0)
-  bootstrap_form (~> 0.3.2)
+  bootstrap_form (~> 2.1.1)
   braintree (~> 2.101.0)
   bugsnag (~> 5.1.0)
   dalli

@@ -19,6 +19,5 @@
 		= bootstrap_form_for(@user, html: { class: 'form-horizontal' }, url: update_avatar_user_path(@user), method: 'PUT', help: :block) do |f|
 			= f.alert_message "Please fix the errors below."
 			= f.file_field :avatar, label: 'Upload file'
-			= f.actions do 
-				= f.primary "Upload Image", disable_with: 'Uploading...'
+			= f.submit "Upload Image", disable_with: 'Uploading...', class: "btn btn-primary"
 
