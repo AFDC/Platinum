@@ -1,9 +1,13 @@
 $(function(){
     // Autocomplete
     $(".user-multi-select").each(function(){
+        if (typeof user_search_params !== 'undefined') {
+            console.log(user_search_params);
+        }
         var ums = $(this);
         var userAutocomplete = ums.find("input.new-user").autocomplete({
             serviceUrl:'/users/search.json',
+            params: user_search_params,
             minChars: 3,
             maxHeight: 400,
             width: 350,
