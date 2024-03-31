@@ -35,6 +35,10 @@ class League
   field :invited_player_ids, type: Array, default: []
   field :covid_vax_required, type: Boolean, default: false
   embeds_one :core_options, class_name: 'LeagueCoreOptions'
+  field :solicit_donations, type: Boolean, default: false
+
+  field :donation_earmark, type: String, default: nil
+  field :donation_pitch, type: String, default: nil
 
   after_initialize :build_options_if_nil
   after_find :migrate_self_rank_opts

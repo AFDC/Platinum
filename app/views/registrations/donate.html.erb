@@ -1,0 +1,42 @@
+<div class="hero-unit">
+  <h1>Boost Your Impact</h1>
+  <h2>Add a donation with your registration and become a game-changer!</h2>
+  <p>
+      By stepping onto the field, you're already supporting Ultimate in Atlanta. But here's a 
+      chance to have an even greater impact. When you add a donation with your registration, 
+      you're not just a player - you're a pillar of our community. Your <b>tax-deductible donation</b> 
+      expands the reach of our programs, empowering youth development, fostering diversity and inclusivity, 
+      and amplifying our mission to teach and celebrate the games of Ultimate and Goaltimate. 
+      It's like adding a strategic play to your game; your contribution helps us build a stronger, 
+      more vibrant community for everyone who steps onto the field.
+  </p>
+  <p>Ready to be more than a player? Be a game-changer with us!</p>
+  <p style="margin-top: 64px" class="text-center">
+    <%=link_to "$5", pay_registration_path(@registration, donation_amount: 5), class: "btn btn-primary btn-large"%>
+    <%=link_to "$10", pay_registration_path(@registration, donation_amount: 10), class: "btn btn-primary btn-large"%>
+    <%=link_to "$25", pay_registration_path(@registration, donation_amount: 25), class: "btn btn-primary btn-large"%>
+    <%=link_to "$50", pay_registration_path(@registration, donation_amount: 50), class: "btn btn-primary btn-large"%>
+  </p>
+  <div>
+    <%= form_tag(pay_registration_path(@registration), method: "GET", class: "form-inline") do %>
+        <div style="  max-width: fit-content; margin-left: auto; margin-right: auto;">
+        <div class="input-prepend">
+            <span class="add-on">$</span>
+            <%=text_field_tag :donation_amount, "", class: "input-medium", placeholder: "amount" %>
+        </div>
+        <%=submit_tag "Pay", class: "btn btn-primary"%>
+        </div>
+    <% end %>
+  </div>
+  <p class="text-center">
+    <%=link_to "No thanks, Maybe Next Time", pay_registration_path(@registration)%>
+  </p>
+</div>
+
+<% if @registration.league.donation_pitch.present? %>
+    <div class="well">
+        <h2>Heads Up! <small>Donations made via this league may be reserved for a specific purpose</small></h2>
+        <h5>A message from your commissioner:</h5>
+        <%= @registration.league.donation_pitch.html_safe %>
+    </div>
+<% end %> 

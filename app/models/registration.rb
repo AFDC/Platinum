@@ -41,6 +41,7 @@ class Registration
     belongs_to :g_rank_result
     belongs_to :pair, class_name: "User"
     has_many :payment_transactions
+    has_one :donation
 
     before_save :ensure_price
     after_save  :bust_league_cache

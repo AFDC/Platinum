@@ -1,5 +1,5 @@
 class RegistrationsController < ApplicationController
-    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :canceled, :show, :pay, :waitlist_authorize]
+    before_filter :load_registration_from_params, only: [:cancel, :edit, :update, :checkout, :approved, :canceled, :show, :pay, :donate, :waitlist_authorize]
     filter_access_to [:edit, :update, :show, :checkout, :cancel, :pay], attribute_check: true
 
     def create
@@ -109,6 +109,11 @@ class RegistrationsController < ApplicationController
 
         if @registration.status == "registering_waitlisted"
             redirect_to waitlist_authorize_registration_path(@registration)
+            return
+        end
+
+        if @registration.league.comped?(@registration.user) == false && @registration.league.solicit_donations?
+            redirect_to donate_registration_path(@registration)
             return
         end
 

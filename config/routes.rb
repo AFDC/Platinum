@@ -21,6 +21,7 @@ Platinum::Application.routes.draw do
   resources :registrations do
     member do
       put 'cancel'
+      get 'donate'
       get 'pay'
       get 'waitlist_authorize'
     end

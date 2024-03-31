@@ -46,7 +46,7 @@ authorization do
 			if_attribute sender_id: is { user._id }
 		end
 
-		has_permission_on :registrations, to: [:checkout, :show, :pay, :waitlist_authorize, :edit, :update, :cancel] do
+		has_permission_on :registrations, to: [:checkout, :show, :pay, :donate, :waitlist_authorize, :edit, :update, :cancel] do
 			if_attribute user_id: is { user._id }
 		end
 
