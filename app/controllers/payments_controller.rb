@@ -13,10 +13,12 @@ class PaymentsController < ApplicationController
     price = registration.price
     donation_amount = 0
 
-    donation = Donation.new(amount: params[:donation_amount], registration: registration, user: registration.user)
+    donation = Donation.new(amount: params[:donation_amount])
 
     if registration.league.solicit_donations? && donation.valid?
       donation_amount = donation.amount
+      donation.user = registration.user
+      donation.registration = registration
     end
 
     # COPIED TO league.rb
