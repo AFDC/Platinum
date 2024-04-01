@@ -27,7 +27,10 @@
         </div>
         <% if donation %>
           <div class="row" style="margin-bottom: 20px;">
-              <div class="span4"><b>Tax-deductible Donation</b></div>
+              <div class="span4">
+                <b>Tax-deductible Donation</b>
+                <small>NON-REFUNDABLE</small>
+              </div>
               <div class="span2 text-right"><%= number_to_currency donation.amount %></div>
           </div>
           <%= hidden_field_tag 'donation_amount', donation.amount %>
