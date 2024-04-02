@@ -180,8 +180,10 @@ class RegistrationsController < ApplicationController
 
         @registration.notes = reg_params[:notes]
         @registration.shirt_size = reg_params[:shirt_size]
-        if reg_params[:pair_id]
-            @registration.pair_id = reg_params[:pair_id].first
+        if reg_params[:pair_requested_user_id]
+            pair_user_id = reg_params[:pair_requested_user_id].reject {|x| x.blank?}.first
+            pc = PairingCoordinator.new(@registration.league)
+            pc.request_pair(@registration.user, pair_user_id)
         end
 
         if permitted_to? :manage, @registration.league
@@ -192,6 +194,7 @@ class RegistrationsController < ApplicationController
     def load_registration_from_params
         begin
             @registration = Registration.find(params[:id])
+            @league = @registration.league
         rescue
             redirect_to registrations_user_path(current_user), flash: {error: "Could not load registration for ID '#{params[:id]}'."}
         end

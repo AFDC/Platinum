@@ -18,7 +18,7 @@
 
 - user_search_params = {}
 - if local_assigns[:exclude].nil? == false
-	- user_search_params["exclude"] = exclude.map(&:_id)
+	- user_search_params["exclude"] = exclude
 
 
 - content_for :page_scripts do

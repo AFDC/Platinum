@@ -349,6 +349,14 @@ class Registration
         end
     end
 
+    def sent_invitations
+        league.invitations.where(sender: user)
+    end
+
+    def received_invitations
+        league.invitations.where(recipient: user)
+    end
+
     private
 
     def load_user_info

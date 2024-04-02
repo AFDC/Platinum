@@ -97,12 +97,16 @@
 
             %hr
 
-            %dt Pair:
-            %dd
-                - if @registration.pair_id
+            - if @registration.pair_id 
+                %dt Pair:
+                %dd
                     = @registration.pair.name
-                - else
-                    n/a
+            - elsif invite = Invitation.where(handler_id: @registration.league._id, sender: @registration.user, type: "pair", status: "new").first
+                %dt Requested Pair:
+                %dd
+                    = invite.recipient.name
+    
+
 
             %dt Signup Time:
             %dd= @registration.formatted_signup_timestamp

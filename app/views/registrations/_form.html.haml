@@ -7,7 +7,7 @@
     = f.select :gen_availability, [nil, '25%', '50%', '75%', '100%'], label: 'Availability'
     - if @registration.league.created_at > Date.new(2019, 4, 11)
         = f.select :shirt_size, [nil, 'XXL', 'XL', 'Large', 'Medium', 'Small', 'XS', 'XXS'], label: 'Unisex Shirt Size'
-    .control-group
+    .form-group
         .controls
             = f.check_box :eos_availability, value: 1, label: "Will attend end of season tourney"
     - rank_max = 6 if (@registration.league.sport == 'goaltimate' && @registration.user.gender == 'female')
@@ -20,6 +20,39 @@
     - if permitted_to?(:manage, @registration.league) && @registration.persisted?
         = f.text_field :commish_rank, label: 'League Rank'
     = f.select :player_strength, [nil, 'Runner', 'Thrower', 'Both']
+    - if @league.allow_pairs? && !@registration.linked?
+        - received_invites = @registration.received_invitations.outstanding
+        - if received_invites.count > 0
+            .form-group
+                %label.control-label Accept Pair Invite
+                .controls
+                    - received_invites.each do |inv|
+                        %label.radio
+                            %input{type: 'radio', name: 'registration[pair_requested_user_id][]', class: 'received_invite_radio', value: inv.sender._id.to_s }
+                            =inv.sender.name
+                    .checkbox
+                        %label{for: 'ignore_received_invites'}
+                            %input{type: 'checkbox', id: 'ignore_received_invites', value: nil, checked: true}
+                            None of the Above
+
+        - invited_user = @registration.sent_invitations.outstanding.first&.recipient
+        - exclusion_list = PairingCoordinator.new(@league).excluded_players
+        - exclusion_list.append(current_user._id.to_s)
+        = render partial: '/user_multiselect', locals: {form: f, fieldname: 'pair_requested_user_id', label: "Invite Pair", users: [invited_user], limit: 1, exclude: exclusion_list}
+
+    - if @registration.linked?
+        .form-group
+            %label.control-label Current Pair
+            - if @registration.cored?
+                %span.span3.uneditable-input n/a
+                .controls
+                    %span.help-inline Cored Players Cannot Pair
+            - else
+                %span.span3.uneditable-input
+                    = @registration.pair.name
+                .controls
+                    %span.form-control.help-inline To remove a confirmed pair, email help@afdc.com
+
     = f.text_area :notes, rows: 5
     - if @registration.new_record?
         .control-group
@@ -38,3 +71,23 @@
         = f.submit "Register", disable_with: 'Registering...', class: "btn btn-primary"
     - else
         = f.submit "Update", disable_with: 'Updating...', class: "btn btn-primary"
+
+    
+- content_for :page_scripts do
+    :javascript
+        $(function(){ 
+            $('#ignore_received_invites').on('change', function(e){
+                if ($('#ignore_received_invites').is(':checked')) {
+                    $('.received_invite_radio').prop('checked', false);
+                    $('.user-multi-select .new-user').prop( "disabled", false);
+                }
+            });
+
+            $('.received_invite_radio').on('change', function(e){
+                if ($(e.target).is(':checked')) {
+                    $('#ignore_received_invites').prop('checked', false);
+                    $('.user-multi-select a.remove').click();
+                    $('.user-multi-select .new-user').prop( "disabled", true);
+                }
+            });
+        });

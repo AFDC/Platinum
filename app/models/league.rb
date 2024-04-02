@@ -184,8 +184,10 @@ class League
 
       sender_reg.pair = invitation.recipient
       recipient_reg.pair = invitation.sender
-      sender_reg.save!
-      recipient_reg.save!
+
+      # We ignore validation errors because pairs can be confirmed before registation is complete which can lead to some odd errors
+      sender_reg.save(validate: false)
+      recipient_reg.save(validate: false)
     end
   end
 
@@ -324,6 +326,10 @@ class League
         reg.process_expiration
       end
     end
+  end
+
+  def invitations
+    Invitation.where(handler_class: "League", handler_id: _id)
   end
 
   private

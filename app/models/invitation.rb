@@ -53,7 +53,7 @@ class Invitation
     self[:status] = 'declined'
     save!
 
-    InvitationMailer.delay.pair_request_result(self._id.to_s)
+    #InvitationMailer.delay.pair_request_result(self._id.to_s)
   end
 
   def cancel
