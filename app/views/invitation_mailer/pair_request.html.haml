@@ -11,11 +11,11 @@
 - content_for :callout_box do
   - if recipient_reg = @league.registration_for(@invite.recipient)
     Click
-    =link_to "here", edit_registration_path(recipient_reg)
+    =link_to "here", edit_registration_url(recipient_reg)
     to edit your registration for
     =@league.name
   - else     
     Click
-    =link_to "here", register_league_path(@league)
+    =link_to "here", register_league_url(@league)
     to register for 
     =@league.name
