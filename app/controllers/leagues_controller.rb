@@ -454,6 +454,12 @@ class LeaguesController < ApplicationController
             grank[:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
             # grank[:history] = reg.user.g_rank_results.map(&:score).slice(0,12).reverse
         end
+
+        reg_url = nil
+        if reg.new_record? == false
+            reg_url = registration_path(reg)
+        end
+
         
         {
             id: reg._id.to_s,
@@ -461,7 +467,7 @@ class LeaguesController < ApplicationController
             name_without_pronouns: u.name,
             email: u.email_address,
             profile_url: user_path(u),
-            registration_url: registration_path(reg),
+            registration_url: reg_url,
             status: reg.status,
             rank: reg.rank.to_s.gsub(/\.0$/,''),
             grank: grank,
