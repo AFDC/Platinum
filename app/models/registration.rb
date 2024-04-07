@@ -4,7 +4,7 @@ class Registration
     field :paid, type: Boolean
     field :status
     field :player_strength
-    field :pre_auithorization
+    field :pre_authorization
     field :waitlist_timestamp, type: DateTime
     field :signup_timestamp, type: DateTime
     field :payment_timestamps, type: Hash, default: {}
