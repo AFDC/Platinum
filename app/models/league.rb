@@ -145,6 +145,14 @@ class League
     end
   end
 
+  def remove_player_from_teams(user)
+    # remove user from all teams in the league
+    Team.collection.find(_id: {'$in' => self.team_ids}).update({"$pull" => {players: user._id}}, {multi: true})
+
+    # remove all league teams from player
+    User.collection.find(_id: user._id).update({"$pullAll" => {teams: self.team_ids}})
+  end
+
   def add_player_to_team(user,team,send_mail=true)
     raise ArgumentError.new "Must supply a user account to add" unless user.instance_of?(User)
     raise ArgumentError.new "Must supply a team to be added to" unless team.instance_of?(Team)
@@ -152,11 +160,7 @@ class League
 
     return true if self.team_for(user) == team
 
-    # remove user from all teams in the league
-    Team.collection.find(_id: {'$in' => self.team_ids}).update({"$pull" => {players: user._id}}, {multi: true})
-
-    # remove all league teams from player
-    User.collection.find(_id: user._id).update({"$pullAll" => {teams: self.team_ids}})
+    remove_player_from_teams(user)
 
     # add player to team
     Team.collection.find({_id: team._id}).update({"$addToSet" => {players: user._id}}, {multi: false})

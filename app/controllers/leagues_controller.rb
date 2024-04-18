@@ -105,16 +105,19 @@ class LeaguesController < ApplicationController
     def add_player_to_team
         respond_to do |format|
             format.json do
-                team = Team.find(params["team_id"])
+                team = nil
+                if params["team_id"] != 'NONE'
+                    team = Team.find(params["team_id"])
 
-                if team.nil?
-                    render json: {msg: "Team not found."}, status: 404
-                    return
-                end
-
-                if team.league != @league
-                    render json: {msg: "Team does not belong to the correct league."}, status: 400
-                    return
+                    if team.nil?
+                        render json: {msg: "Team not found."}, status: 404
+                        return
+                    end
+    
+                    if team.league != @league
+                        render json: {msg: "Team does not belong to the correct league."}, status: 400
+                        return
+                    end    
                 end
 
                 params["registration_id_list"].each do |reg_id|
@@ -144,12 +147,20 @@ class LeaguesController < ApplicationController
                     reg = Registration.find(reg_id)
                     u   = reg.user
 
-                    @league.add_player_to_team(u, team, false)
+                    if team.nil?
+                        @league.remove_player_from_teams(u)
+                    else
+                        @league.add_player_to_team(u, team, false)
+                    end
                     user_list << u.name
                 end
 
                 @league.touch
 
+                if team.nil?
+                    render json: {msg: "#{user_list.join(" & ")} removed from team."}
+                    return
+                end
                 render json: {msg: "#{user_list.join(" & ")} added to #{team.name}."}
             end
         end
@@ -299,9 +310,9 @@ class LeaguesController < ApplicationController
                         core_status = 'active'
                         core_status = 'incomplete' if non_active_statuses > 0
 
-                        core_gender = 'Mixed'
-                        core_gender = 'Man-matching' if wm_players == 0
-                        core_gender = 'Woman-matching' if mm_players == 0
+                        core_gender = 'mixed'
+                        core_gender = 'man-matching' if wm_players == 0
+                        core_gender = 'woman-matching' if mm_players == 0
 
                         team_name = "unassigned"
                         if team_counts.count == 1
@@ -365,7 +376,7 @@ class LeaguesController < ApplicationController
                     pairs.keys.each do |pair_type|
                         pairs[pair_type].each do |pair|
                             pair_gender = pair[0][:matchup]
-                            pair_gender = "Mixed" if pair_type == :mw
+                            pair_gender = "mixed" if pair_type == :mw
 
                             pair_name = "#{pair[0][:name].split(' ')[0]} & #{pair[1][:name].split(' ')[0]}"
 
@@ -446,7 +457,7 @@ class LeaguesController < ApplicationController
             team_name = "unassigned"
         end
         team_name = team.name unless team.nil?
-        team_id   = team.id   unless team.nil?
+        team_id   = team.id.to_s   unless team.nil?
 
         grank = {};
         if @league.require_grank? && reg.g_rank_result
