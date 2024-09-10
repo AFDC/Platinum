@@ -37,6 +37,10 @@
                             =link_to registrations_league_path(@league, :csv) do
                                 %i.icon.icon-download-alt
                                 Registrant CSV 
+                        %li
+                            =link_to reg_list_league_path(@league, :csv, active: true) do
+                                %i.icon.icon-download-alt
+                                Draft List
                         - if permitted_to? :import_schedule, @league
                             %li
                                 = link_to setup_schedule_import_league_path do

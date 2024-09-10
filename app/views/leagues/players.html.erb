@@ -1,7 +1,12 @@
 <% content_for :title, @league.name %>
-<%=render :partial => '/pageheader', :locals => {subtitle: 'Manage Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Players' => nil}} %>
 
-<div class="row" style="height: 100%">
+<div class="row-fluid"><div class="span12">
+    <div class="container"><div class="row"><div class="span12">
+    <%=render :partial => '/pageheader', :locals => {subtitle: 'Manage Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Players' => nil}} %>
+    </div></div></div>
+</div></div>
+
+<div class="row-fluid" style="height: 100%">
     <div class="span3">
         <div id="player-details-container" class="well well-small hide">
             <div style="text-align: right"><button class="close" id="hide-player-details">&times;</button></div>
@@ -10,13 +15,31 @@
         
         <h2>Teams</h2>
         <div id="team-data"></div>
+
+        <h2 style="margin-top: 30px">Re-rank Draft Order</h2>
+        <div>
+            <table class="table table-striped table-bordered" id="draft-order-table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Team</th>
+                        <th>MM</th>
+                        <th>WM</th>
+                        <th>Total</th>
+                        <th>Rank Sum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
     <div class="span9" style="height: 100%">
-        <div class="row">
-            <div class="span3">
+        <div class="row-fluid">
+            <div class="span4">
                 <h2>Registrants</h2>
             </div>
-            <div class="span6">
+            <div class="span8">
                 <h2>
                 <div style="text-align: right">
                     <% if @league.registration_groups.count > 0 %>
@@ -61,6 +84,7 @@
                     {title:"Team", field:"name"},
                     {title:"MM", field:"man_matching", width: 64},
                     {title:"WM", field:"woman_matching", width: 64},
+                    {title:"Tot", field:"total", width: 64},
                 ]
             });
 
@@ -312,6 +336,61 @@
                 } else {
                     reg_table.addFilter("type", "!=", "core");
                 }
+            });
+
+            // Setup Re-rank Draft Order Table (ALSO IN: registrations.html.erb)
+            team_table.on("renderComplete", function () {
+                var table = $("#draft-order-table tbody");
+
+                if (table.length === 0) { return; }
+
+                var counts_set = new Set();
+                var teams_by_count = [];
+                team_table.getData().forEach(function(team) {
+                    var c = team.total;
+                    if (teams_by_count[c] === undefined) {
+                        counts_set.add(c);
+                        teams_by_count[c] = [];
+                    }
+
+                    teams_by_count[c].push(team);
+                });
+                teams_by_count.forEach(function(teams, count) {
+                    // Sort teams by rank
+                    teams.sort(function(a, b) {
+                        return a.rank_sum - b.rank_sum;
+                    });
+                });
+
+                table.empty();
+
+                var team_counts = Array.from(counts_set);
+                var global_index = 0;
+                var last_team_count;
+
+                team_counts.sort().forEach(function(count) {
+                    teams_by_count[count].forEach(function(team, index) {
+                        if (last_team_count === undefined) {
+                            last_team_count = count;
+                        }
+
+                        global_index++;
+                        var row = $("<tr>");
+
+                        if (last_team_count != count) {
+                            last_team_count = count;
+                            table.append($("<tr>").append($("<td>").attr("colspan", 6).text(""))); // Spacer
+                        }
+
+                        row.append($("<td>").text(global_index));
+                        row.append($("<td>").text(team.name));
+                        row.append($("<td>").text(team.man_matching));
+                        row.append($("<td>").text(team.woman_matching));
+                        row.append($("<td>").text(team.total));
+                        row.append($("<td>").text(team.rank_sum));
+                        table.append(row);
+                    });
+                });
             });
         });
     </script>

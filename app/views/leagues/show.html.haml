@@ -107,4 +107,42 @@
                         =link_to "cores page.", league_registration_groups_path(@league)
                 = submit_tag(value = "Update Invitation List", options = {class: "btn btn-primary"})
 
+.row.hide
+    .span7 
+        %h3 Player Rankings (#{@league.name})
+        %canvas#rank_chart 
+            
+
 = render :partial => '/game_schedule', :locals => {start_date: Date.today, league_id: @league._id, title: 'Upcoming Games'}
+
+- rank_data = {"0": 0, "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+- @league.registrations.active.each do |r|
+    - rank_data[r.rank.floor.to_s.to_sym] += 1
+- rank_js = ""
+- rank_data.each do |k, v|
+    - rank_js << "{ rank: \"#{k}\", count: #{v} },\n"
+
+- content_for :page_scripts do
+    :javascript
+        $(function(){    
+            const ctx = document.getElementById('rank_chart');
+            const data = [
+                #{rank_js}
+            ];
+
+            new Chart(
+                ctx,
+                {
+                type: 'bar',
+                data: {
+                    labels: data.map(row => row.rank),
+                    datasets: [
+                    {
+                        label: 'Ranking Histogram',
+                        data: data.map(row => row.count)
+                    }
+                    ]
+                }
+                }
+            );
+        });

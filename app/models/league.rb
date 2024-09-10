@@ -85,6 +85,10 @@ class League
     return (limit.nil? == false && limit > 0)
   end
 
+  def is_captain(user)
+    return teams.where(captains: user).count > 0
+  end
+
   def registration_open_for?(user)
     # Just return general open/closed status if no user is supplied
     return general_registration_open? if user.nil?
@@ -290,6 +294,31 @@ class League
     end
 
     return slots_filled
+  end
+
+  def get_team_roster_sizes
+    roster_size_params = {
+      min_mm: 0,
+      max_mm: 0,
+      teams_w_max_mm: 0,
+      min_wm: 0,
+      max_wm: 0,
+      teams_w_max_wm: 0,                   
+    }
+
+    mm_registered = registrations.active.male.count
+    wm_registered = registrations.active.female.count
+    team_count = teams.count
+
+    roster_size_params[:min_mm] = (mm_registered.to_f / team_count).floor
+    roster_size_params[:max_mm] = (mm_registered.to_f / team_count).ceil
+    roster_size_params[:teams_w_max_mm] = mm_registered % team_count
+
+    roster_size_params[:min_wm] = (wm_registered.to_f / team_count).floor
+    roster_size_params[:max_wm] = (wm_registered.to_f / team_count).ceil
+    roster_size_params[:teams_w_max_wm] = wm_registered % team_count
+
+    return roster_size_params
   end
 
   def self.fill_open_slots

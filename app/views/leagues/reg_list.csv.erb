@@ -1,0 +1,45 @@
+<% 
+    headers = %w(type draft_id matchup name official_rank) 
+    #headers << "self_rank" if @league.self_rank_type == 'simple' 
+    #headers.push(*%w(exp_rank ath_rank skl_rank)) if @league.self_rank_type == "detailed" 
+    headers.push(*%w(strength age height availability EOST team notes))
+
+    matchups = {
+        'woman-matching' => "WMP",
+        'man-matching' => "MMP"
+    }
+
+    expanded_registrant_data = []
+    @compiled_registrant_data.each do |reg|
+        if reg[:type] == 'individual'
+            reg[:matchup] = matchups[reg[:matchup]] 
+            expanded_registrant_data << reg
+            next
+        end
+
+        reg[:_children].each do |child_reg|
+            expanded_reg = child_reg.clone
+            expanded_reg[:draft_id] = reg[:draft_id]
+            expanded_reg[:type] = reg[:type]
+            expanded_reg[:matchup] = matchups[child_reg[:matchup]]
+            expanded_registrant_data << expanded_reg
+        end
+    end
+%>
+<%=headers.join(",")%>
+<% expanded_registrant_data.each do |reg| 
+    row = []
+    row << reg[:type]
+    row << reg[:draft_id]
+    row << reg[:matchup]
+    row << reg[:name]
+    row << reg[:rank]
+    row << reg[:player_type]
+    row << reg[:age]
+    row << reg[:height]
+    row << reg[:gen_availability]
+    row << reg[:eos_availability]
+    row << reg[:team]
+    row << reg[:notes]
+%><%= raw row.to_csv(row_sep: nil) %>
+<% end %>
