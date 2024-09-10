@@ -1,21 +1,27 @@
-{
-  "mongodb":   {"image": "mongo:4"},
-  "redis":     {"image": "redis"},
-  "memcached": {"image": "memcached"},
-  "mailhog":   {
-    "image": "mailhog/mailhog",
-    "ports": ["8025:8025"]
-  },
-  "sut": {
-    "build": ".",
-    "ports": ["3000:3000"],
-    "links": ["mongodb", "redis", "memcached", "mailhog"],
-    "command": ["bundle", "exec", "rspec", "--color", "spec", "--format", "progress"],
-    "environment": {
-      "REDIS_URL": "redis://redis:6379",
-      "MONGO_HOST": "mongodb",
-      "RAILS_ENV": "test",
-      "RACK_ENV": "test"
-    }
-  }
-}
+version: '3'
+services:
+  mongodb:
+    image: mongo:4
+  redis:
+    image: redis
+  memcached:
+    image: memcached
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 8025:8025
+  sut:
+    build: .
+    ports:
+      - 3000:3000
+    depends_on:
+      - mongodb
+      - redis
+      - memcached
+      - mailhog
+    command: bundle exec rspec --color spec --format progress
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MONGO_HOST=mongodb
+      - RAILS_ENV=test
+      - RACK_ENV=test
