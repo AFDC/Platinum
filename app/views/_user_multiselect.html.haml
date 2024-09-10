@@ -16,8 +16,14 @@
 		%input.span3.new-user{type: 'text'}
 			%i.icon-plus
 
+- user_search_params = {}
+- if local_assigns[:exclude].nil? == false
+	- user_search_params["exclude"] = exclude
+
 
 - content_for :page_scripts do
+	:javascript
+		var user_search_params = #{user_search_params.to_json};
 	= javascript_include_tag '/javascripts/jquery.autocomplete.js'
 	= javascript_include_tag '/javascripts/userSelector.js'
 

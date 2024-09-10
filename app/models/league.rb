@@ -35,6 +35,10 @@ class League
   field :invited_player_ids, type: Array, default: []
   field :covid_vax_required, type: Boolean, default: false
   embeds_one :core_options, class_name: 'LeagueCoreOptions'
+  field :solicit_donations, type: Boolean, default: false
+
+  field :donation_earmark, type: String, default: nil
+  field :donation_pitch, type: String, default: nil
 
   after_initialize :build_options_if_nil
   after_find :migrate_self_rank_opts
@@ -145,6 +149,14 @@ class League
     end
   end
 
+  def remove_player_from_teams(user)
+    # remove user from all teams in the league
+    Team.collection.find(_id: {'$in' => self.team_ids}).update({"$pull" => {players: user._id}}, {multi: true})
+
+    # remove all league teams from player
+    User.collection.find(_id: user._id).update({"$pullAll" => {teams: self.team_ids}})
+  end
+
   def add_player_to_team(user,team,send_mail=true)
     raise ArgumentError.new "Must supply a user account to add" unless user.instance_of?(User)
     raise ArgumentError.new "Must supply a team to be added to" unless team.instance_of?(Team)
@@ -152,11 +164,7 @@ class League
 
     return true if self.team_for(user) == team
 
-    # remove user from all teams in the league
-    Team.collection.find(_id: {'$in' => self.team_ids}).update({"$pull" => {players: user._id}}, {multi: true})
-
-    # remove all league teams from player
-    User.collection.find(_id: user._id).update({"$pullAll" => {teams: self.team_ids}})
+    remove_player_from_teams(user)
 
     # add player to team
     Team.collection.find({_id: team._id}).update({"$addToSet" => {players: user._id}}, {multi: false})
@@ -184,8 +192,10 @@ class League
 
       sender_reg.pair = invitation.recipient
       recipient_reg.pair = invitation.sender
-      sender_reg.save!
-      recipient_reg.save!
+
+      # We ignore validation errors because pairs can be confirmed before registation is complete which can lead to some odd errors
+      sender_reg.save(validate: false)
+      recipient_reg.save(validate: false)
     end
   end
 
@@ -351,6 +361,10 @@ class League
     end
   end
 
+  def invitations
+    Invitation.where(handler_class: "League", handler_id: _id)
+  end
+
   private
 
   def build_options_if_nil
@@ -358,6 +372,7 @@ class League
   end
 
   def migrate_self_rank_opts
+    return if self.attributes.count <= 30
     return unless self_rank_type.nil?
     self["self_rank_type"] = "simple" if allow_self_rank == true
     self["self_rank_type"] = "none" if allow_self_rank == false

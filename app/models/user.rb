@@ -38,6 +38,7 @@ class User
 
   has_many :g_rank_results, order: :_id.desc
   has_many :registrations
+  has_many :donations
   has_many :payment_transactions
   has_many :notification_methods
   has_and_belongs_to_many :teams, foreign_key: :teams
@@ -200,7 +201,7 @@ class User
   end
 
   def create_initial_notification_method
-    notification_methods.create(label: "Account email notifier", method: "email", target: email_address)
+    NotificationMethod.create(user: self, method: "email", target: email_address, label: "Account email notifier")
   end
 
   def email_md5

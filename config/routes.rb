@@ -1,7 +1,7 @@
 require 'sidekiq/web'
 
 Platinum::Application.routes.draw do
-  match '/users/search' => 'users#search'
+  match '/users/search' => 'users#search', via: :get
   resources :fields, :schedules, :comp_groups, :payments, :spirit_reports
 
   resources :invitations do
@@ -21,6 +21,7 @@ Platinum::Application.routes.draw do
   resources :registrations do
     member do
       put 'cancel'
+      get 'donate'
       get 'pay'
       get 'waitlist_authorize'
     end

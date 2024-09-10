@@ -136,14 +136,7 @@
                                 = f.check_box :allow_pairs
                                 Allow Pairs
 
-                    .control-group
-                        %label.control-label Vaccination
-                        .controls
-                            %label.checkbox
-                                = f.check_box :covid_vax_required
-                                COVID Vaccine Required
-
-                    .control-group
+                    .control-group.hide
                         %label.control-label Spirit
                         .controls
                             %label.checkbox
@@ -152,6 +145,28 @@
                             %label.checkbox
                                 = f.check_box :display_spirit_scores
                                 Display Spirit Scores
+
+                    %h4 Donations at Registration
+                    %p.muted
+                        This determines whether or not donations are permitted with league registration.
+                        In order to advertise a specific use for donations from this leauge (e.g. YCC fundraising),
+                        place a descriptive identifier in the Earmark field (this is for internal/accounting use).
+                        Then, describe what the donations will be used for in the large text area. This text will
+                        be visible to users who click to see more information about where their donation goes. If
+                        the pitch field is left blank, a default message will be added about the donation going to
+                        the AFDC's general budget.
+
+                    .control-group
+                        .controls
+                            %label.checkbox
+                                = f.check_box :solicit_donations
+                                Enable Donations
+                        %label.control-label Earmark
+                        .controls
+                            =f.text_field :donation_earmark
+                        %label.control-label Pitch
+                        .controls
+                            =f.text_area :donation_pitch, class: "span4", rows: 6
 
                     %h4 Gender-based Registration
                     %p.muted

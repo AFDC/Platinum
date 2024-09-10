@@ -3,7 +3,7 @@ class Game
 	field :game_time, type: DateTime
 	field :field
 	field :round_number
-	field :winner, type: Moped::BSON::ObjectId
+	field :winner, type: BSON::ObjectId
 	field :scores, type: Hash, default: {}
 	field :old_scores, type: Array, default: []
 	belongs_to :league, index: true

@@ -14,9 +14,12 @@ class UsersController < ApplicationController
 			format.json do
 				results = { :suggestions => [], :data => [], :query => params[:query] }
 				user_search(params[:query]).each do |user|
+					if params[:exclude] && params[:exclude].include?(user._id.to_s)
+						next
+					end
 					results[:suggestions] << "#{user.firstname} #{user.lastname} [#{user.email_address}]"
 					results[:data] << {
-						'_id' => user._id,
+						'_id' => user._id.to_s,
 						'firstname' => user.firstname,
 						'lastname' => user.lastname,
 						'email_address' => user.email_address,

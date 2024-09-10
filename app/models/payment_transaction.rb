@@ -11,4 +11,5 @@ class PaymentTransaction
   belongs_to :user
   belongs_to :league
   belongs_to :registration
+  has_one :donation
 end

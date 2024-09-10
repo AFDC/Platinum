@@ -4,6 +4,8 @@ class Registration
     field :paid, type: Boolean
     field :status
     field :player_strength
+    field :pre_authorization
+    field :waitlist_timestamp, type: DateTime
     field :signup_timestamp, type: DateTime
     field :payment_timestamps, type: Hash, default: {}
     field :pair, type: Hash
@@ -29,7 +31,7 @@ class Registration
 
     field :payment_id
 
-    field :pair_id, type: Moped::BSON::ObjectId
+    field :pair_id, type: BSON::ObjectId
 
     validates :commish_rank, :numericality => { integer_only: false, greater_than: 0, less_than: 10, allow_blank: true }
     validate :has_valid_attendance_value, :has_valid_self_rank, :has_valid_primary_role, :has_signed_waiver
@@ -39,22 +41,23 @@ class Registration
     belongs_to :g_rank_result
     belongs_to :pair, class_name: "User"
     has_many :payment_transactions
+    has_one :donation
 
     before_save :ensure_price
     after_save  :bust_league_cache
     after_initialize :load_user_info, if: :new_record?
 
-    scope :active, where(status: 'active')
-    scope :registering, where(status: 'registering', :expires_at.gt => Time.now)
-    scope :pending, where(status: 'pending')
-    scope :canceled, where(status: 'canceled')
-    scope :waitlisted, where(status: 'waitlisted')
-    scope :registering_waitlisted, where(status: 'registering_waitlisted')
-    scope :queued, where(status: 'queued', :expires_at.gt => Time.now)
-    scope :expired, any_of( {status: 'expired'}, {:status.in => ['registering','registering_waitlisted'], :expires_at.lte => Time.now} )
+    scope :active, -> { where(status: 'active') }
+    scope :registering, -> { where(status: 'registering', :expires_at.gt => Time.now) }
+    scope :pending, -> { where(status: 'pending') }
+    scope :canceled, -> { where(status: 'canceled') }
+    scope :waitlisted, -> { where(status: 'waitlisted') }
+    scope :registering_waitlisted, -> { where(status: 'registering_waitlisted') }
+    scope :queued, -> { where(status: 'queued', :expires_at.gt => Time.now) }
+    scope :expired, -> { any_of( {status: 'expired'}, {:status.in => ['registering','registering_waitlisted'], :expires_at.lte => Time.now} ) } 
 
-    scope :male, where(gender: 'male')
-    scope :female, where(gender: 'female')
+    scope :male, -> { where(gender: 'male') }
+    scope :female, -> { where(gender: 'female') }
 
     def gen_availability
         availability['general'] if availability
@@ -344,6 +347,14 @@ class Registration
         if waiver_acceptance_date.nil?
             errors.add(:waiver_accepted, "You must accept the liability waiver and refund policy to register.")
         end
+    end
+
+    def sent_invitations
+        league.invitations.where(sender: user)
+    end
+
+    def received_invitations
+        league.invitations.where(recipient: user)
     end
 
     private

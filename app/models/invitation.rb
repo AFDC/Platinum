@@ -5,7 +5,7 @@ class Invitation
 
   field :type
   field :handler_class
-  field :handler_id, type: Moped::BSON::ObjectId
+  field :handler_id, type: BSON::ObjectId
   field :data, type: Hash, default: {}
   field :accept_key, default: ->{SecureRandom.hex(10)}
   field :status, default: 'new'
@@ -15,7 +15,7 @@ class Invitation
 
   after_create :send_invite
 
-  scope :outstanding, where(:status.nin => %w(accepted declined canceled))
+  scope :outstanding, -> {where(:status.nin => %w(accepted declined canceled))}
 
   validates :type, :inclusion => { in: %w(pair), message: "Unknown invitation type: %{value}", allow_blank: false }
   validates :status, :inclusion => { in: %w(new sent accepted declined canceled), message: "Unknown invitation status: %{value}", allow_blank: false }
@@ -53,7 +53,7 @@ class Invitation
     self[:status] = 'declined'
     save!
 
-    InvitationMailer.delay.pair_request_result(self._id.to_s)
+    #InvitationMailer.delay.pair_request_result(self._id.to_s)
   end
 
   def cancel

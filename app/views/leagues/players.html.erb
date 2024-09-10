@@ -205,7 +205,7 @@
                         formatterParams: {
                             "man-matching": "<span class=\"man label\">MM</span>",
                             "woman-matching": "<span class=\"wom label\">WM</span>",
-                            "Mixed": "<span class=\"label\">MX</span>"
+                            "mixed": "<span class=\"label\">MX</span>"
                         },
                         headerFilter:"list", 
                         headerFilterParams:{valuesLookup: "all", valuesLookupField:"matchup", clearable: true}, 
@@ -216,6 +216,7 @@
             });
 
             function render_team_updater(team_id, reg_ids) {
+                var setTeamPath = "<%=add_player_to_team_league_path(@league, :json)%>";
                 var team_updater = _.template($("#team-selection-template").html());
                 var teamUpdaterDomTarget = $("#team-selection-container");
 
@@ -223,10 +224,35 @@
                     teamUpdaterDomTarget.html(team_updater());
                     if (team_id) {
                         $("#team-selector").val(team_id);
+                        
+                        var remove_button = $("#remove-team-button");
+                        remove_button.show();
+                        remove_button.on('click', function(){
+                            var xhr = $.ajax({
+                                headers: { 'X-CSRF-Token': CSRF_TOKEN },
+                                url: setTeamPath,
+                                method: "POST",
+                                data: {
+                                    registration_id_list: reg_ids,
+                                    team_id: "NONE"
+                                }                                
+                            }).done(function(data) {
+                                successMessageElement.html(data["msg"])
+                                successMessageElement.show();
+                                errorMessageElement.hide();
+                                reg_table.setData(ajaxURL);
+                                team_table.setData(teamDataURL);
+                                remove_button.hide();
+                                $("#team-selector option:selected").prop("selected", false)
+                            }).fail(function(jqXHR,textStatus,errorThrown){
+                                errorMessageElement.html(jqXHR.responseJSON["msg"]);
+                                errorMessageElement.show();
+                                successMessageElement.hide();
+                            });
+                        });
                     }
                 }
 
-                var setTeamPath = "<%=add_player_to_team_league_path(@league, :json)%>";
                 var setTeamButton = $("#update-team-button");
 
                 var errorMessageElement = $("#registrant-error-message");
@@ -248,6 +274,8 @@
                             errorMessageElement.hide();
                             reg_table.setData(ajaxURL);
                             team_table.setData(teamDataURL);
+                            var remove_button = $("#remove-team-button");
+                            remove_button.show();
                         }).fail(function(jqXHR,textStatus,errorThrown){
                             errorMessageElement.html(jqXHR.responseJSON["msg"]);
                             errorMessageElement.show();
@@ -448,6 +476,7 @@
             <% end %>
         </select>
         <button class="btn btn-small btn-block" type="button" id="update-team-button">Update Team</button>
+        <button class="btn btn-small btn-block btn-warning hide" type="button" id="remove-team-button">Remove From Team</button>
     <% end %>
     </script>
 

@@ -9,7 +9,7 @@ Platinum::Application.configure do
   config.action_controller.perform_caching = true
 
   # Disable Rails's static asset server (Apache or nginx will already do this)
-  config.serve_static_assets = true
+  config.serve_static_files = true
 
   # Compress JavaScripts and CSS
   config.assets.compress = false
@@ -65,6 +65,8 @@ Platinum::Application.configure do
   # with SQLite, MySQL, and PostgreSQL)
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
 
+  config.eager_load = true
+
   config.action_mailer.smtp_settings = {
       :address   => "smtp.mailgun.org",
       :port      => 587,
@@ -75,6 +77,8 @@ Platinum::Application.configure do
       :domain => 'leagues.afdc.com',
   }
 
-  config.cache_store = :dalli_store, 'memcached', { :namespace => 'platinum', :expires_in => 1.day, :compress => true }
+  config.log_level = :info
+
+  config.cache_store = :mem_cache_store, 'memcached', { :namespace => 'platinum_r4', :expires_in => 1.day, :compress => true }
   config.action_mailer.default_url_options = { :host => "leagues.afdc.com" }
 end

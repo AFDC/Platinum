@@ -10,17 +10,27 @@ class PaymentsController < ApplicationController
       return
     end
 
-    price    = registration.price
+    price = registration.price
+    donation_amount = 0
+
+    donation = Donation.new(amount: params[:donation_amount])
+
+    if registration.league.solicit_donations? && donation.valid?
+      donation_amount = donation.amount
+      donation.user = registration.user
+      donation.registration = registration
+    end
 
     # COPIED TO league.rb
     result = Braintree::Transaction.sale(
-      amount: price,
+      amount: price + donation_amount,
       payment_method_nonce: params['payment_method_nonce'],
       channel: 'leagues.afdc.com',
       options: {
         submit_for_settlement: true
       },
       custom_fields: {
+        donation_amount: donation_amount,
         registration_id: registration._id.to_s,
         league_id:       registration.league._id.to_s,
         user_id:         registration.user._id.to_s
@@ -30,7 +40,7 @@ class PaymentsController < ApplicationController
     )
 
     if result.success?
-      PaymentTransaction.create({
+      pt = PaymentTransaction.create({
         transaction_id: result.transaction.id,
         payment_method: result.transaction.payment_instrument_type,
         amount:         result.transaction.amount,
@@ -39,6 +49,13 @@ class PaymentsController < ApplicationController
         user:           registration.user,
         league:         registration.league
       })
+
+      if donation_amount > 0
+        donation.payment_transaction = pt
+        donation.save
+        log_audit('Donate', league: registration.league, registration: registration)
+      end
+
       registration.paid = true
       registration.activate!
 

@@ -13,6 +13,19 @@
     .span5
         = render :partial => '/league_summary', :locals => {league: @league}
         - if permitted_to? :manage, @league
+            - if @league.solicit_donations?
+                %hr
+                - registration_id_list = @league.registrations.active.to_a.map(&:_id)
+                - donation_list = Donation.where(registration_id: {'$in': registration_id_list})
+                .row
+                    .span2{style: 'font-weight: bold;'} Donations:
+                    .span3
+                        %strong Number: 
+                        =donation_list.count
+                        %br
+                        %strong Total:
+                        =number_to_currency donation_list.to_a.inject(0){|sum,d| sum+d.amount}
+
             %hr
             %h4 League Comps
             = render partial: 'comps', locals: {league: @league}

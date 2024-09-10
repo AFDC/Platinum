@@ -24,7 +24,6 @@ authorization do
 
 		# Things all users can do:
 		has_permission_on :users, to: [:index, :search, :show]
-		has_permission_on :invitations, to: [:index]
 		has_permission_on :teams, to: [:index, :search, :show, :view_roster]
 		has_permission_on :registration_groups, to: [:index]
 		has_permission_on :registrations, to: [:create]
@@ -38,15 +37,7 @@ authorization do
 			if_attribute :_id => is { user._id }
 		end
 
-		has_permission_on :invitations, to: [:show, :accept, :decline] do
-			if_attribute recipient_id: is { user._id }
-		end
-
-		has_permission_on :invitations, to: [:show, :cancel] do
-			if_attribute sender_id: is { user._id }
-		end
-
-		has_permission_on :registrations, to: [:checkout, :show, :pay, :waitlist_authorize, :edit, :update, :cancel] do
+		has_permission_on :registrations, to: [:checkout, :show, :pay, :donate, :waitlist_authorize, :edit, :update, :cancel] do
 			if_attribute user_id: is { user._id }
 		end
 
@@ -115,6 +106,16 @@ authorization do
 		includes :'league-manager'
 		includes :'spirit-manager'
 		includes :'covid-admin'
+
+		has_permission_on :invitations, to: [:index]
+
+		has_permission_on :invitations, to: [:show, :accept, :decline] do
+			if_attribute recipient_id: is { user._id }
+		end
+
+		has_permission_on :invitations, to: [:show, :cancel] do
+			if_attribute sender_id: is { user._id }
+		end
 
 		has_permission_on :global, :to => [:see_debug]
 

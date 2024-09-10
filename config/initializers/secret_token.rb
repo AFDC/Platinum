@@ -5,3 +5,4 @@
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
 Platinum::Application.config.secret_token = ENV['secret_token']
+Platinum::Application.config.secret_key_base = ENV['secret_key_base']

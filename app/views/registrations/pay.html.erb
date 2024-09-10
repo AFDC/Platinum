@@ -1,0 +1,82 @@
+<% content_for :title, @registration.league.name %>
+<%= render :partial => '/pageheader', :locals => {subtitle: 'Join the League', breadcrumbs: {'Leagues' => leagues_path, @registration.league.name => league_path(@registration.league), "Registration for #{@registration.user.name}" => nil}}%>
+<% 
+    donation = Donation.new(amount: params[:donation_amount], user: @registration.user, registration: @registration)
+    if @registration.league.solicit_donations? == false || donation.valid? == false
+        donation = nil
+    end
+%>
+
+<div class="row">
+  <div class="span6 offset3">
+    <div class="alert alert-success">
+      <strong style="color: #222">
+        <i class="icon-lock"></i>
+        Relax! Your connection to our payment processor is secure.
+      </strong>
+      <p style="font-size: 80%">Your payment details will be submitted directly from your browser to our payment processor over a secure connection; the AFDC will never see your credit card information.</p>
+    </div>
+    <%= form_tag payments_path, id: "payment_form" do %>
+        <div class="row" style="padding: 15px 0">
+            <div class="span4">
+                <b>League Registration</b> 
+                <small><%= @registration.league.name %></small>
+            </div>
+            <div class="span2 text-right"><%= number_to_currency @registration.price %>
+            </div>
+        </div>
+        <% if donation %>
+          <div class="row" style="margin-bottom: 20px;">
+              <div class="span4">
+                <b>Tax-deductible Donation</b>
+                <small>NON-REFUNDABLE</small>
+              </div>
+              <div class="span2 text-right"><%= number_to_currency donation.amount %></div>
+          </div>
+          <%= hidden_field_tag 'donation_amount', donation.amount %>
+        <% end %>
+      <div class="row"><div class="span6">
+        <hr />
+        <h1 class="text-right"><small>Total:</small> <%= number_to_currency(@registration.price + donation&.amount.to_f) %></h1>
+      </div></div>
+      <div id="braintree_dropin"></div>
+      <%= hidden_field_tag 'payment_method_nonce', '' %>
+      <%= hidden_field_tag 'registration_id', @registration._id %>
+      <%= button_tag "Pay now to join the league!", type: :submit, class: "btn btn-block btn-success btn-large", id: "submit_button" do %>
+        <i class="icon-lock"></i>
+        Pay now to join the league!
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<% content_for :page_scripts do %> 
+  <script src="https://js.braintreegateway.com/web/dropin/1.40.2/js/dropin.min.js"></script>
+  <script>
+    $(function(){
+      form = $("#payment_form");
+      braintree.dropin.create({
+        container: document.getElementById('braintree_dropin'),
+        authorization: "<%=current_user.braintree_token%>",
+      }, (error, dropinInstance) => {
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        form.on('submit', function (e) {
+          e.preventDefault();
+          dropinInstance.requestPaymentMethod(function (requestPaymentMethodErr, payload) {
+            if (requestPaymentMethodErr) {
+              console.error(requestPaymentMethodErr);
+              return;
+            }
+
+            $("#payment_method_nonce").val(payload["nonce"]);
+            form.off().submit();
+          });
+        });
+      });
+    });  
+  </script>
+<% end %>

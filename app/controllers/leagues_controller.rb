@@ -105,16 +105,19 @@ class LeaguesController < ApplicationController
     def add_player_to_team
         respond_to do |format|
             format.json do
-                team = Team.find(params["team_id"])
+                team = nil
+                if params["team_id"] != 'NONE'
+                    team = Team.find(params["team_id"])
 
-                if team.nil?
-                    render json: {msg: "Team not found."}, status: 404
-                    return
-                end
-
-                if team.league != @league
-                    render json: {msg: "Team does not belong to the correct league."}, status: 400
-                    return
+                    if team.nil?
+                        render json: {msg: "Team not found."}, status: 404
+                        return
+                    end
+    
+                    if team.league != @league
+                        render json: {msg: "Team does not belong to the correct league."}, status: 400
+                        return
+                    end    
                 end
 
                 params["registration_id_list"].each do |reg_id|
@@ -144,12 +147,20 @@ class LeaguesController < ApplicationController
                     reg = Registration.find(reg_id)
                     u   = reg.user
 
-                    @league.add_player_to_team(u, team, false)
+                    if team.nil?
+                        @league.remove_player_from_teams(u)
+                    else
+                        @league.add_player_to_team(u, team, false)
+                    end
                     user_list << u.name
                 end
 
                 @league.touch
 
+                if team.nil?
+                    render json: {msg: "#{user_list.join(" & ")} removed from team."}
+                    return
+                end
                 render json: {msg: "#{user_list.join(" & ")} added to #{team.name}."}
             end
         end
@@ -157,7 +168,7 @@ class LeaguesController < ApplicationController
 
     def update_invites
         new_invites_list = params[:invited_player_ids].reject { |id| id.blank? }
-        new_invites_list = new_invites_list.map {|id| Moped::BSON::ObjectId.from_string(id)}
+        new_invites_list = new_invites_list.map {|id| BSON::ObjectId.from_string(id)}
 
         players_to_remove = @league.invited_player_ids - new_invites_list
         players_to_add = new_invites_list - @league.invited_player_ids
@@ -305,9 +316,9 @@ class LeaguesController < ApplicationController
                 core_status = 'active'
                 core_status = 'incomplete' if non_active_statuses > 0
 
-                core_gender = 'Mixed'
-                core_gender = 'Man-matching' if wm_players == 0
-                core_gender = 'Woman-matching' if mm_players == 0
+                        core_gender = 'mixed'
+                        core_gender = 'man-matching' if wm_players == 0
+                        core_gender = 'woman-matching' if mm_players == 0
 
                 team_name = "unassigned"
                 if team_counts.count == 1
@@ -368,10 +379,10 @@ class LeaguesController < ApplicationController
                 end
             end
 
-            pairs.keys.each do |pair_type|
-                pairs[pair_type].each do |pair|
-                    pair_gender = pair[0][:matchup]
-                    pair_gender = "Mixed" if pair_type == :mw
+                    pairs.keys.each do |pair_type|
+                        pairs[pair_type].each do |pair|
+                            pair_gender = pair[0][:matchup]
+                            pair_gender = "mixed" if pair_type == :mw
 
                     pair_name = "#{pair[0][:name].split(' ')[0]} & #{pair[1][:name].split(' ')[0]}"
 
@@ -460,7 +471,7 @@ class LeaguesController < ApplicationController
             team_name = "unassigned"
         end
         team_name = team.name unless team.nil?
-        team_id   = team.id   unless team.nil?
+        team_id   = team.id.to_s   unless team.nil?
 
         grank = {};
         if @league.require_grank? && reg.g_rank_result
@@ -468,6 +479,12 @@ class LeaguesController < ApplicationController
             grank[:answers] = GRank.convert_answers_to_text(reg.g_rank_result.answers)
             # grank[:history] = reg.user.g_rank_results.map(&:score).slice(0,12).reverse
         end
+
+        reg_url = nil
+        if reg.new_record? == false
+            reg_url = registration_path(reg)
+        end
+
         
         {
             id: reg._id.to_s,
@@ -475,7 +492,7 @@ class LeaguesController < ApplicationController
             name_without_pronouns: u.name,
             email: u.email_address,
             profile_url: user_path(u),
-            registration_url: registration_path(reg),
+            registration_url: reg_url,
             status: reg.status,
             rank: reg.rank.to_s.gsub(/\.0$/,''),
             grank: grank,
@@ -957,7 +974,8 @@ class LeaguesController < ApplicationController
             :female_registration_open, :female_registration_close, :male_registration_open, :male_registration_close,
             :description, {commissioner_ids: []}, :male_limit, :female_limit,
             :max_grank_age, :allow_pairs, :covid_vax_required, :track_spirit_scores, :display_spirit_scores, :self_rank_type, :eos_tourney, :mst_tourney, :eos_champion_id, :mst_champion_id,
-            {core_options: [:type, :male_limit, :female_limit, :rank_limit, :male_rank_constant, :female_rank_constant]}
+            {core_options: [:type, :male_limit, :female_limit, :rank_limit, :male_rank_constant, :female_rank_constant]},
+            :solicit_donations, :donation_earmark, :donation_pitch
         ]
 
         if permitted_to? :assign_comps, self

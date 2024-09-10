@@ -11,7 +11,7 @@ class AuditLog
     field :action, type: String
 
     field :target_class, type: String
-    field :target_id, type: Moped::BSON::ObjectId
+    field :target_id, type: BSON::ObjectId
 
     field :details, type: Hash, default: {}
 
