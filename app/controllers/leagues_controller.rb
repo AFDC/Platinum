@@ -969,7 +969,7 @@ class LeaguesController < ApplicationController
 
     def league_params
         permitted_params = [
-            :name, :age_division, :season, :sport, :price, :price_women, 
+            :name, :age_division, :season, :sport, :price, :price_women, :pickup_registration,
             :start_date, :end_date, :registration_open, :registration_close,
             :female_registration_open, :female_registration_close, :male_registration_open, :male_registration_close,
             :description, {commissioner_ids: []}, :male_limit, :female_limit,

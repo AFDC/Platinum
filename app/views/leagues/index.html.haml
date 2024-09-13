@@ -21,7 +21,10 @@
                 %th End of Season Champions
 
         %tbody
-            - League.ended.each do |l|
+            - leagues = League.ended
+            - unless params['show_pickups']
+                - leagues = leagues.where(:pickup_registration.ne => true)
+            - leagues.each do |l|
                 %tr
                     %td=link_to l.name, league_path(l)
                     - if l.teams.count != 0

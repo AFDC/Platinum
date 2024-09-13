@@ -77,6 +77,16 @@ production:
   options:
     raise_not_found_error: false
 
+development:
+  sessions:
+    default:
+      database: Platypus
+      hosts:
+        - <%=ENV['MONGO_HOST']%>:27017
+      options:
+  options:
+    raise_not_found_error: false
+
 test:
   sessions:
     default:

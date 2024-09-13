@@ -40,6 +40,8 @@ class League
   field :donation_earmark, type: String, default: nil
   field :donation_pitch, type: String, default: nil
 
+  field :pickup_registration, type: Boolean, default: false
+
   after_initialize :build_options_if_nil
   after_find :migrate_self_rank_opts
 
