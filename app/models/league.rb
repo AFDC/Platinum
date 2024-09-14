@@ -322,6 +322,8 @@ class League
     wm_registered = registrations.active.female.count
     team_count = teams.count
 
+    return roster_size_params if team_count == 0
+
     roster_size_params[:min_mm] = (mm_registered.to_f / team_count).floor
     roster_size_params[:max_mm] = (mm_registered.to_f / team_count).ceil
     roster_size_params[:teams_w_max_mm] = mm_registered % team_count
