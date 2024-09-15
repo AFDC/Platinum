@@ -29,12 +29,20 @@ class ApplicationController < ActionController::Base
 
   def permission_denied
     if current_user
-      flash[:error] = "Sorry, you are not allowed to access that page."
-      redirect_to home_url and return
+      if request.format.json?
+        render json: { error: "Sorry, you are not allowed to access that page." }, status: :forbidden
+      else
+        flash[:error] = "Sorry, you are not allowed to access that page."
+        redirect_to home_url and return
+      end
     else
-      flash[:error] = "Please log in to view that page."
-      session[:login_redirect_url] = request.original_url
-      redirect_to auth_path and return
+      if request.format.json?
+        render json: { error: "Please log in to view that page." }, status: :unauthorized
+      else
+        flash[:error] = "Please log in to view that page."
+        session[:login_redirect_url] = request.original_url
+        redirect_to auth_path and return
+      end
     end
   end
 
