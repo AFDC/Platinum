@@ -1,7 +1,7 @@
 class TeamsController < ApplicationController
-	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 	before_filter :load_team_from_params, only: [:show, :edit, :update]
 	before_filter :load_league_from_params, only: [:new, :create]
+	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
 	def index
 		@team_list = []
