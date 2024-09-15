@@ -1,0 +1,67 @@
+<% content_for :title, @league.name %>
+<%=render :partial => '/pageheader', :locals => {subtitle: 'Manage Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'League Finances' => nil}} %>
+
+<%
+    comped_registrations = 0
+    paid_registrations = 0
+    total_paid = 0
+    refunded_registrations = 0
+    total_refunded = 0
+%>
+<% 
+    @league.registrations.each do |r|
+        if r.comped?
+            comped_registrations += 1
+        end
+
+        pt = r.payment_transactions.first
+        next if pt.nil?
+
+        if pt.amount > 0
+            paid_registrations += 1
+            total_paid += pt.amount
+        end
+
+        if pt.refunded_amount
+            refunded_registrations += 1
+            total_refunded += pt.refunded_amount
+        end
+    end
+
+    total_received = total_paid - total_refunded
+    total_fees = (total_received * 0.0199) + ((paid_registrations - refunded_registrations) * 0.49)
+%>
+<div>
+  <h2>League Finances</h2>
+  <table class="table">
+    <tr>
+      <th>&nbsp;</th>
+      <th>Count</th>
+      <th>Total Amount</th>
+    </tr>
+    <tr>
+      <td>Comped Registrations</td>
+      <td><%= comped_registrations %></td>
+      <td><%=number_to_currency(comped_registrations * @league.price)%></td>
+    </tr>
+    <tr>
+      <td>Paid Registrations</td>
+      <td><%= paid_registrations %></td>
+      <td><%=number_to_currency total_paid %></td>
+    </tr>
+    <tr>
+      <td>Refunded Registrations</td>
+      <td><%= refunded_registrations %></td>
+      <td><%=number_to_currency total_refunded %></td>
+    </tr>
+    <tr>
+        <td>Merchant Fees (estimated)</td>
+        <td>&nbsp;</td>
+        <td>-<%=number_to_currency(total_fees)%></td>
+    <tr>
+      <td>&nbsp;</td>
+      <td><%= comped_registrations + paid_registrations - refunded_registrations %></td>
+      <td><%=number_to_currency(total_received - total_fees)%></td>
+    </tr>
+  </table>
+</div>

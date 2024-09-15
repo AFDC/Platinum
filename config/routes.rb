@@ -59,6 +59,8 @@ Platinum::Application.routes.draw do
       get 'leave_pair'
 
       get 'missing_spirit_reports'
+
+      get 'finances'
     end
 
     resources :teams, only: [:new, :create]

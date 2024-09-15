@@ -56,3 +56,8 @@
                                 = link_to missing_spirit_reports_league_path do
                                     %i.icon-heart-empty
                                     Missing Spirit Reports
+                        - if permitted_to? :finances, @league
+                            %li
+                                = link_to finances_league_path(@league) do
+                                    %i.icon-money
+                                    Finances

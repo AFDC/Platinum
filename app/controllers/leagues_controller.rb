@@ -958,6 +958,9 @@ class LeaguesController < ApplicationController
         end
     end
 
+    def finances
+    end
+
     private
 
     def load_league_from_params

@@ -58,7 +58,7 @@ authorization do
 			if_attribute commissioners: contains { user }
 		end
 
-		has_permission_on :leagues, :to => [:manage_roster, :players, :reg_list, :team_list, :cancel_registration, :add_player_to_team, :update_invites, :edit, :update, :setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games, :rainout_games, :process_rainout, :upload_roster, :setup_roster_import, :import_roster] do
+		has_permission_on :leagues, :to => [:manage_roster, :finances, :players, :reg_list, :team_list, :cancel_registration, :add_player_to_team, :update_invites, :edit, :update, :setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games, :rainout_games, :process_rainout, :upload_roster, :setup_roster_import, :import_roster] do
 			if_permitted_to :manage
 		end
 
@@ -89,7 +89,7 @@ authorization do
 	end
 
 	role :'league-manager' do
-		has_permission_on :leagues, to: [:manage, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps]
+		has_permission_on :leagues, to: [:manage, :finances, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps]
 
 		has_permission_on :comp_groups, :to => [:index, :show, :new, :create, :edit, :update]
 	end
