@@ -46,7 +46,7 @@ authorization do
 		end
 
 		# User assignments (league commissioner, team captain, etc...)
-		has_permission_on :teams, :to => [:edit, :update, :report_score, :report_spirit_score] do
+		has_permission_on :teams, :to => [:edit, :update, :report_score, :modify_name, :report_spirit_score] do
 			if_attribute :captains => contains { user }
 		end
 
