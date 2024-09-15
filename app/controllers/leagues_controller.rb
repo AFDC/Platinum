@@ -901,14 +901,16 @@ class LeaguesController < ApplicationController
     end
 
     def rainout_games
-        @todays_games     = @league.games.where(:game_time.gte => Date.today.beginning_of_day, :game_time.lte => Date.today.end_of_day )
-        @todays_fields    = {}
+        @next_game_date = @league.games.where(:game_time.gte => Time.now).order_by(game_time: 'asc').first.game_time.to_date
+
+        @games     = @league.games.where(:game_time.gte => @next_game_date.beginning_of_day, :game_time.lte => @next_game_date.end_of_day )
+        @fields    = {}
         @field_game_count = {}
 
-        @todays_games.each do |g|
+        @games.each do |g|
             fsid = g.field_site._id.to_s
 
-            @todays_fields[fsid]    ||= g.field_site
+            @fields[fsid]    ||= g.field_site
             @field_game_count[fsid] ||= 0
 
             @field_game_count[fsid] += 1
@@ -924,6 +926,8 @@ class LeaguesController < ApplicationController
         # Create job, queue jobs
         jobs = []
 
+        rainout_date = Date.parse(params[:rainout_date])
+
         params[:fieldsite_ids].each do |fsid|
             fs = FieldSite.find(fsid)
             unless fs.present?
@@ -931,10 +935,10 @@ class LeaguesController < ApplicationController
                 return
             end
 
-            GameCancellationWorker.perform_async(@league._id.to_s, fsid, Date.today.beginning_of_day.to_i, Date.today.end_of_day.to_i, current_user._id.to_s, params[:notify])
+            GameCancellationWorker.perform_async(@league._id.to_s, fsid, rainout_date.beginning_of_day.to_i, rainout_date.end_of_day.to_i, current_user._id.to_s, params[:notify])
         end
 
-        redirect_to league_path(@league), notice: "We've started processing cancellations for those sites. It may take a few minutes for them all to be sent."
+        redirect_to league_path(@league), notice: "We've started processing cancellations for those sites for #{rainout_date}. It may take a few minutes for them all to be sent."
     end
 
     def missing_spirit_reports

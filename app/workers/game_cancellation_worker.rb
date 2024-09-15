@@ -17,7 +17,7 @@ class GameCancellationWorker
 
     new_score_report = {
         reporter_id: user._id,
-        report_time: Time.now,
+        report_time: 1.minute.ago,
         reporter_ip: '0.0.0.4',
         rainout: true,
         forfeit: false
@@ -52,7 +52,7 @@ class GameCancellationWorker
     end
 
     game_date     = Time.at(start_ts).strftime('%a, %b %e')
-    text_message  = "Bad news! Your AFDC games at #{@fieldsite.name} are canceled for today (#{game_date})."
+    text_message  = "Bad news! Your AFDC games at #{@fieldsite.name} are canceled for (#{game_date})."
 
     player_list.each do |user_id, p|
         notify_user(p, text_message, start_ts)

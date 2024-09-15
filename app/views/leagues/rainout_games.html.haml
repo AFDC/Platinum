@@ -1,14 +1,17 @@
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: nil, breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Rainout Games' => nil}}
 
-- if @todays_games.count > 0
+%H1 Rainouts for #{@next_game_date.strftime('%A, %B %-d, %Y')}
+
+- if @games.count > 0
     =form_tag process_rainout_league_path(@league), class: 'form' do
+        %input{type: 'hidden', name: "rainout_date", value: @next_game_date}
         .row
             .span4.offset2
                 %h3 Fields to Rain Out:
                 .control-group
                     .controls
-                        - @todays_fields.each do |id, fs|
+                        - @fields.each do |id, fs|
                             %label.checkbox
                                 =check_box_tag 'fieldsite_ids[]', id
                                 #{fs.name} (#{@field_game_count[id]} games)
