@@ -1,7 +1,7 @@
 class LeaguesController < ApplicationController
     before_filter :load_league_from_params, except: [:index, :new, :create]
     before_filter :initialize_roster_csv, only: [:manage_roster, :upload_roster, :setup_roster_import, :import_roster]
-    filter_access_to :index
+    filter_access_to :index, :new, :create
     filter_access_to :all, attribute_check: true
 
     def index
