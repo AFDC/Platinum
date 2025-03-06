@@ -48,33 +48,27 @@
               - ready = Hash.new(0)
               - can_register = 0
               - rg.members.each do |m|
-                - can_register += 1 if @league.registration_open_for?(m)
                 - if reg = @league.registration_for(m)
                   - registrations[:total] += 1
                   - registrations[reg.status.to_sym] += 1
                   - if reg.status == 'pending'
                     - ready[reg.gender.to_sym] += 1
-              - if member_count > can_register
-                = form_tag(league_registration_group_invite_players_path(@league,rg), method: :post) do
-                  = submit_tag(value = "Invite players to register", options = {class: "btn btn-block btn-small btn-primary"})
-              - elsif member_count != registrations[:total]
-                .alert.alert-error No actions may be taken until all members are registered.
-              - elsif registrations[:canceled] > 0
-                .alert.alert-warning Core can not be processed until all members are registered.
-              - elsif registrations[:pending] > 0
-                - if (male_spots.present? && male_spots < ready[:male]) || (female_spots.present? && female_spots < ready[:female])
-                  - if permitted_to? :manage, @league
-                    .alert.alert-warning
-                      %strong There aren't enough spots left to activate this core:
-                      - if male_spots.present?
-                        %p Man-matching Spots Remaining: #{male_spots}
-                      - if female_spots.present?
-                        %p Woman-matching Spots Remaining: #{female_spots}    
-              - elsif registrations[:active] == member_count
+                - else
+                  - can_register += 1 if @league.registration_open_for?(m)
+              - if registrations[:active] == member_count
                 - if permitted_to? :add_to_team, rg
                   = form_tag add_to_team_league_registration_group_path(@league,rg), method: 'PUT', style: 'margin-top: 30px' do
                     = select_tag :team_id, options_for_select(@league.teams.map{|t| ["#{t.name} (#{t.captains.map{|c| c.name}.join(', ')})", t._id]}), style: 'width: 100%', prompt: 'Select a team:'
                     %button.btn.btn-block.btn-small.btn-success Add this #{@league.core_options.type} to a team
+              - elsif registrations[:total] + can_register < member_count
+                = form_tag(league_registration_group_invite_players_path(@league,rg), method: :post) do
+                  = submit_tag(value = "Invite players to register", options = {class: "btn btn-block btn-small btn-primary"})
+              - elsif member_count < registrations[:total]
+                .alert.alert-error No actions may be taken until all members are registered.
+              - elsif registrations[:canceled] > 0
+                .alert.alert-warning This core contains canceled registrations. Core can not be processed until all members are registered and active.
+              - elsif registrations[:waitlisted] > 0
+                .alert.alert-warning This core contains waitlisted registrations. Core can not be processed until all members are registered and active.
               - else
                 .alert.alert-error Unknown error. Please contact help@afdc.com
             
