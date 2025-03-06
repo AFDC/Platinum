@@ -237,6 +237,56 @@ class League
     User.find(invited_player_ids)
   end
 
+  def add_to_league(reg)
+    # COPIED FROM league.rake
+    if comped?(reg.user) == false
+      if reg["pre_authorization"].nil? || reg["pre_authorization"]["stored_payment_token"].nil?
+        puts "\tNo payment method token found for #{reg.user.name}"
+        reg.update_attributes(status: "canceled")
+        return
+      end
+
+      price = reg.price
+
+      # COPIED FROM league.rake
+      result = Braintree::Transaction.sale(
+        amount: price,
+        payment_method_token: reg["pre_authorization"]["stored_payment_token"],
+        channel: 'leagues.afdc.com',
+        options: {
+          submit_for_settlement: true
+        },
+        custom_fields: {
+          registration_id: reg._id.to_s,
+          league_id:       reg.league._id.to_s,
+          user_id:         reg.user._id.to_s
+        },
+        order_id: "registration:#{reg._id.to_s}"
+      )
+
+      if result.success?
+        PaymentTransaction.create({
+          transaction_id: result.transaction.id,
+          payment_method: result.transaction.payment_instrument_type,
+          amount:         result.transaction.amount,
+          currency:       result.transaction.currency_iso_code,
+          registration:   reg,
+          user:           reg.user,
+          league:         reg.league
+        })
+        reg.paid = true
+        #log_audit('Pay', league: reg.league, registration: reg)
+      else
+        puts "\tPayment method failed for #{reg.user.name} (#{result.message})"
+        reg.update_attributes(status: "canceled")
+        #TODO: Send Error Email
+        return
+      end
+    end
+    puts "\tActivated!"
+    reg.activate!
+  end
+
   def fill_slots_from_waitlist
     return if general_registration_open? == false
     slots_filled = 0
@@ -264,7 +314,7 @@ class League
 
           price = reg.price
 
-          # COPIED FROM league.rb
+          # COPIED FROM league.rake
           result = Braintree::Transaction.sale(
             amount: price,
             payment_method_token: reg["pre_authorization"]["stored_payment_token"],
