@@ -1,10 +1,16 @@
 <% content_for :title, @league.name %>
 
-<div class="row-fluid"><div class="span12">
-    <div class="container"><div class="row"><div class="span12">
-    <%=render :partial => '/pageheader', :locals => {subtitle: 'Manage Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Players' => nil}} %>
-    </div></div></div>
-</div></div>
+<div class="row-fluid">
+    <div class="span12">
+        <div class="container">
+            <div class="row">
+                <div class="span12">
+                    <%=render :partial => '/pageheader', :locals => {subtitle: 'Manage Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Players' => nil}} %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="row-fluid" style="height: 100%">
     <div class="span3">
@@ -12,7 +18,7 @@
             <div style="text-align: right"><button class="close" id="hide-player-details">&times;</button></div>
             <div id="player-details"></div>
         </div>
-        
+
         <h2>Teams</h2>
         <div id="team-data"></div>
 
@@ -41,13 +47,13 @@
             </div>
             <div class="span8">
                 <h2>
-                <div style="text-align: right">
-                    <% if @league.registration_groups.count > 0 %>
-                    <button id="toggle-cores" class="btn btn-xs btn-info">Toggle Cores</button>
-                    <% end %>
-                    <button id="clear-filters" class="btn btn-xs btn-info">Clear Filters</button>
-                    <button id="refresh-data" class="btn btn-xs btn-info">Refresh Data</button>
-                </div>
+                    <div style="text-align: right">
+                        <% if @league.registration_groups.count > 0 %>
+                        <button id="toggle-cores" class="btn btn-xs btn-info">Toggle Cores</button>
+                        <% end %>
+                        <button id="clear-filters" class="btn btn-xs btn-info">Clear Filters</button>
+                        <button id="refresh-data" class="btn btn-xs btn-info">Refresh Data</button>
+                    </div>
                 </h2>
             </div>
         </div>
@@ -58,215 +64,270 @@
 </div>
 
 <% content_for :page_scripts do %>
-    <%=javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js')%>
-    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
-    <script type="text/javascript">
-        _.templateSettings = {
-            interpolate: /\{\{\=(.+?)\}\}/g,
-            evaluate: /\{\{(.+?)\}\}/g
-        };
+<%=javascript_include_tag('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js')%>
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+<script type="text/javascript">
+    _.templateSettings = {
+        interpolate: /\{\{\=(.+?)\}\}/g,
+        evaluate: /\{\{(.+?)\}\}/g
+    };
 
-        $(function(){
-            $("#hide-player-details").click(function(){
-                $("#player-details-container").hide();
-            });
+    $(function() {
+        $("#hide-player-details").click(function() {
+            $("#player-details-container").hide();
         });
-    </script>
-    <script type="text/javascript">
-        $(function(){
-            var teamDataURL = "<%=team_list_league_path(@league, :json)%>";
-            
-            var team_table = new Tabulator("#team-data", {
-                ajaxURL:teamDataURL,
-                layout:"fitColumns", //fit columns to width of table (optional)
-                columns:[ //Define Table Columns
-                    {title:"Team", field:"name"},
-                    {title:"MM", field:"man_matching", width: 64},
-                    {title:"WM", field:"woman_matching", width: 64},
-                    {title:"Tot", field:"total", width: 64},
-                ]
-            });
+    });
+</script>
+<script type="text/javascript">
+    $(function() {
+        var teamDataURL = "<%=team_list_league_path(@league, :json)%>";
 
-            var ajaxURL = "<%=reg_list_league_path(@league, :json)%>";
-            var CSRF_TOKEN = $('meta[name=csrf-token]').attr('content');
+        var team_table = new Tabulator("#team-data", {
+            ajaxURL: teamDataURL,
+            layout: "fitColumns", //fit columns to width of table (optional)
+            columns: [ //Define Table Columns
+                {
+                    title: "Team",
+                    field: "name"
+                },
+                {
+                    title: "MM",
+                    field: "man_matching",
+                    width: 64
+                },
+                {
+                    title: "WM",
+                    field: "woman_matching",
+                    width: 64
+                },
+                {
+                    title: "Tot",
+                    field: "total",
+                    width: 64
+                },
+            ]
+        });
 
-            var minMaxFilterEditor = function(cell, onRendered, success, cancel, editorParams){
+        var ajaxURL = "<%=reg_list_league_path(@league, :json)%>";
+        var CSRF_TOKEN = $('meta[name=csrf-token]').attr('content');
 
-                var end;
+        var minMaxFilterEditor = function(cell, onRendered, success, cancel, editorParams) {
 
-                var container = document.createElement("span");
+            var end;
 
-                //create and style inputs
-                var start = document.createElement("input");
-                start.setAttribute("type", "number");
-                start.setAttribute("placeholder", "Min");
-                start.setAttribute("min", 0);
-                start.setAttribute("max", 10);
-                start.style.padding = "4px";
-                start.style.width = "50%";
-                start.style.boxSizing = "border-box";
+            var container = document.createElement("span");
 
-                start.value = cell.getValue();
+            //create and style inputs
+            var start = document.createElement("input");
+            start.setAttribute("type", "number");
+            start.setAttribute("placeholder", "Min");
+            start.setAttribute("min", 0);
+            start.setAttribute("max", 10);
+            start.style.padding = "4px";
+            start.style.width = "50%";
+            start.style.boxSizing = "border-box";
 
-                function buildValues(){
-                    success({
-                        start:start.value,
-                        end:end.value,
-                    });
-                }
+            start.value = cell.getValue();
 
-                function keypress(e){
-                    if(e.keyCode == 13){
-                        buildValues();
-                    }
-
-                    if(e.keyCode == 27){
-                        cancel();
-                    }
-                }
-
-                end = start.cloneNode();
-                end.setAttribute("placeholder", "Max");
-
-                start.addEventListener("change", buildValues);
-                start.addEventListener("blur", buildValues);
-                start.addEventListener("keydown", keypress);
-
-                end.addEventListener("change", buildValues);
-                end.addEventListener("blur", buildValues);
-                end.addEventListener("keydown", keypress);
-
-
-                container.appendChild(start);
-                container.appendChild(end);
-
-                return container;
+            function buildValues() {
+                success({
+                    start: start.value,
+                    end: end.value,
+                });
             }
 
-            //custom max min filter function
-            function minMaxFilterFunction(headerValue, rowValue, rowData, filterParams){
-                //headerValue - the value of the header filter element
-                //rowValue - the value of the column in this row
-                //rowData - the data for the row being filtered
-                //filterParams - params object passed to the headerFilterFuncParams property
-
-                    if(rowValue){
-                        if(headerValue.start != ""){
-                            if(headerValue.end != ""){
-                                return rowValue >= headerValue.start && rowValue <= headerValue.end;
-                            }else{
-                                return rowValue >= headerValue.start;
-                            }
-                        }else{
-                            if(headerValue.end != ""){
-                                return rowValue <= headerValue.end;
-                            }
-                        }
-                    }
-
-                return true; //must return a boolean, true if it passes the filter.
-            }
-
-            var reg_table = new Tabulator("#registrant-data", {
-                // height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
-                ajaxURL:ajaxURL,
-                layout:"fitDataFill", //fit columns to width of table (optional)
-                dataTree:true,
-                dataTreeStartExpanded:false,   
-                dataTreeFilter: true,             
-                columns:[ //Define Table Columns
-                    {title:"Draft ID", field:"draft_id", headerFilter:true},
-                    {title:"Name", field:"name", headerFilter:true},
-                    {title:"Status", field:"status", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"status", clearable: true}, hozAlign:"left"},
-                    {
-                        title:"Expiration",
-                        visible: false,
-                        field:"expires_at", 
-                        formatter: "datetimediff", 
-                        formatterParams:{
-                            inputFormat:"iso",
-                            unit:["minutes", "seconds"],
-                            humanize: true,
-                            invalidPlaceholder:true
-                        }
-                    },
-                    {title:"Team", field:"team", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"team", clearable: true}, hozAlign:"left"},
-                    {title:"Rank", field:"rank",
-                        sorter:"number", 
-                        headerFilter:minMaxFilterEditor, 
-                        headerFilterFunc:minMaxFilterFunction, 
-                        headerFilterLiveFilter:false
-                    },
-                    {
-                        title:"Matchup", 
-                        field:"matchup",
-                        formatter: "lookup",
-                        formatterParams: {
-                            "man-matching": "<span class=\"man label\">MM</span>",
-                            "woman-matching": "<span class=\"wom label\">WM</span>",
-                            "mixed": "<span class=\"label\">MX</span>"
-                        },
-                        headerFilter:"list", 
-                        headerFilterParams:{valuesLookup: "all", valuesLookupField:"matchup", clearable: true}, 
-                        hozAlign:"left"
-                    },
-                    {title:"Notes", field:"notes", headerFilter:true},
-                ],
-            });
-
-            function render_team_updater(team_id, reg_ids) {
-                var setTeamPath = "<%=add_player_to_team_league_path(@league, :json)%>";
-                var team_updater = _.template($("#team-selection-template").html());
-                var teamUpdaterDomTarget = $("#team-selection-container");
-
-                if (teamUpdaterDomTarget) {
-                    teamUpdaterDomTarget.html(team_updater());
-                    if (team_id) {
-                        $("#team-selector").val(team_id);
-                        
-                        var remove_button = $("#remove-team-button");
-                        remove_button.show();
-                        remove_button.on('click', function(){
-                            var xhr = $.ajax({
-                                headers: { 'X-CSRF-Token': CSRF_TOKEN },
-                                url: setTeamPath,
-                                method: "POST",
-                                data: {
-                                    registration_id_list: reg_ids,
-                                    team_id: "NONE"
-                                }                                
-                            }).done(function(data) {
-                                successMessageElement.html(data["msg"])
-                                successMessageElement.show();
-                                errorMessageElement.hide();
-                                reg_table.setData(ajaxURL);
-                                team_table.setData(teamDataURL);
-                                remove_button.hide();
-                                $("#team-selector option:selected").prop("selected", false)
-                            }).fail(function(jqXHR,textStatus,errorThrown){
-                                errorMessageElement.html(jqXHR.responseJSON["msg"]);
-                                errorMessageElement.show();
-                                successMessageElement.hide();
-                            });
-                        });
-                    }
+            function keypress(e) {
+                if (e.keyCode == 13) {
+                    buildValues();
                 }
 
-                var setTeamButton = $("#update-team-button");
+                if (e.keyCode == 27) {
+                    cancel();
+                }
+            }
 
-                var errorMessageElement = $("#registrant-error-message");
-                var successMessageElement = $("#registrant-success-message");
+            end = start.cloneNode();
+            end.setAttribute("placeholder", "Max");
 
-                if (setTeamButton) {
-                    setTeamButton.on('click', function(){
+            start.addEventListener("change", buildValues);
+            start.addEventListener("blur", buildValues);
+            start.addEventListener("keydown", keypress);
+
+            end.addEventListener("change", buildValues);
+            end.addEventListener("blur", buildValues);
+            end.addEventListener("keydown", keypress);
+
+
+            container.appendChild(start);
+            container.appendChild(end);
+
+            return container;
+        }
+
+        //custom max min filter function
+        function minMaxFilterFunction(headerValue, rowValue, rowData, filterParams) {
+            //headerValue - the value of the header filter element
+            //rowValue - the value of the column in this row
+            //rowData - the data for the row being filtered
+            //filterParams - params object passed to the headerFilterFuncParams property
+
+            if (rowValue) {
+                if (headerValue.start != "") {
+                    if (headerValue.end != "") {
+                        return rowValue >= headerValue.start && rowValue <= headerValue.end;
+                    } else {
+                        return rowValue >= headerValue.start;
+                    }
+                } else {
+                    if (headerValue.end != "") {
+                        return rowValue <= headerValue.end;
+                    }
+                }
+            }
+
+            return true; //must return a boolean, true if it passes the filter.
+        }
+
+        var reg_table = new Tabulator("#registrant-data", {
+            // height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+            ajaxURL: ajaxURL,
+            layout: "fitDataFill", //fit columns to width of table (optional)
+            dataTree: true,
+            dataTreeStartExpanded: false,
+            dataTreeFilter: true,
+            columns: [ //Define Table Columns
+                {
+                    title: "Draft ID",
+                    field: "draft_id",
+                    headerFilter: true
+                },
+                {
+                    title: "Name",
+                    field: "name",
+                    headerFilter: true
+                },
+                {
+                    title: "Status",
+                    field: "status",
+                    headerFilter: "list",
+                    headerFilterParams: {
+                        valuesLookup: "all",
+                        valuesLookupField: "status",
+                        clearable: true
+                    },
+                    hozAlign: "left"
+                },
+                {
+                    title: "Expiration",
+                    visible: false,
+                    field: "expires_at",
+                    formatter: "datetimediff",
+                    formatterParams: {
+                        inputFormat: "iso",
+                        unit: ["minutes", "seconds"],
+                        humanize: true,
+                        invalidPlaceholder: true
+                    }
+                },
+                {
+                    title: "Team",
+                    field: "team",
+                    headerFilter: "list",
+                    headerFilterParams: {
+                        valuesLookup: "all",
+                        valuesLookupField: "team",
+                        clearable: true
+                    },
+                    hozAlign: "left"
+                },
+                {
+                    title: "Rank",
+                    field: "rank",
+                    sorter: "number",
+                    headerFilter: minMaxFilterEditor,
+                    headerFilterFunc: minMaxFilterFunction,
+                    headerFilterLiveFilter: false
+                },
+                {
+                    title: "Matchup",
+                    field: "matchup",
+                    formatter: "lookup",
+                    formatterParams: {
+                        "man-matching": "<span class=\"man label\">MM</span>",
+                        "woman-matching": "<span class=\"wom label\">WM</span>",
+                        "mixed": "<span class=\"label\">MX</span>"
+                    },
+                    headerFilter: "list",
+                    headerFilterParams: {
+                        valuesLookup: "all",
+                        valuesLookupField: "matchup",
+                        clearable: true
+                    },
+                    hozAlign: "left"
+                },
+                {
+                    title: "Pending Pair",
+                    field: "pending_pair_name",
+                    headerFilter: true
+                },
+                {
+                    title: "Matchup",
+                    field: "pending_pair_matchup",
+                    mutator: function(value, data) {
+                        if (value == null) {
+                            return "";
+                        }
+                        if (data.pair_registered == true) {
+                            return "";
+                        }
+
+                        return value;
+                    },
+                    formatter: "lookup",
+                    formatterParams: {
+                        "man-matching": "<span class=\"man label\">MM</span>",
+                        "woman-matching": "<span class=\"wom label\">WM</span>",
+                        "mixed": "<span class=\"label\">MX</span>",
+                        "": ""
+                    },
+                    headerFilter: "list",
+                    headerFilterParams: {
+                        valuesLookup: "all",
+                        valuesLookupField: "pending_pair_matchup",
+                        clearable: true
+                    },
+                },
+                {
+                    title: "Notes",
+                    field: "notes",
+                    headerFilter: true
+                },
+            ],
+        });
+
+        function render_team_updater(team_id, reg_ids) {
+            var setTeamPath = "<%=add_player_to_team_league_path(@league, :json)%>";
+            var team_updater = _.template($("#team-selection-template").html());
+            var teamUpdaterDomTarget = $("#team-selection-container");
+
+            if (teamUpdaterDomTarget) {
+                teamUpdaterDomTarget.html(team_updater());
+                if (team_id) {
+                    $("#team-selector").val(team_id);
+
+                    var remove_button = $("#remove-team-button");
+                    remove_button.show();
+                    remove_button.on('click', function() {
                         var xhr = $.ajax({
-                            headers: { 'X-CSRF-Token': CSRF_TOKEN },
+                            headers: {
+                                'X-CSRF-Token': CSRF_TOKEN
+                            },
                             url: setTeamPath,
                             method: "POST",
                             data: {
                                 registration_id_list: reg_ids,
-                                team_id: $("#team-selector").val()
+                                team_id: "NONE"
                             }
                         }).done(function(data) {
                             successMessageElement.html(data["msg"])
@@ -274,9 +335,9 @@
                             errorMessageElement.hide();
                             reg_table.setData(ajaxURL);
                             team_table.setData(teamDataURL);
-                            var remove_button = $("#remove-team-button");
-                            remove_button.show();
-                        }).fail(function(jqXHR,textStatus,errorThrown){
+                            remove_button.hide();
+                            $("#team-selector option:selected").prop("selected", false)
+                        }).fail(function(jqXHR, textStatus, errorThrown) {
                             errorMessageElement.html(jqXHR.responseJSON["msg"]);
                             errorMessageElement.show();
                             successMessageElement.hide();
@@ -285,146 +346,213 @@
                 }
             }
 
-            function render_player_details(rowData) {
-                var domTarget = $('#player-details');
-                var registrant_profile = _.template($('#registrant-detail-template').html());
+            var setTeamButton = $("#update-team-button");
 
-                domTarget.html(registrant_profile(rowData));
-                render_team_updater(rowData["team_id"], [rowData["id"]]);
-                $("#player-details-container").show();
+            var errorMessageElement = $("#registrant-error-message");
+            var successMessageElement = $("#registrant-success-message");
 
-                var cancelButton = $("#cancel-registration-button");
-                var cancelPath = "<%=cancel_registration_league_path(@league, :json)%>";
-                
-                var errorMessageElement = $("#registrant-error-message");
-                var successMessageElement = $("#registrant-success-message");
-
-                if (cancelButton) {
-                    cancelButton.on('click', function(){
-                        var xhr = $.ajax({
-                            headers: { 'X-CSRF-Token': CSRF_TOKEN },
-                            url: cancelPath,
-                            method: "POST",
-                            data: {registration_id: rowData["id"]}
-                        }).done(function(data) {
-                            successMessageElement.html(data["msg"])
-                            successMessageElement.show();
-                            errorMessageElement.hide();
-                            reg_table.setData(ajaxURL);
-                        }).fail(function(jqXHR,textStatus,errorThrown){
-                            errorMessageElement.html(jqXHR.responseJSON["msg"]);
-                            errorMessageElement.show();
-                            successMessageElement.hide();
-                        });
+            if (setTeamButton) {
+                setTeamButton.on('click', function() {
+                    var xhr = $.ajax({
+                        headers: {
+                            'X-CSRF-Token': CSRF_TOKEN
+                        },
+                        url: setTeamPath,
+                        method: "POST",
+                        data: {
+                            registration_id_list: reg_ids,
+                            team_id: $("#team-selector").val()
+                        }
+                    }).done(function(data) {
+                        successMessageElement.html(data["msg"])
+                        successMessageElement.show();
+                        errorMessageElement.hide();
+                        reg_table.setData(ajaxURL);
+                        team_table.setData(teamDataURL);
+                        var remove_button = $("#remove-team-button");
+                        remove_button.show();
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        errorMessageElement.html(jqXHR.responseJSON["msg"]);
+                        errorMessageElement.show();
+                        successMessageElement.hide();
                     });
+                });
+            }
+        }
+
+        function render_player_details(rowData) {
+            var domTarget = $('#player-details');
+            var registrant_profile = _.template($('#registrant-detail-template').html());
+
+            domTarget.html(registrant_profile(rowData));
+            render_team_updater(rowData["team_id"], [rowData["id"]]);
+            $("#player-details-container").show();
+
+            var cancelButton = $("#cancel-registration-button");
+            var cancelPath = "<%=cancel_registration_league_path(@league, :json)%>";
+
+            var promoteWaitlistedButton = $("#promote-waitlisted-registration-button");
+            var promoteWaitlistedPath = "<%=promote_waitlisted_registration_league_path(@league, :json)%>";
+
+            var errorMessageElement = $("#registrant-error-message");
+            var successMessageElement = $("#registrant-success-message");
+
+            if (cancelButton) {
+                cancelButton.on('click', function() {
+                    var xhr = $.ajax({
+                        headers: {
+                            'X-CSRF-Token': CSRF_TOKEN
+                        },
+                        url: cancelPath,
+                        method: "POST",
+                        data: {
+                            registration_id: rowData["id"]
+                        }
+                    }).done(function(data) {
+                        successMessageElement.html(data["msg"])
+                        successMessageElement.show();
+                        errorMessageElement.hide();
+                        reg_table.setData(ajaxURL);
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        errorMessageElement.html(jqXHR.responseJSON["msg"]);
+                        errorMessageElement.show();
+                        successMessageElement.hide();
+                    });
+                });
+            }
+
+            if (promoteWaitlistedButton) {
+                promoteWaitlistedButton.on('click', function() {
+                    var xhr = $.ajax({
+                        headers: {
+                            'X-CSRF-Token': CSRF_TOKEN
+                        },
+                        url: promoteWaitlistedPath,
+                        method: "POST",
+                        data: {
+                            registration_id: rowData["id"]
+                        }
+                    }).done(function(data) {
+                        successMessageElement.html(data["msg"])
+                        successMessageElement.show();
+                        errorMessageElement.hide();
+                        reg_table.setData(ajaxURL);
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        errorMessageElement.html(jqXHR.responseJSON["msg"]);
+                        errorMessageElement.show();
+                        successMessageElement.hide();
+                    });
+                });
+            }
+        }
+
+        function render_pair_details(rowData) {
+            var domTarget = $('#player-details');
+            var pair_profile = _.template($('#pair-detail-template').html());
+
+            domTarget.html(pair_profile(rowData));
+            render_team_updater(rowData["team_id"], [rowData._children[0]["id"], rowData._children[1]["id"]]);
+            $("#player-details-container").show();
+        }
+
+        // trigger an alert message when the row is clicked
+        reg_table.on("rowClick", function(e, row) {
+            var rowData = row.getData();
+
+            if (rowData.type == "individual") {
+                render_player_details(rowData);
+            } else if (rowData.type == "pair") {
+                render_pair_details(rowData);
+            } else {
+                alert(rowData.type);
+            }
+        });
+
+        $('#clear-filters').on('click', function() {
+            reg_table.clearFilter(true);
+        });
+
+        $('#refresh-data').on('click', function() {
+            reg_table.setData(ajaxURL);
+        });
+
+        $('#toggle-cores').on('click', function() {
+            var filterList = reg_table.getFilters();
+            var alreadyFiltered = false;
+            for (i = 0; i < filterList.length; i++) {
+                if (filterList[i]["field"] == "type") {
+                    alreadyFiltered = true;
                 }
             }
 
-            function render_pair_details(rowData) {
-                var domTarget = $('#player-details');
-                var pair_profile = _.template($('#pair-detail-template').html());
+            if (alreadyFiltered) {
+                reg_table.removeFilter("type", "!=", "core");
+            } else {
+                reg_table.addFilter("type", "!=", "core");
+            }
+        });
 
-                domTarget.html(pair_profile(rowData));
-                render_team_updater(rowData["team_id"], [rowData._children[0]["id"], rowData._children[1]["id"]]);
-                $("#player-details-container").show();
+        // Setup Re-rank Draft Order Table (ALSO IN: registrations.html.erb)
+        team_table.on("renderComplete", function() {
+            var table = $("#draft-order-table tbody");
+
+            if (table.length === 0) {
+                return;
             }
 
-            // trigger an alert message when the row is clicked
-            reg_table.on("rowClick", function(e, row){ 
-                var rowData = row.getData();
-
-                if (rowData.type == "individual") {
-                    render_player_details(rowData);
-                } else if (rowData.type == "pair") {
-                    render_pair_details(rowData);
-                } else {
-                    alert(rowData.type);
-                }
-            });
-
-            $('#clear-filters').on('click', function() {
-                reg_table.clearFilter(true);
-            });
-
-            $('#refresh-data').on('click', function(){
-                reg_table.setData(ajaxURL);
-            });
-
-            $('#toggle-cores').on('click', function(){
-                var filterList = reg_table.getFilters();
-                var alreadyFiltered = false;
-                for (i = 0; i < filterList.length; i++) {
-                    if (filterList[i]["field"] == "type") {
-                        alreadyFiltered = true;
-                    }
+            var counts_set = new Set();
+            var teams_by_count = [];
+            team_table.getData().forEach(function(team) {
+                var c = team.total;
+                if (teams_by_count[c] === undefined) {
+                    counts_set.add(c);
+                    teams_by_count[c] = [];
                 }
 
-                if (alreadyFiltered) {
-                    reg_table.removeFilter("type", "!=", "core");
-                } else {
-                    reg_table.addFilter("type", "!=", "core");
-                }
+                teams_by_count[c].push(team);
+            });
+            teams_by_count.forEach(function(teams, count) {
+                // Sort teams by rank
+                teams.sort(function(a, b) {
+                    return a.rank_sum - b.rank_sum;
+                });
             });
 
-            // Setup Re-rank Draft Order Table (ALSO IN: registrations.html.erb)
-            team_table.on("renderComplete", function () {
-                var table = $("#draft-order-table tbody");
+            table.empty();
 
-                if (table.length === 0) { return; }
+            var team_counts = Array.from(counts_set);
+            var global_index = 0;
+            var last_team_count;
 
-                var counts_set = new Set();
-                var teams_by_count = [];
-                team_table.getData().forEach(function(team) {
-                    var c = team.total;
-                    if (teams_by_count[c] === undefined) {
-                        counts_set.add(c);
-                        teams_by_count[c] = [];
+            team_counts.sort().forEach(function(count) {
+                teams_by_count[count].forEach(function(team, index) {
+                    if (last_team_count === undefined) {
+                        last_team_count = count;
                     }
 
-                    teams_by_count[c].push(team);
-                });
-                teams_by_count.forEach(function(teams, count) {
-                    // Sort teams by rank
-                    teams.sort(function(a, b) {
-                        return a.rank_sum - b.rank_sum;
-                    });
-                });
+                    global_index++;
+                    var row = $("<tr>");
 
-                table.empty();
+                    if (last_team_count != count) {
+                        last_team_count = count;
+                        table.append($("<tr>").append($("<td>").attr("colspan", 6).text(""))); // Spacer
+                    }
 
-                var team_counts = Array.from(counts_set);
-                var global_index = 0;
-                var last_team_count;
-
-                team_counts.sort().forEach(function(count) {
-                    teams_by_count[count].forEach(function(team, index) {
-                        if (last_team_count === undefined) {
-                            last_team_count = count;
-                        }
-
-                        global_index++;
-                        var row = $("<tr>");
-
-                        if (last_team_count != count) {
-                            last_team_count = count;
-                            table.append($("<tr>").append($("<td>").attr("colspan", 6).text(""))); // Spacer
-                        }
-
-                        row.append($("<td>").text(global_index));
-                        row.append($("<td>").text(team.name));
-                        row.append($("<td>").text(team.man_matching));
-                        row.append($("<td>").text(team.woman_matching));
-                        row.append($("<td>").text(team.total));
-                        row.append($("<td>").text(team.rank_sum));
-                        table.append(row);
-                    });
+                    row.append($("<td>").text(global_index));
+                    row.append($("<td>").text(team.name));
+                    row.append($("<td>").text(team.man_matching));
+                    row.append($("<td>").text(team.woman_matching));
+                    row.append($("<td>").text(team.total));
+                    row.append($("<td>").text(team.rank_sum));
+                    table.append(row);
                 });
             });
         });
-    </script>
+    });
+</script>
 
-    <script id="registrant-detail-template" type="text/x-underscore">
-        <h4>
+<script id="registrant-detail-template" type="text/x-underscore">
+    <h4>
             <a href="{{=profile_url}}" target="_blank">{{=name_without_pronouns}}</a>
             <small>{{=email}}</small>
         </h4>
@@ -435,6 +563,12 @@
             {{ if (grank.score) { }}
                 <li><strong>gRank</strong>: {{=grank.score}}</li>
             {{ } }}
+            {{ if (pending_pair_name) { }}
+                <li><strong>Pending Pair</strong>: {{=pending_pair_name}}</li>
+            {{ } }}
+            {{ if (waitlist_timestamp) { }}
+                <li><strong>Waitlist Timestamp</strong>: {{=moment(waitlist_timestamp).format('MMM Do, h:mm a')}}</li>
+            {{ } }}
             <li><strong>Notes:</strong> {{=notes}}</li>
         </ul>
         <div class="alert alert-error hide" id="registrant-error-message"></div>
@@ -442,13 +576,16 @@
         <div id="team-selection-container"></div>
         <hr />
         <%=link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info'%>
+        {{ if (status == "waitlisted") { }}
+            <button class="btn btn-block btn-small btn-success" id="promote-waitlisted-registration-button">Move Into League</button>
+        {{ } }}
         {{ if (status == "active") { }}
             <button class="btn btn-block btn-small btn-warning" id="cancel-registration-button">Cancel & Refund</button>
         {{ } }}
     </script>
 
-    <script id="pair-detail-template" type="text/x-underscore">
-        <h4>{{=name}} <small>(pair)</small></h4>
+<script id="pair-detail-template" type="text/x-underscore">
+    <h4>{{=name}} <small>(pair)</small></h4>
         {{ for (var i = 0; i < _children.length; i++) { }}
             {{ var row = _children[i]; }}
             {{ var matchup = '<span class="label ' + row["matchup"].substring(0,3) + '">' + row["matchup"][0].toUpperCase() + 'M</span>'; }}
@@ -466,7 +603,7 @@
         <div id="team-selection-container"></div>
     </script>
 
-    <script id="team-selection-template" type="text/x-underscore">
+<script id="team-selection-template" type="text/x-underscore">
     <% if (@league.teams.count > 0) %>
         <hr />
         <select id="team-selector">
@@ -480,8 +617,8 @@
     <% end %>
     </script>
 
-    <script id="registrant-detail-template-original" type="text/x-underscore">
-        <img class="img-polaroid img-rounded" src="{{=profile_img_url}}" style="max-width: 160px; height: auto;">
+<script id="registrant-detail-template-original" type="text/x-underscore">
+    <img class="img-polaroid img-rounded" src="{{=profile_img_url}}" style="max-width: 160px; height: auto;">
         <h4><a href="{{=profile_url}}" target="_blank">{{=name}}</a></h4>
         <ul class="unstyled">
             <li><strong>Registration:</strong> {{=status}}</li>
@@ -506,8 +643,10 @@
 <% end %>
 
 <% content_for :page_styles do %>
-    <link href="https://unpkg.com/tabulator-tables@5.4.4/dist/css/tabulator.min.css" rel="stylesheet">
-    <style>
-        input[type=search]::-webkit-search-cancel-button { -webkit-appearance: searchfield-cancel-button; }
-    </style>
+<link href="https://unpkg.com/tabulator-tables@5.4.4/dist/css/tabulator.min.css" rel="stylesheet">
+<style>
+    input[type=search]::-webkit-search-cancel-button {
+        -webkit-appearance: searchfield-cancel-button;
+    }
+</style>
 <% end %>

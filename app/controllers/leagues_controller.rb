@@ -103,6 +103,40 @@ class LeaguesController < ApplicationController
         end        
     end
 
+    def promote_waitlisted_registration
+        respond_to do |format|
+            format.json do
+                reg = Registration.find(params["registration_id"])
+
+                if reg.nil?
+                    render json: {msg: "Registration not found."}, status: 404
+                    return
+                end
+
+                if reg.status != "waitlisted"
+                    render json: {msg: "Registration is not on the waitlist."}, status: 400 
+                    return
+                end
+
+                if reg.league != @league
+                    render json: {msg: "Registration does not belong to this league."}, status: 400
+                    return
+                end
+
+                @league.add_to_league(reg)
+
+                if reg.status != "active"
+                    render json: {msg: "Error: Registration was not promoted to league. Potential payment issue."}, status: 400
+                    return
+                end
+
+                log_audit("PromoteWaitlistedRegistration", league: @league, user: reg.user)
+
+                render json: {msg: "Registration promoted to league."}
+            end
+        end
+    end
+
     def add_player_to_team
         respond_to do |format|
             format.json do
@@ -486,6 +520,25 @@ class LeaguesController < ApplicationController
             reg_url = registration_path(reg)
         end
 
+        pending_pair_name = nil
+        pending_pair_matchup = nil
+        pending_pair_is_registered = false
+        if reg.pair
+            if @league.registration_for(reg.pair).present?
+                pending_pair_is_registered = true
+            end
+
+            # Only display if one of the registrations isn't active
+            if pending_pair_is_registered == false or reg.status != "active"
+                pending_pair_name = reg.pair.name_with_pronouns
+                pending_pair_matchup = reg.pair.gender_noun
+            end
+        end
+
+        waitlist_timestamp = nil
+        if reg.status == "waitlisted"
+            waitlist_timestamp = reg.waitlist_timestamp
+        end
         
         {
             id: reg._id.to_s,
@@ -507,7 +560,11 @@ class LeaguesController < ApplicationController
             eos_availability: {true => "YES", false => "no"}[reg.eos_availability],
             matchup: reg.gender_noun,
             notes: reg.notes,
-            type: "individual"                     
+            pending_pair_name: pending_pair_name,
+            pending_pair_matchup: pending_pair_matchup,
+            pending_pair_is_registered: pending_pair_is_registered,
+            waitlist_timestamp: waitlist_timestamp,
+            type: "individual"
         }
     end
 
