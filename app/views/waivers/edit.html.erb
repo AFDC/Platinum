@@ -7,14 +7,23 @@
 <% end %>
 
 <%= bootstrap_form_for(@waiver) do |f| %>
-    <%= f.text_field :name %>
-    <%= f.text_field :url, disabled: true %>
-    <%= f.number_field :signature_valid_for, label: "Signature Valid For (days)" %>
-    <%= f.text_field :slug %>
-    <%= f.text_area :description %>
-    <%= f.check_box :active %>
-    <%= f.check_box :league_default %>
-    <%= f.check_box :special_event %>
-    
-    <%= f.submit %>
+<div class="container">
+    <div class="row">
+        <div class="span6">
+            <%= f.text_field :name %>
+            <%= f.text_field :url, disabled: true %>
+            <%= f.number_field :signature_valid_for, label: "Signature Valid For (days)" %>
+            <%= f.text_field :slug %>
+            <%= f.text_area :description %>
+            <%= f.check_box :active %>
+            <%= f.check_box :league_default %>
+            <%= f.check_box :special_event %>
+            
+            <%= f.submit %>
+        </div>
+        <div class="span6">
+            <%= render partial: '/user_multiselect', locals: {form: f, fieldname: 'admin_ids', limit: 5, users: @waiver.admins} %>
+        </div>
+    </div>
+</div>
 <% end %>

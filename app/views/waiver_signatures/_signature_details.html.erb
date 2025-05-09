@@ -1,0 +1,40 @@
+<%# Expects a local variable 'signature' to be passed in %>
+<div class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <div class="panel panel-success">
+      <div class="panel-heading" style="text-align: center; font-size: 20px;"><span class="glyphicon glyphicon-ok-circle"></span> Waiver Signed</div>
+      <div class="panel-body">
+
+        <p>
+          <span class="glyphicon glyphicon-user"></span> 
+          <strong>Signed by:</strong>
+          <%= signature.name %>
+        </p>
+
+        <% if signature.user.present? %>
+          <p>
+            <span class="glyphicon glyphicon-user"></span> 
+            <strong>Signing User:</strong>
+            <%= link_to signature.user.name, user_path(signature.user) %>
+          </p>
+        <% end %>
+        
+        <% if signature.email.present? %>
+          <p><span class="glyphicon glyphicon-envelope"></span> <strong>Email:</strong> <%= signature.email %></p>
+        <% end %>
+        <p><span class="glyphicon glyphicon-calendar"></span> <strong>Signed on:</strong> <%= signature.created_at.strftime("%B %d, %Y at %I:%M %p") %></p>
+        <% if signature.expires_at %>
+          <p><span class="glyphicon glyphicon-time"></span> <strong>Valid until:</strong> <%= signature.expires_at.strftime("%B %d, %Y") %></p>
+        <% end %>
+        <hr>
+        
+        <div class="embed-responsive embed-responsive-4by3">
+            <iframe class="embed-responsive-item" src="https://qr.grid.ws/<%= waiver_signature_url(signature.waiver,signature) %>"></iframe>
+        </div>
+        <div class="text-center">
+          <%= link_to "See Signature Details", waiver_signature_path(signature.waiver,signature) %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

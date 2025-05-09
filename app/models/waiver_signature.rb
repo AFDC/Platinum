@@ -25,28 +25,33 @@ class WaiverSignature
         waiver = Waiver.get_current
         return if waiver.blank?
 
-        id_verification_time = Time.now
+        signature = WaiverSignature.new_from_user(registration.user, waiver)
+
         if registration.waiver_acceptance_date
-            id_verification_time = registration.waiver_acceptance_date
+            signature.identity_verification_timestamp = registration.waiver_acceptance_date
         end
 
-        signature = WaiverSignature.new(
-            waiver: waiver, 
-            registration: registration,
-            user: registration.user,
+        signature.registration = registration
 
-            name: registration.user.name,
-
-            identity_verified: true,
-            identity_verification_method: "logged_in_user",
-            identity_verification_timestamp: id_verification_time,
-
-            expires_at: waiver.signature_valid_for&.days&.from_now
-        )
         if signature.save!
             return signature
         else
             return nil
         end
     end
+
+    def self.new_from_user(user, waiver)
+        return WaiverSignature.new(
+            waiver: waiver, 
+            user: user,
+
+            name: user.name,
+
+            identity_verified: true,
+            identity_verification_method: "logged_in_user",
+            identity_verification_timestamp: Time.now,
+
+            expires_at: waiver.signature_valid_for&.days&.from_now
+        )
+    end        
 end

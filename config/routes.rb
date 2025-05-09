@@ -4,6 +4,15 @@ Platinum::Application.routes.draw do
   match '/users/search' => 'users#search', via: :get
   resources :fields, :waivers, :schedules, :comp_groups, :payments, :spirit_reports
 
+  resources :waivers do
+    member do
+      get 'sign_waiver'
+      post 'sign_waiver'
+      get 'signatures'
+    end
+    resources :signatures, only: [:show], controller: 'waiver_signatures'
+  end
+
   resources :invitations do
     member do
       get 'accept'

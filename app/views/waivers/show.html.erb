@@ -1,8 +1,58 @@
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-12 text-center">
-      <h1 class="my-4">Waiver for <%= @waiver.name %></h2>
-      <a href="#" class="btn btn-primary btn-lg w-100" style="max-width: 350px; margin: 0 auto;" target="_blank">Agree To Waiver</a>
-    </div>
+<h1 class="text-center">Waiver for <%= @waiver.name %></h1>
+
+<% if permitted_to?(:signatures, @waiver) %>
+  <div class="text-center"> 
+    <%= link_to "ADMIN: See Signatures", signatures_waiver_path(@waiver), class: "btn btn-primary btn-sm" %>
   </div>
-</div>
+<% end %>
+<hr />
+
+<h3 class="text-center">View Waiver: <%= link_to @waiver.url, @waiver.url, target: "_blank" %></h3>
+<% if @current_signature %>
+  <%= render 'waiver_signatures/signature_details', signature: @current_signature %>
+<% else %>
+
+  <%= form_tag sign_waiver_waiver_path(@waiver), method: :post do %>
+    <% if current_user # Logged in users bypass email verification %>
+      <div class="form-group">
+        <label for="name">Your Name</label>
+        <input type="text" class="form-control" value="<%= current_user.name %>" disabled>
+      </div>
+
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" id="agreeCheckbox" name="agreeCheckbox" value="yes"><b>I have read and agree to the terms of <%=link_to "this waiver", @waiver.url, target: "_blank"%></b>
+        </label>
+      </div>
+      
+      <button type="submit" id="signButton" class="btn btn-success btn-large btn-block" disabled>Sign Waiver</button>
+    <% else %>
+      <div class="alert alert-warning" role="alert"><strong>You're not logged in.</strong> Please sign in to verify your identity.</div>
+      <% if false %>
+        <div class="form-group">
+          <label for="signerName">Your Name</label>
+        <input type="text" id="signerName" class="form-control" placeholder="Your Name">
+      </div>
+      <div class="form-group">
+        <label for="signerEmail">Email address</label>
+          <input type="email" class="form-control" id="signerEmail" placeholder="Email">
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% content_for :page_scripts do %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var checkbox = document.getElementById('agreeCheckbox');
+      var signButton = document.getElementById('signButton');
+      
+      if (checkbox && signButton) {
+        checkbox.addEventListener('change', function() {
+          signButton.disabled = !this.checked;
+        });
+      }
+    });
+  </script>
+<% end %>

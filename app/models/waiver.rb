@@ -4,6 +4,8 @@ class Waiver
 
     has_and_belongs_to_many :admins, class_name: "User", inverse_of: nil
 
+    has_many :signatures, class_name: "WaiverSignature"
+
     field :league_default, type: Boolean, default: false
     field :special_event, type: Boolean, default: false
     field :active, type: Boolean, default: true

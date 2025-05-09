@@ -1,0 +1,35 @@
+<% content_for :title, "Waiver Signatures" %>
+<%= render partial: '/pageheader', locals: {subtitle: @waiver.name} %>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Signed At</th>
+            <th>Verification Method</th>
+            <th>User</th>
+            <th>League</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% @signatures.each do |signature| %>
+            <tr>
+                <td><%= link_to signature.name, waiver_signature_path(@waiver, signature) %></td>
+                <td><%= signature.email %></td>
+                <td><%= signature.identity_verification_timestamp.strftime("%a, %b %-d, %-I:%M %p") %></td>
+                <td><%= signature.identity_verification_method %></td>
+                <td>
+                    <% if signature.user %>
+                        <%= link_to signature.user.name, user_path(signature.user) %>
+                    <% end %>
+                </td>
+                <td>
+                    <% if signature.registration %>
+                        <%= link_to signature.registration.league.name, league_path(signature.registration.league) %>
+                    <% end %>
+                </td>
+            </tr>
+        <% end %>
+    </tbody>
+</table>

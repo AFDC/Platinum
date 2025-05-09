@@ -17,7 +17,7 @@ authorization do
 		has_permission_on :fields, to: [:index, :show]
 		has_permission_on :auth, to: [:index, :login, :logout, :forgot_password, :reset_password]
 		has_permission_on :covid, to: [:index]
-		has_permission_on :waivers, to: [:show]
+		has_permission_on :waivers, to: [:show, :sign_waiver]
 	end
 
 	role :user do
@@ -32,6 +32,14 @@ authorization do
 		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair, :missing_spirit_reports, :team_list, :reg_list]
 		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
 		has_permission_on :spirit_reports, to: [:index, :new, :create, :show, :edit, :update]
+
+		has_permission_on :waiver_signatures, to: [:show] do
+			if_attribute user_id: is { user._id }
+		end
+
+		has_permission_on :waivers, to: [:signatures] do
+			if_attribute admin_ids: contains { user._id }
+		end
 
 		# Things a user can do IFF the record belongs to them:
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :registrations, :edit, :update] do
@@ -93,6 +101,8 @@ authorization do
 		has_permission_on :leagues, to: [:manage, :finances, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps]
 
 		has_permission_on :comp_groups, :to => [:index, :show, :new, :create, :edit, :update]
+		has_permission_on :waivers, to: [:index, :new, :create, :edit, :update, :destroy, :signatures]
+		has_permission_on :waiver_signatures, to: [:show]
 	end
 
 	role :'spirit-manager' do 
@@ -124,6 +134,6 @@ authorization do
 
 		has_permission_on :dashboard, to: [:audit_logs]
 
-		has_permission_on :waivers, to: [:index, :new, :create, :edit, :update, :destroy]
+		has_permission_on :waivers, to: [:index, :new, :create, :edit, :update, :destroy, :signatures]
 	end
 end

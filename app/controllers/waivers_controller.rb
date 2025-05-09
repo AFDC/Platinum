@@ -1,8 +1,12 @@
 class WaiversController < ApplicationController
-    before_filter :load_waiver_from_params, only: [:show, :edit, :update]
+    before_filter :load_waiver_from_params, only: [:show, :edit, :update, :sign_waiver, :signatures]
 
     def index
         @waivers = Waiver.all
+    end
+
+    def signatures
+        @signatures = @waiver.signatures.where(identity_verified: true).order_by(created_at: :desc)
     end
 
     def new
@@ -28,7 +32,31 @@ class WaiversController < ApplicationController
     end
 
     def show
+        @current_signature = nil
+        if current_user
+            @current_signature = WaiverSignature.where(waiver: @waiver, user: current_user).first
+        end
+
         render layout: "new_homepage"
+    end
+
+    def sign_waiver
+        @user = current_user
+        if current_user
+            if params[:agreeCheckbox] == "yes"
+                sig = WaiverSignature.new_from_user(current_user, @waiver)
+                if sig.save
+                    redirect_to waiver_signature_path(@waiver, sig), flash: {notice: "Waiver signed successfully."} and return
+                else
+                    redirect_to waiver_path(@waiver), flash: {notice: "There was an error signing the waiver. Please try again."} and return
+                end
+            else
+                redirect_to waiver_path(@waiver), flash: {notice: "You must agree to the terms of the waiver to sign it."} and return
+            end
+        end
+
+        raise "User not logged in"
+        redirect_to home_path, flash: {notice: "Please log in to sign the waiver."}
     end
 
     private
@@ -43,10 +71,10 @@ class WaiversController < ApplicationController
         if @waiver.nil?
             redirect_to home_path, flash: {notice: "That waiver does not exist or is no longer active."} and return
         end
-end
+    end
 
     def update_waiver_params
-        params.require(:waiver).permit(:name, :description, :slug, :active, :league_default, :signature_valid_for, :special_event)
+        params.require(:waiver).permit(:name, :description, :slug, :active, :league_default, :signature_valid_for, :special_event, {admin_ids: []})
     end
 
     def create_waiver_params
