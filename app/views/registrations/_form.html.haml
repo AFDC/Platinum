@@ -64,7 +64,7 @@
     - if @registration.status == 'registering' || @registration.status == 'registering_waitlisted'
         .control-group
             .controls
-                = f.check_box :waiver_accepted, value: 1, label: raw('I have read, understand, and accept the <br /> AFDC\'s <a href="http://blog.afdc.com/wp-content/uploads/2012/05/2012-AFDC-Waiver-Minors.pdf">liability waiver</a> and <a href="http://www.afdc.com/refund-policy/">refund policy</a>.')
+                = f.check_box :waiver_accepted, value: 1, label: raw('I have read, understand, and accept the <br /> AFDC\'s <a href="http://www.afdc.com/wp-content/uploads/2012/05/2012-AFDC-Waiver-Minors.pdf">liability waiver</a> and <a href="http://www.afdc.com/refund-policy/">refund policy</a>.')
                 - if @registration.errors[:waiver_accepted].any?
                     = f.alert_message @registration.errors[:waiver_accepted].first
     - if @registration.status == 'registering' || @registration.status == 'registering_waitlisted'

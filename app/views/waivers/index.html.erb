@@ -1,0 +1,67 @@
+<% content_for :title, "Waiver Administration" %>
+<%= render partial: '/pageheader' %>
+
+<% if permitted_to? :create, :waivers %>
+    <div style="text-align: right">
+        <%= link_to new_waiver_path, class: 'btn btn-small btn-primary' do %>
+            <i class="icon-plus"></i>
+            Add Waiver
+        <% end %>
+    </div>
+<% end %>
+
+<% if @waivers.any? %>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Waiver</th>
+                <th>Sig. Valid</th>
+                <th>Slug</th>
+                <th>Description</th>
+                <th>Admins</th>
+                <th>Active</th>
+                <th>Default</th>
+                <th>Special Event</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            <% @waivers.each do |waiver| %>
+                <tr>
+                    <td><%= link_to waiver.name, edit_waiver_path(waiver) %>
+                        (<%= link_to 'content link', waiver.url %>)
+                    </td>
+                    <td><% if waiver.signature_valid_for.present? %><%= waiver.signature_valid_for %> days<% end %></td>
+                    <td>
+                        <% if waiver.slug.present? %>
+                            <%= waiver.slug %> (<%= link_to 'QR Code', "https://qr.grid.ws/#{waiver_url(waiver.slug)}" %>)
+                        <% else %>
+                            n/a
+                        <% end %>
+                    </td>
+                    <td><%= waiver.description %></td>
+                    <td>
+                        <% waiver.admins.each do |admin| %>
+                            <%= link_to admin.name, admin %>
+                        <% end %>
+                    </td>
+                    <td>
+                        <% if waiver.active %>
+                            <i class="icon icon-ok"></i>
+                        <% end %>
+                    </td>
+                    <td>
+                        <% if waiver.league_default %>
+                            <i class="icon icon-ok"></i>
+                        <% end %>
+                    </td>
+                    <td>
+                        <% if waiver.special_event %>
+                            <i class="icon icon-ok"></i>
+                        <% end %>
+                    </td>
+                </tr>
+            <% end %>
+        </tbody>
+    </table>
+<% end %>

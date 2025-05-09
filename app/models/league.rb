@@ -419,6 +419,14 @@ class League
     Invitation.where(handler_class: "League", handler_id: _id)
   end
 
+  def migrate_waiver_signatures
+    registrations.each do |reg|
+      if reg.waiver_signature.nil?
+        signature = WaiverSignature.create_from_registration!(reg)
+      end
+    end
+  end
+
   private
 
   def build_options_if_nil

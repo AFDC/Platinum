@@ -42,6 +42,7 @@ class Registration
     belongs_to :pair, class_name: "User"
     has_many :payment_transactions
     has_one :donation
+    has_one :waiver_signature
 
     before_save :ensure_price
     after_save  :bust_league_cache

@@ -104,6 +104,13 @@ class RegistrationsController < ApplicationController
             return
         end
 
+        if @registration.waiver_signature.nil?
+            sig = WaiverSignature.create_from_registration!(@registration)
+            if sig.nil?
+                Bugsnag.notify(StandardError.new("Failed to create waiver signature for registration #{@registration.id}"))
+            end
+        end
+
         log_audit('Register', league: @registration.league, registration: @registration)
         MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
 

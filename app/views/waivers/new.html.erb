@@ -1,0 +1,20 @@
+<% content_for :title, "Waiver Administration" %>
+<%= render partial: '/pageheader', locals: {subtitle: "New Waiver"} %>
+
+<% if @waiver.errors.any? %>
+    <% errors = @waiver.errors %>
+    <div class="alert alert-error">Waiver could not be saved</div>
+<% end %>
+
+<%= bootstrap_form_for(@waiver) do |f| %>
+    <%= f.text_field :name %>
+    <%= f.text_field :url %>
+    <%= f.number_field :signature_valid_for, label: "Signature Valid For (days)" %>
+    <%= f.text_field :slug %>
+    <%= f.text_area :description %>
+    <%= f.check_box :active %>
+    <%= f.check_box :league_default %>
+    <%= f.check_box :special_event %>
+
+    <%= f.submit %>
+<% end %>

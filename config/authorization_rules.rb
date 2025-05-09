@@ -17,6 +17,7 @@ authorization do
 		has_permission_on :fields, to: [:index, :show]
 		has_permission_on :auth, to: [:index, :login, :logout, :forgot_password, :reset_password]
 		has_permission_on :covid, to: [:index]
+		has_permission_on :waivers, to: [:show]
 	end
 
 	role :user do
@@ -122,5 +123,7 @@ authorization do
 		has_permission_on :users, :to => [:edit_avatar, :update_avatar, :destroy_avatar, :login_as, :edit_permissions]
 
 		has_permission_on :dashboard, to: [:audit_logs]
+
+		has_permission_on :waivers, to: [:index, :new, :create, :edit, :update, :destroy]
 	end
 end
