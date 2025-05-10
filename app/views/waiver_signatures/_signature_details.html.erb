@@ -1,6 +1,7 @@
 <%# Expects a local variable 'signature' to be passed in %>
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
+  <% if signature.identity_verified %>
     <div class="panel panel-success">
       <div class="panel-heading" style="text-align: center; font-size: 20px;"><span class="glyphicon glyphicon-ok-circle"></span> Waiver Signed</div>
       <div class="panel-body">
@@ -10,6 +11,19 @@
           <strong>Signed by:</strong>
           <%= signature.name %>
         </p>
+
+  <% else %>
+    <div class="panel panel-info">
+      <div class="panel-heading" style="text-align: center; font-size: 20px;"><span class="glyphicon glyphicon-warning-sign"></span> Confirm your Email</div>
+      <div class="panel-body">
+
+        <p>
+          <span class="glyphicon glyphicon-user"></span> 
+          <strong>Name:</strong>
+          <%= signature.name %>
+        </p>
+  <% end %>
+     
 
         <% if signature.user.present? %>
           <p>
@@ -22,18 +36,35 @@
         <% if signature.email.present? %>
           <p><span class="glyphicon glyphicon-envelope"></span> <strong>Email:</strong> <%= signature.email %></p>
         <% end %>
-        <p><span class="glyphicon glyphicon-calendar"></span> <strong>Signed on:</strong> <%= signature.created_at.strftime("%B %d, %Y at %I:%M %p") %></p>
+
+        <% if signature.identity_verified %>
+          <p><span class="glyphicon glyphicon-calendar"></span> <strong>Signed on:</strong> <%= signature.identity_verification_timestamp.strftime("%B %d, %Y at %I:%M %p") %></p>
+        <% end %>
+
         <% if signature.expires_at %>
           <p><span class="glyphicon glyphicon-time"></span> <strong>Valid until:</strong> <%= signature.expires_at.strftime("%B %d, %Y") %></p>
         <% end %>
         <hr>
         
-        <div class="embed-responsive embed-responsive-4by3">
-            <iframe class="embed-responsive-item" src="https://qr.grid.ws/<%= waiver_signature_url(signature.waiver,signature) %>"></iframe>
-        </div>
-        <div class="text-center">
-          <%= link_to "See Signature Details", waiver_signature_path(signature.waiver,signature) %>
-        </div>
+        <% if signature.identity_verified %>
+          <div class="embed-responsive embed-responsive-4by3">
+              <iframe class="embed-responsive-item" src="https://qr.grid.ws/<%= waiver_signature_url(signature.waiver,signature) %>"></iframe>
+          </div>
+          <div class="text-center">
+            <%= link_to "See Signature Details", waiver_signature_path(signature.waiver,signature) %>
+          </div>
+        <% else %>
+          <%= form_tag sign_waiver_waiver_path(@waiver), method: :post do %>
+            <%= hidden_field_tag :waiver_signature_id, signature._id %>
+
+            <div class="form-group">
+              <label for="confirmationCode">Confirmation Code</label>
+              <input type="text" name="confirmationCode" id="confirmationCode" class="form-control" placeholder="Confirmation Code" value="<%= params[:confirmation_code] %>">
+            </div>
+
+            <%= submit_tag "Verify your Email", class: "btn btn-block btn-primary" %>
+          <% end %>
+        <% end %>
       </div>
     </div>
   </div>

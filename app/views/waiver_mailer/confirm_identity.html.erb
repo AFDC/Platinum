@@ -1,0 +1,23 @@
+<p><%=@waiver_signature.name%>,</p>
+
+<p>
+    We've received your request to agree to an AFDC Liability Waiver for <b><%=@waiver_signature.waiver.name%></b>. 
+    In order to complete the process, please click the link below to confirm your identity or enter the following 
+    confirmation code:
+</p>
+
+<h1 class="center"><tt>
+    <%=@waiver_signature.confirmation_code%>
+</tt></h1>
+
+<p>
+    You may view the content of this waiver <%=link_to "here", @waiver_signature.waiver.url%>. If you did not request this, you may safely ignore this email.
+</p>
+
+<% content_for :callout_box do %>
+    <%=link_to "Complete Waiver Agreement", waiver_signature_url(@waiver_signature.waiver, @waiver_signature, confirmation_code: @waiver_signature.confirmation_code)%>
+    <br />
+    <br />
+    If the link doesn't work, please enter this confirmation code:
+    <strong><%=@waiver_signature.confirmation_code%></strong>
+<% end %>

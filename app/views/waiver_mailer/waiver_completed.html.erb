@@ -1,0 +1,14 @@
+<p><%=@waiver_signature.name%>,</p>
+
+<p>
+    This email confirms that we've received your signature for the AFDC Liability Waiver for <b><%=@waiver_signature.waiver.name%></b>. 
+    You may view the content of this waiver <%=link_to "here", @waiver_signature.waiver.url%>.
+</p>
+
+<p>
+    To view online confirmation of this signature, please click <%=link_to "here", waiver_signature_url(@waiver_signature.waiver, @waiver_signature)%>.
+</p>
+
+<p>
+    Thank you for your participation!
+</p>

@@ -18,6 +18,7 @@ authorization do
 		has_permission_on :auth, to: [:index, :login, :logout, :forgot_password, :reset_password]
 		has_permission_on :covid, to: [:index]
 		has_permission_on :waivers, to: [:show, :sign_waiver]
+		has_permission_on :waiver_signatures, to: [:show]
 	end
 
 	role :user do
@@ -32,10 +33,6 @@ authorization do
 		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair, :missing_spirit_reports, :team_list, :reg_list]
 		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
 		has_permission_on :spirit_reports, to: [:index, :new, :create, :show, :edit, :update]
-
-		has_permission_on :waiver_signatures, to: [:show] do
-			if_attribute user_id: is { user._id }
-		end
 
 		has_permission_on :waivers, to: [:signatures] do
 			if_attribute admin_ids: contains { user._id }

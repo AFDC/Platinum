@@ -28,16 +28,16 @@
       <button type="submit" id="signButton" class="btn btn-success btn-large btn-block" disabled>Sign Waiver</button>
     <% else %>
       <div class="alert alert-warning" role="alert"><strong>You're not logged in.</strong> Please sign in to verify your identity.</div>
-      <% if false %>
-        <div class="form-group">
-          <label for="signerName">Your Name</label>
-        <input type="text" id="signerName" class="form-control" placeholder="Your Name">
+      <div class="form-group">
+        <label for="guestName">Your Name</label>
+        <input type="text" name="guestName" id="guestName" class="form-control" placeholder="Your Name">
       </div>
       <div class="form-group">
-        <label for="signerEmail">Email address</label>
-          <input type="email" class="form-control" id="signerEmail" placeholder="Email">
-        </div>
-      <% end %>
+        <label for="guestEmail">Email address</label>
+        <input type="email" name="guestEmail" class="form-control" id="guestEmail" placeholder="Email">
+      </div>
+
+      <button type="submit" id="verifyIdentity" class="btn btn-success btn-large btn-block">Verify your Email Address</button>
     <% end %>
   <% end %>
 <% end %>

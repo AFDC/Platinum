@@ -23,4 +23,8 @@ class Waiver
     def self.get_current
         Waiver.where(active: true, league_default: true).order_by(created_at: :desc).first
     end
+
+    def self.generate_confirmation_code
+        "%06d" % (SecureRandom.hex(8).to_i(16) % 999999)
+    end
 end

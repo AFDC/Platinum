@@ -41,6 +41,25 @@ class WaiversController < ApplicationController
     end
 
     def sign_waiver
+        if params[:waiver_signature_id].present?
+            sig = WaiverSignature.find(params[:waiver_signature_id])
+
+            if sig.nil?
+                redirect_to waiver_path(@waiver), flash: {notice: "Invalid waiver signature."} and return
+            end
+
+            if sig.confirmation_code == params[:confirmationCode]
+                sig.update(
+                    identity_verified: true, 
+                    identity_verification_timestamp: Time.now,
+                    identity_verification_method: "email"
+                )
+                redirect_to waiver_signature_path(@waiver, sig), flash: {notice: "Waiver signed successfully."} and return
+            else
+                redirect_to waiver_signature_path(@waiver, sig), flash: {error: "Invalid confirmation code."} and return
+            end
+        end
+
         @user = current_user
         if current_user
             if params[:agreeCheckbox] == "yes"
@@ -55,8 +74,22 @@ class WaiversController < ApplicationController
             end
         end
 
-        raise "User not logged in"
-        redirect_to home_path, flash: {notice: "Please log in to sign the waiver."}
+        if params[:guestName].present? && params[:guestEmail].present?
+            sig = WaiverSignature.new(
+                name: params[:guestName],
+                email: params[:guestEmail],
+                waiver: @waiver,
+                confirmation_code: Waiver.generate_confirmation_code
+            )
+            if sig.save
+                WaiverMailer.delay.confirm_identity(sig._id.to_s)
+                redirect_to waiver_signature_path(@waiver, sig), flash: {notice: "Waiver signed successfully."} and return
+            end
+            
+            redirect_to waiver_path(@waiver), flash: {notice: "There was an error."} and return
+        end
+        
+        redirect_to waiver_path(@waiver), flash: {notice: "Please enter your name and email address to sign the waiver."} and return
     end
 
     private

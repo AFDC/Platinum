@@ -8,7 +8,7 @@ class WaiverSignature
 
     # For non-user signatures
     field :email, type: String
-    field :email_confirmation, type: String
+    field :confirmation_code, type: String
     
     field :name, type: String
 

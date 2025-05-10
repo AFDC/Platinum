@@ -81,7 +81,7 @@
       - if flash[:notice]
         .alert.alert-info= flash[:notice]
       - if flash[:error]
-        .alert.alert-error= flash[:error]
+        .alert.alert-danger= flash[:error]
       - if current_user
         - regs_due = current_user.registrations.registering
         - if regs_due.count > 0
