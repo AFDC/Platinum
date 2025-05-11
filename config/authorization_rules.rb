@@ -30,7 +30,7 @@ authorization do
 		has_permission_on :registration_groups, to: [:index]
 		has_permission_on :registrations, to: [:create]
 		has_permission_on :payments, to: [:create, :pre_authorize]
-		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair, :missing_spirit_reports, :team_list, :reg_list]
+		has_permission_on :leagues, to: [:register, :registrations, :invite_pair, :leave_pair, :missing_spirit_reports, :team_list, :reg_list, :volunteer_to_pickup]
 		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
 		has_permission_on :spirit_reports, to: [:index, :new, :create, :show, :edit, :update]
 
@@ -64,7 +64,7 @@ authorization do
 			if_attribute commissioners: contains { user }
 		end
 
-		has_permission_on :leagues, :to => [:manage_roster, :finances, :players, :reg_list, :team_list, :cancel_registration, :promote_waitlisted_registration, :add_player_to_team, :update_invites, :edit, :update, :setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games, :rainout_games, :process_rainout, :upload_roster, :setup_roster_import, :import_roster] do
+		has_permission_on :leagues, :to => [:manage_roster, :finances, :players, :reg_list, :team_list, :cancel_registration, :promote_waitlisted_registration, :add_player_to_team, :update_invites, :edit, :update, :setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games, :rainout_games, :process_rainout, :upload_roster, :setup_roster_import, :import_roster, :pickup_list] do
 			if_permitted_to :manage
 		end
 
@@ -95,7 +95,7 @@ authorization do
 	end
 
 	role :'league-manager' do
-		has_permission_on :leagues, to: [:manage, :finances, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps]
+		has_permission_on :leagues, to: [:manage, :finances, :upload_roster, :setup_roster_import, :import_roster, :new, :create, :assign_comps, :pickup_list]
 
 		has_permission_on :comp_groups, :to => [:index, :show, :new, :create, :edit, :update]
 		has_permission_on :waivers, to: [:index, :new, :create, :edit, :update, :destroy, :signatures]

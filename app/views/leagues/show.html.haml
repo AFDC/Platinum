@@ -1,13 +1,18 @@
 - content_for :title, @league.name
 = render :partial => '/pageheader', :locals => {subtitle: 'League Details', breadcrumbs: {'Leagues' => leagues_path, @league.name => nil}}
 
-- if @league.registration_open_for?(current_user)
-    - unless @registration
-        .row
-            .span12
-                .alert.alert-info
-                    %strong Registration for #{@league.name} is now open:
-                    =link_to "Register Now!", register_league_path(@league), class: 'btn btn-warning btn-small'
+- if @league.registration_open_for?(current_user) and @registration.nil?
+    .row
+        .span12
+            .alert.alert-info
+                %strong Registration for #{@league.name} is now open:
+                =link_to "Register Now!", register_league_path(@league), class: 'btn btn-warning btn-small'
+- if @league.can_join_pickup_list?(current_user)
+    .row
+        .span12
+            .alert.alert-info
+                %strong Would you like to volunteer to pickup for #{@league.name}?:
+                =link_to "Volunteer to Pickup!", volunteer_to_pickup_league_path(@league), class: 'btn btn-warning btn-small'
 
 .row
     .span5

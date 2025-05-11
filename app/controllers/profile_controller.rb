@@ -30,9 +30,9 @@ class ProfileController < ApplicationController
       r.save
     end
 
-    if league_id = session[:post_grank_redirect]
+    if redirect_path = session[:post_grank_redirect]
       session.delete(:post_grank_redirect)
-      redirect_to register_league_path(league_id)
+      redirect_to redirect_path
     else
       redirect_to user_profile_path, notice: 'Your gRank has been updated successfully.'
     end

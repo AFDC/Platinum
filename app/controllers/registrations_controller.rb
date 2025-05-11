@@ -151,39 +151,12 @@ class RegistrationsController < ApplicationController
             @registration.waiver_acceptance_date = Time.now
         end
 
-        if @registration.league.require_grank?
-            @registration.g_rank_result = @registration.user.g_rank_results.first
-            @registration.g_rank = @registration.g_rank_result.score
-        end
+        @registration.populate_ranks_from_params(reg_params, permitted_to? :manage, @registration.league)
 
         @registration.availability = {
             'general' => reg_params[:gen_availability],
             'attend_tourney_eos' => (reg_params[:eos_availability] == '1')
         }
-        @registration.player_strength = reg_params[:player_strength]
-
-        if @registration.league.self_rank_type == "simple"
-            @registration.self_rank = reg_params[:self_rank]
-        end
-
-        if @registration.league.self_rank_type == "detailed"
-            dsr = {
-                "experience" => reg_params[:self_rank_experience],
-                "athleticism" => reg_params[:self_rank_athleticism],
-                "skills" => reg_params[:self_rank_skills]
-            }
-
-            # Ensure these are numbers or nil
-            dsr.keys.each do |k|
-                if (dsr[k] == "")
-                   dsr[k] = nil
-                end
-
-                dsr[k] = dsr[k].try(:to_i)
-            end
-
-            @registration.detailed_self_rank = dsr
-        end
 
         @registration.notes = reg_params[:notes]
         @registration.shirt_size = reg_params[:shirt_size]
@@ -193,9 +166,6 @@ class RegistrationsController < ApplicationController
             pc.request_pair(@registration.user, pair_user_id)
         end
 
-        if permitted_to? :manage, @registration.league
-            @registration.commish_rank = reg_params[:commish_rank]
-        end
     end
 
     def load_registration_from_params

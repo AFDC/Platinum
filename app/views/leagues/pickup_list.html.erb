@@ -1,0 +1,32 @@
+<% content_for :title, @league.name %>
+<%=render :partial => '/pageheader', :locals => {subtitle: 'Pickup Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Pickups' => nil}} %>
+
+<h1>Pickup Volunteers</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Actions</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Rank</th>
+            <th>Notes</th>
+            <th>Days</th>
+            <th>Last</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% @league.pickup_candidates.each do |pickup| %>
+            <tr>
+                <td>
+                    Invite
+                </td>
+                <td><%= link_to pickup.user.name, user_path(pickup.user) %></td>
+                <td><%= pickup.player_strength %></td>
+                <td><%= pickup.rank %></td>
+                <td><%= pickup.notes %></td>
+                <td><%= pickup.days_played %></td>
+                <td><%= pickup.last_played || 'never' %></td>
+            </tr>
+        <% end %>
+    </tbody>
+</table>

@@ -1,0 +1,14 @@
+<% if rankable_object.league.self_rank_type == "simple" %>
+    <%= f.select :self_rank, (1..9).map(&:to_f), prompt: 'Select a Rank' %>
+<% end %>
+
+<% if rankable_object.league.self_rank_type == "detailed" %>
+    <%= f.select :self_rank_experience, Registration.self_rank_options("experience"), prompt: 'Select a Rank', label: "Experience" %>
+    <%= f.select :self_rank_athleticism, Registration.self_rank_options("athleticism"), prompt: 'Select a Rank', label: "Athleticism" %>
+    <%= f.select :self_rank_skills, Registration.self_rank_options("skills"), prompt: 'Select a Rank', label: "Skills" %>
+    <% if permitted_to?(:manage, rankable_object.league) && rankable_object.persisted? %>
+        <%= f.text_field :commish_rank, label: 'League Rank' %>
+    <% end %>
+<% end %>
+
+<%= f.select :player_strength, [nil, 'Runner', 'Thrower', 'Both'] %>

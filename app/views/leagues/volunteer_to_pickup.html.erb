@@ -1,0 +1,47 @@
+<% content_for :title, @league.name %>
+<%=render :partial => '/pageheader', :locals => {subtitle: 'Pickup Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Volunteer to Pickup' => nil}} %>
+
+<div class="row">
+    <div class="span5">
+        <%=render :partial => '/league_summary', :locals => {league: @league} %>
+    </div>
+    <div class="span7">
+        <div class="hero-unit">
+            <h2>
+                <%= fa_icon 'info-sign' %>
+                How Pickups Work
+            </h2>
+            <p>
+                When a team finds themselves shorthanded, they work with the league
+                to find a pickup player to fill in for a day. Volunteer here to be notified 
+                if a pickup opportunity becomes available.
+            </p>
+        </div>
+        <div class="alert alert-warning alert-block">
+            <h4>Please note:</h4>
+            <p>
+                Leagues may charge a fee for pickup players and volunteering does not 
+                guarantee that you will be picked up.
+            </p>
+        </div>
+        <% if @puc.errors.any? %>
+            <div class="alert alert-error alert-block">
+                <h4>Please fix the following errors:</h4>
+                <ul>
+                    <% @puc.errors.full_messages.each do |message| %>
+                        <li><%= message %></li>
+                    <% end %>
+                </ul>
+            </div>
+        <% end %>
+        <%= bootstrap_form_for @puc, url: volunteer_to_pickup_league_path(@league), html: { class: 'form-horizontal' }, help: :block, method: :post do |f| %>
+            <%= render partial: '/rankable_fields', locals: {rankable_object: @puc, f: f} %>
+            <%= f.text_area :notes, rows: 5 %>
+            <div class="form-group">
+                <div class="controls">
+                    <%= f.submit 'Join the pickup list', class: 'btn btn-primary' %>
+                </div>
+            </div>
+        <% end %>
+    </div>
+</div>

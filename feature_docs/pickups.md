@@ -43,7 +43,23 @@
  - `PickupSlot` - a team/date combination indicating an available opening for a pickup player; can reserve for a specific user
 
 ### Tasks
- 1. Create `PickupCandidate` model
- 2. Ensure candidate contains all ranking info from a registration
- 3. Create mechanism for a user to add themsevles as a candidate
+ 1. ~~Create `PickupCandidate` model~~
+ 2. ~~Ensure candidate contains all ranking info from a registration~~
+ 3. ~~Create mechanism for a user to add themsevles as a candidate~~
  4. Create listing page for pickup candidates, visible to commissioners
+ 5. ~~Redirect if grank missing like registration does~~
+
+### Future Tasks
+ - [X] Update league show page to have better pickup CTA logic (currently will hide if registration is closed, for example)
+ - [ ] Update homepage to show pickup availability and CTA
+ - [ ] Update league summary to be relevant for pickup volunteering
+ - [ ] Figure out how to get grank in here
+ - [ ] Ensure a player can see their pickup status for a league
+
+ ### Tests
+  - Test both Registration and Pickups with:
+    - ~~GRank required and present~~
+    - ~~GRank required and missing~~
+    - ~~Self Rank~~
+    - ~~Detailed Self Rank~~
+    - ~~Commish Rank~~

@@ -25,12 +25,6 @@ class PlayerRegistrar
         !player.valid?
     end
 
-    def needs_grank_update?
-        return false if league.require_grank? == false
-        
-        player.g_rank_results.first.nil? || (player.g_rank_results.first.timestamp.end_of_day < @league.max_grank_age.months.ago)
-    end
-
     def initialize_registration!
         @registration ||= Registration.new(league: league, user: player)
 

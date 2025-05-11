@@ -1,9 +1,10 @@
 class Registration
     include Mongoid::Document
     include Mongoid::Timestamps
+    include Rankable
+
     field :paid, type: Boolean
     field :status
-    field :player_strength
     field :pre_authorization
     field :waitlist_timestamp, type: DateTime
     field :signup_timestamp, type: DateTime
@@ -12,10 +13,6 @@ class Registration
     field :gender
     field :availability, type: Hash
     field :team_style_pref, type: Hash
-    field :self_rank, type: Float
-    field :detailed_self_rank, type: Hash
-    field :commish_rank, type: Float
-    field :g_rank, type: Float
     field :shirt_size
     
     field :acceptance_expires_at, type: DateTime # DEPRECATED
@@ -33,12 +30,10 @@ class Registration
 
     field :pair_id, type: BSON::ObjectId
 
-    validates :commish_rank, :numericality => { integer_only: false, greater_than: 0, less_than: 10, allow_blank: true }
-    validate :has_valid_attendance_value, :has_valid_self_rank, :has_valid_primary_role, :has_signed_waiver
+    validate :has_valid_attendance_value, :has_signed_waiver
 
     belongs_to :user
     belongs_to :league
-    belongs_to :g_rank_result
     belongs_to :pair, class_name: "User"
     has_many :payment_transactions
     has_one :donation
@@ -66,67 +61,6 @@ class Registration
 
     def eos_availability
         availability['attend_tourney_eos'] if availability
-    end
-
-    def self.self_rank_options(type)
-        if type == "experience"
-            return [
-                ["0 - Most experience is pick-up. No knowledge of strategy", 0],
-                [1,1],
-                ["2 - League experience. Understands vertical stack and person defense", 2],
-                [3,3],
-                ["4 - College/Club ultimate experience. Solid understanding of a couple basic offensive and defensive strategies", 4],
-                [5,5],
-                ["6 - Advanced college/club experience. Strong understanding of multiple different offensive and defensive strategies", 6],
-                [7,7],
-                [8,8],
-                ["9 - Many years of elite college/club experience. Advanced understanding of a wide variety of offensive and defensive strategies", 9]
-            ]
-        end
-
-        if type == "athleticism"
-            return [
-                ["0 - Below average pickup player", 0],
-                [1, 1],
-                [2, 2],
-                ["3 - Average league athlete",3],
-                [4, 4],
-                [5, 5],
-                ["6 - Average club athlete", 6],
-                [7, 7],
-                [8, 8],
-                ["9 - Exceptional elite/collegiate athlete", 9]
-            ]
-        end        
-
-        if type == "skills"
-            return [
-                ["0 - At most can dump the disc and catch sometimes", 0],
-                [1, 1],
-                [2, 2],
-                [3, 3],
-                ["4 - Can consistently throw a forehand & backhand, hold a force, and fill at least one role in a zone defense", 4],
-                [5, 5],
-                [6, 6],
-                [7, 7],
-                [8, 8],
-                ["9 - Can consistently throw & complete any throw and excel at any position in any offense or defense", 9]
-            ]
-        end           
-
-        return (0..9)
-    end
-
-    def self_rank_experience
-        detailed_self_rank['experience'].try(:to_i) if detailed_self_rank
-    end
-
-    def self_rank_athleticism
-        detailed_self_rank['athleticism'].try(:to_i) if detailed_self_rank
-    end
-
-    def self_rank_skills
-        detailed_self_rank['skills'].try(:to_i) if detailed_self_rank
     end
 
     def ensure_price
@@ -249,24 +183,6 @@ class Registration
         return (status == 'registering') && (is_expired? == false)
     end
 
-    def rank
-        avg_detailed_rank = nil
-        if detailed_self_rank && detailed_self_rank.values.count > 0
-            avg_detailed_rank = (detailed_self_rank.values.map(&:to_i).sum.to_f / detailed_self_rank.values.count).round(1)
-        end
-        self.commish_rank || self.g_rank || self.self_rank || avg_detailed_rank
-    end
-
-    def core_rank
-        return nil unless self.rank
-        return nil unless self.league.core_options.type
-
-        constant = self.league.core_options["#{self.gender}_rank_constant"] || 0.0
-        coefficient = self.league.core_options["#{self.gender}_rank_coefficient"] || 1.0
-
-        (coefficient*self.rank)+constant
-    end
-
     def waiver_accepted
         !waiver_acceptance_date.nil?
     end
@@ -308,40 +224,6 @@ class Registration
         unless ['25%', '50%', '75%', '100%'].include?(gen_availability)
             errors.add(:gen_availability, "Please select an attendance percentage.")
         end
-    end
-
-    def has_valid_self_rank
-        validate_simple_self_rank if league.self_rank_type == "simple"
-        validate_detailed_self_rank if league.self_rank_type == "detailed"
-    end
-
-    def validate_simple_self_rank
-        max_rank = 9
-        max_rank = 6 if league.sport == 'goaltimate' && user.gender == 'female'
-
-        unless (1..max_rank).include?(self_rank)
-            errors.add(:self_rank, "Please select a rank between 1 and #{max_rank}")
-        end
-    end
-
-    def validate_detailed_self_rank
-        unless (0..9).include?(self_rank_experience)
-            errors.add(:self_rank_experience, "Please select a rank between 0 and 9")
-        end
-
-        unless (0..9).include?(self_rank_athleticism)
-            errors.add(:self_rank_athleticism, "Please select a rank between 0 and 9")
-        end
-
-        unless (0..9).include?(self_rank_skills)
-            errors.add(:self_rank_skills, "Please select a rank between 0 and 9")
-        end
-    end
-
-    def has_valid_primary_role
-        unless ['Runner', 'Thrower', 'Both'].include?(player_strength)
-            errors.add(:player_strength, "Please select a primary role.")
-        end        
     end
 
     def has_signed_waiver

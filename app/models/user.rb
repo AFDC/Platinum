@@ -23,6 +23,7 @@ class User
   field :confirmed_covid_vax, type: Boolean, default: false
   field :confirmed_covid_booster, type: Boolean, default: false
   field :permission_groups, type: Array, default: ['user']
+  field :minimum_rank, type: Integer
 
   field :password_digest
   field :remember_me_cookie
@@ -41,6 +42,7 @@ class User
   has_many :donations
   has_many :payment_transactions
   has_many :notification_methods
+  has_many :pickup_leagues, class_name: "PickupCandidate"
   has_and_belongs_to_many :teams, foreign_key: :teams
 
   validates :firstname, :presence => true
@@ -162,6 +164,12 @@ class User
     end
     return "#{name}#{pronoun_text}"
   end
+
+  def needs_grank_update_for_league?(league)
+    return false if league.require_grank? == false
+    
+    g_rank_results.first.nil? || (g_rank_results.first.timestamp.end_of_day < league.max_grank_age.months.ago)
+  end  
 
   def remember_me
     unless remember_me_cookie

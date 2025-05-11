@@ -50,6 +50,48 @@ class LeaguesController < ApplicationController
         end
     end
 
+    def pickup_list
+    end
+
+    def volunteer_to_pickup
+        if !@league.allow_pickups
+            redirect_to @league, notice: "Pickup list is not enabled for this league." and return
+        end
+
+        user_registration = @league.registration_for(current_user)
+        if user_registration.present? and user_registration.status == "active"
+            redirect_to @league, notice: "You're already registered for this league, you don't need to pickup." and return
+        end
+
+        if current_user.needs_grank_update_for_league?(@league)
+            session[:post_grank_redirect] = volunteer_to_pickup_league_path(@league)
+            redirect_to edit_g_rank_profile_path, notice: "Your gRank score is out of date, please complete the survey before signing up."
+            return
+        end
+
+        @puc = PickupCandidate.new(league: @league, user: current_user)
+
+        # Already-registered players don't need to fill anything else out
+        if user_registration.present?
+            @puc.copy_ranks_from(user_registration)
+            if @puc.save
+                redirect_to @league, notice: "You've volunteered to pickup for this league." and return
+            else
+                redirect_to @league, error: "There was an error volunteering to pickup for this league." and return
+            end
+        end
+
+        # if form submitted, save and redirect
+        if request.post?
+            @puc.populate_ranks_from_params(pickup_candidate_params, permitted_to?(:manage, @puc.league))
+            @puc.notes = pickup_candidate_params[:notes]
+
+            if @puc.valid? && @puc.save
+                redirect_to @league, notice: "You're on the pickup list for #{@league.name}." and return
+            end
+        end
+    end
+
     def cancel_registration
         respond_to do |format|
             format.json do
@@ -257,8 +299,8 @@ class LeaguesController < ApplicationController
             return
         end
 
-        if registrar.needs_grank_update?
-            session[:post_grank_redirect] = @league._id.to_s
+        if current_user.needs_grank_update_for_league?(@league)
+            session[:post_grank_redirect] = register_league_path(@league)
             redirect_to edit_g_rank_profile_path, notice: "Your gRank score is out of date, please complete the survey before registering."
             return
         end
@@ -1039,7 +1081,7 @@ class LeaguesController < ApplicationController
             :female_registration_open, :female_registration_close, :male_registration_open, :male_registration_close,
             :description, {commissioner_ids: []}, :male_limit, :female_limit,
             :max_grank_age, :allow_pairs, :covid_vax_required, :track_spirit_scores, :display_spirit_scores, :self_rank_type, :eos_tourney, :mst_tourney, :eos_champion_id, :mst_champion_id,
-            {core_options: [:type, :male_limit, :female_limit, :rank_limit, :male_rank_constant, :female_rank_constant]},
+            {core_options: [:type, :male_limit, :female_limit, :rank_limit, :male_rank_constant, :female_rank_constant]}, :allow_pickups,
             :solicit_donations, :donation_earmark, :donation_pitch
         ]
 
@@ -1049,5 +1091,9 @@ class LeaguesController < ApplicationController
         end
 
         params.require(:league).permit(*permitted_params)
+    end
+
+    def pickup_candidate_params
+        params.require(:pickup_candidate).permit(:player_strength, :self_rank, :self_rank_experience, :self_rank_athleticism, :self_rank_skills, :commish_rank, :notes)
     end
 end

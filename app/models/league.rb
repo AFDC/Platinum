@@ -36,6 +36,7 @@ class League
   field :covid_vax_required, type: Boolean, default: false
   embeds_one :core_options, class_name: 'LeagueCoreOptions'
   field :solicit_donations, type: Boolean, default: false
+  field :allow_pickups, type: Boolean, default: true
 
   field :donation_earmark, type: String, default: nil
   field :donation_pitch, type: String, default: nil
@@ -50,6 +51,7 @@ class League
   has_many :registrations
   has_many :registration_groups
   has_many :payment_transactions
+  has_many :pickup_candidates
   has_and_belongs_to_many :commissioners, class_name: "User", foreign_key: :commissioner_ids, inverse_of: nil
   has_and_belongs_to_many :comped_groups, class_name: "CompGroup", inverse_of: nil
   has_and_belongs_to_many :comped_players, class_name: "User", inverse_of: nil
@@ -114,6 +116,34 @@ class League
     return false if open_date.nil? || close_date.nil?
 
     open_time_on_date(open_date).past? && close_time_on_date(close_date).future?
+  end
+
+  def is_pickup_candidate?(user)
+    pickup_candidates.where(user: user).exists?
+  end
+
+  def can_join_pickup_list?(user)
+    return false unless allow_pickups
+
+    return false if user.nil?
+
+    # Pickup list closes after the league ends
+    return false if (end_date + 1.day) < Time.now
+
+    # Pickup list opens as soon as any registration opens
+    if registration_open > Time.now && male_registration_open > Time.now && female_registration_open > Time.now
+      return false
+    end
+
+    # User is already on the pickup list
+    return false if pickup_candidates.where(user: user).exists?
+
+    reg = registration_for(user)
+
+    # User is already in the league
+    return false if (reg.present? and reg.status == 'active')
+
+    return true
   end
 
   def started?

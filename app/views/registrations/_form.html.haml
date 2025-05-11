@@ -10,16 +10,7 @@
     .form-group
         .controls
             = f.check_box :eos_availability, value: 1, label: "Will attend end of season tourney"
-    - rank_max = 6 if (@registration.league.sport == 'goaltimate' && @registration.user.gender == 'female')
-    - if @registration.league.self_rank_type == "simple"
-        = f.select :self_rank, (1..(rank_max || 9)).map(&:to_f), prompt: 'Select a Rank'
-    - if @registration.league.self_rank_type == "detailed"
-        = f.select :self_rank_experience, Registration.self_rank_options("experience"), prompt: 'Select a Rank', label: "Experience"
-        = f.select :self_rank_athleticism, Registration.self_rank_options("athleticism"), prompt: 'Select a Rank', label: "Athleticism"
-        = f.select :self_rank_skills, Registration.self_rank_options("skills"), prompt: 'Select a Rank', label: "Skills"
-    - if permitted_to?(:manage, @registration.league) && @registration.persisted?
-        = f.text_field :commish_rank, label: 'League Rank'
-    = f.select :player_strength, [nil, 'Runner', 'Thrower', 'Both']
+    = render partial: '/rankable_fields', locals: {rankable_object: @registration, f: f}            
     - if @league.allow_pairs? && !@registration.linked?
         - received_invites = @registration.received_invitations.outstanding
         - if received_invites.count > 0
