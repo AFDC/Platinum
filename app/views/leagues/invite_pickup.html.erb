@@ -1,0 +1,55 @@
+<% content_for :title, @league.name %>
+<%=render :partial => '/pageheader', :locals => {
+    subtitle: 'Pickup Players', 
+    breadcrumbs: {
+        'Leagues' => leagues_path, 
+        @league.name => league_path(@league), 
+        'Manage Pickups' => pickup_list_league_path(@league),
+        'Invite Pickup' => nil
+    }
+} %>
+
+<h2>Invite <%= @pickup_candidate.user.name %></h2>
+
+<%= form_for @pickup_registration, url: invite_pickup_league_path(@league, pickup_candidate_id: @pickup_candidate._id), html: {class: 'form-horizontal'}, method: :post do |f| %>
+    <%= f.hidden_field :pickup_candidate_id, value: @pickup_candidate._id %>
+    <label class="control-label" for="pickup_registration_team_id">Team</label>
+    <div class="controls">
+        <%= f.select :team_id, @pickup_registration.league.teams.map{|t| ["#{t.name} (#{t.captains.map{|c| c.name}.join(', ')})", t._id]}, style: 'width: 100%', prompt: 'Select a team:' %>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="pickup_registration_assigned_date">Assigned Date</label>
+        <div class="controls">
+            <div class="input-append">
+                <% date_val = @pickup_registration&.assigned_date&.strftime('%Y-%m-%d') || @league.games.where(:game_time.gte => Time.now).order_by(game_time: 'asc')&.first&.game_time&.strftime('%Y-%m-%d') || Date.parse("saturday").strftime('%Y-%m-%d') %>
+                <%= f.text_field :assigned_date, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small', 'value' => date_val} %>
+                <span class="add-on">
+                    <i class="icon-calendar"></i>
+                </span>
+            </div>
+        </div>        
+    </div>
+    <div class="control-group">
+        <div class="controls">
+            <% if @league.comped?(@pickup_candidate.user) %>
+                User is comped at a league level
+            <% else %>
+                <label class="checkbox"><%= f.check_box :comped %> Comp Registration</label>
+            <% end %>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <%= f.submit "Invite #{@pickup_candidate.user.firstname}", class: 'btn btn-primary' %>
+    </div>
+<% end %>
+
+<% content_for :page_scripts do %>
+    <%= javascript_include_tag '/javascripts/bootstrap-date_picker.js' %>
+    <script>
+        $(function(){
+            $(".date-field").datepicker();
+        });
+    </script>
+<% end %>

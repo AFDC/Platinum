@@ -1,0 +1,29 @@
+<p><%=@pickup_registration.user.firstname%>,</p>
+
+<p>
+    You've been invited to join as a pickup for <b><%=@pickup_registration.league.name%></b>.
+</p>
+
+<h2>Details</h2>
+<ul>
+    <li><b>League:</b> <%=@league.name%> (<%=@league.sport%>)</li>
+    <li><b>Date:</b> <%=@pickup_registration.assigned_date.strftime("%A, %B %e, %Y")%></li>
+    <% if @first_game.present? %>
+        <li><b>Time:</b> <%=@first_game.start_time.strftime("%I:%M %p")%></li>
+        <li><b>Location:</b> <%=@first_game.field_site.name%></li>
+    <% else %>
+        <li><b>Time:</b> TBD</li>
+        <li><b>Location:</b> TBD</li>
+    <% end %>
+    <li><b>Team:</b> <%=@team.name%></li>
+    <li><b>Captains:</b> <%=@team.captains.map(&:name).join(", ")%></li>
+    <li><b>Price:</b> <%=number_to_currency(@league.pickup_price) || "Free!" %></li>
+</ul>
+
+<p>
+    To accept or decline this invitation, <%=link_to "click here", pickup_registration_league_url(@league, pickup_registration_id: @pickup_registration._id)%>. (Please do this as soon as possible.)
+</p>
+
+<p>
+    We look forward to seeing you on the field!
+</p>

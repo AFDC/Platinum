@@ -94,6 +94,16 @@
             %ul
               -regs_due.each do |reg|
                 %li #{link_to(reg.league.name, register_league_path(reg.league))} ($#{number_with_precision(reg.price, precision: 2)}) Expires in: <span class="countdown" data-expiration="#{reg.expires_at.to_i}" data-expire-message="Registration Expired.">#{distance_of_time_in_words_to_now(reg.expires_at)}</span>
+        - if !(params[:controller] == "leagues" && params[:action] == "pickup_registration")
+          - if PickupRegistration.where(user: current_user, status: "invited", assigned_date: {'$gte' => Date.today}).count > 0
+            .alert.alert-info
+              %h4 You've been invited to play as a pickup!
+              %p Please act now to claim your spot for the following leagues:
+              %ul
+                - PickupRegistration.where(user: current_user, status: "invited", assigned_date: {'$gte' => Date.today}).each do |reg|
+                  - link_text = "#{reg.league.name} on #{reg.assigned_date.strftime("%A, %B %e, %Y")}"
+                  %li #{link_to(link_text, pickup_registration_league_path(reg.league, pickup_registration_id: reg._id))}
+
     .container{style: "display: flex; height: 100%; flex-flow: column; flex-grow: 1"}
       = yield
       - if Rails.env.development?

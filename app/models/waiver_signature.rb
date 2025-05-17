@@ -4,6 +4,7 @@ class WaiverSignature
 
     belongs_to :waiver
     belongs_to :registration
+    belongs_to :pickup_registration
     belongs_to :user
 
     # For non-user signatures
@@ -21,17 +22,21 @@ class WaiverSignature
     validates :waiver, presence: true
     validates :email, presence: true, if: -> { user.blank? }
 
-    def self.create_from_registration!(registration)
-        waiver = Waiver.get_current
+    def self.create_from_registration!(registration, waiver=nil)
+        waiver = waiver || Waiver.get_current
         return if waiver.blank?
 
         signature = WaiverSignature.new_from_user(registration.user, waiver)
 
-        if registration.waiver_acceptance_date
-            signature.identity_verification_timestamp = registration.waiver_acceptance_date
-        end
+        if registration.is_a?(Registration)
+            if registration.waiver_acceptance_date
+                signature.identity_verification_timestamp = registration.waiver_acceptance_date
+            end
 
-        signature.registration = registration
+            signature.registration = registration
+        elsif registration.is_a?(PickupRegistration)
+            signature.pickup_registration = registration
+        end
 
         if signature.save!
             return signature

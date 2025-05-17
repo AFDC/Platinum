@@ -97,6 +97,15 @@
                     - if errors[:price_women].any?
                         %span.help-inline=errors[:price_women].first
 
+            .control-group{ class: ('error' if errors[:pickup_price].any?)}
+                %label.control-label Pickup Price (per day)
+                .controls
+                    .input-prepend
+                        %span.add-on $
+                        =f.text_field :pickup_price, class: 'input-small'
+                    - if errors[:pickup_price].any?
+                        %span.help-inline=errors[:pickup_price].first
+
             .control-group{ class: ('error' if errors[:description].any?)}
                 %label.control-label Description
                 .controls

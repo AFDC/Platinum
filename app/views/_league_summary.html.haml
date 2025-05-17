@@ -36,6 +36,10 @@
         .span2{style: 'font-weight: bold;'} Women's Price:
         .span3{style: 'text-transform: capitalize'}=number_to_currency(league.price_women)
 
+- if league.allow_pickups && league.pickup_price.present?
+    .row
+        .span2{style: 'font-weight: bold;'} Daily Pickup Price:
+        .span3{style: 'text-transform: capitalize'}=number_to_currency(league.pickup_price)
 
 .row
     .span2{style: 'font-weight: bold;'} Player Limits:

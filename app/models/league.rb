@@ -13,6 +13,7 @@ class League
   field :male_limit, type: Integer
   field :price, type: Integer
   field :price_women, type: Integer
+  field :pickup_price, type: Integer
   field :registration_open, type: Date, default: 2.weeks.from_now.to_date
   field :registration_close, type: Date, default: 4.weeks.from_now.to_date
 
@@ -52,6 +53,7 @@ class League
   has_many :registration_groups
   has_many :payment_transactions
   has_many :pickup_candidates
+  has_many :pickup_registrations
   has_and_belongs_to_many :commissioners, class_name: "User", foreign_key: :commissioner_ids, inverse_of: nil
   has_and_belongs_to_many :comped_groups, class_name: "CompGroup", inverse_of: nil
   has_and_belongs_to_many :comped_players, class_name: "User", inverse_of: nil

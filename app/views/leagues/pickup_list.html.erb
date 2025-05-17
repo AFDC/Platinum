@@ -1,7 +1,42 @@
 <% content_for :title, @league.name %>
 <%=render :partial => '/pageheader', :locals => {subtitle: 'Pickup Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Pickups' => nil}} %>
 
-<h1>Pickup Volunteers</h1>
+<h3>Upcoming Pickups</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Player</th>
+            <th>Team</th>
+            <th>Price</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% @league.pickup_registrations.where(assigned_date: {'$gte' => Date.today}).order_by(assigned_date: 'asc').each do |pickup| %>
+            <tr>
+                <td><%= pickup.assigned_date&.strftime('%B %d') %></td>
+                <td><%= link_to pickup.user.name, user_path(pickup.user) %></td>
+                <td><%= link_to pickup.team.name, team_path(pickup.team) %></td>
+                <td>
+                    <% if pickup.comped? %>
+                        Comped
+                    <% else %>
+                        <%= number_to_currency(pickup.price) %>
+                    <% end %>
+                </td>
+                <td>
+                    <% if pickup.status == 'accepted' %><span class="label label-success">Accepted</span><% end %>
+                    <% if pickup.status == 'invited' %><span class="label label-info">Invited</span><% end %>
+                    <% if pickup.status == 'canceled' %><span class="label label-danger">Canceled</span><% end %>
+                    <% if pickup.status == 'declined' %><span class="label label-danger">Declined</span><% end %>
+                </td>
+            </tr>
+        <% end %>
+    </tbody>
+</table>
+
+<h3>Pickup List</h3>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -15,18 +50,67 @@
         </tr>
     </thead>
     <tbody>
+        <% rows = 0 %>
         <% @league.pickup_candidates.each do |pickup| %>
+            <% rows += 1 %>
             <tr>
                 <td>
-                    Invite
+                    <%= link_to "Invite", invite_pickup_league_path(@league, pickup_candidate_id: pickup._id) %>
                 </td>
                 <td><%= link_to pickup.user.name, user_path(pickup.user) %></td>
                 <td><%= pickup.player_strength %></td>
                 <td><%= pickup.rank %></td>
                 <td><%= pickup.notes %></td>
                 <td><%= pickup.days_played %></td>
-                <td><%= pickup.last_played || 'never' %></td>
+                <td><%= pickup.last_played&.strftime('%B %d') || 'never' %></td>
             </tr>
+        <% end %>
+        <% if rows == 0 %>
+            <tr>
+                <td colspan="5"><div class="text-center">No upcoming pickups</div></td>
+            </tr>        
+        <% end %>        
+    </tbody>
+</table>
+
+<h3>Past Pickups</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Player</th>
+            <th>Team</th>
+            <th>Price</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% rows = 0 %>
+        <% @league.pickup_registrations.where(assigned_date: {'$lt' => Date.today}).order_by(assigned_date: 'asc').each do |pickup| %>
+            <% rows += 1 %>
+            <tr>
+                <td><%= pickup.assigned_date&.strftime('%B %d') %></td>
+                <td><%= link_to pickup.user.name, user_path(pickup.user) %></td>
+                <td><%= link_to pickup.team.name, team_path(pickup.team) %></td>
+                <td>
+                    <% if pickup.comped? %>
+                        Comped
+                    <% else %>
+                        <%= number_to_currency(pickup.price) %>
+                    <% end %>
+                </td>
+                <td>
+                    <% if pickup.status == 'accepted' %><span class="label label-success">Accepted</span><% end %>
+                    <% if pickup.status == 'invited' %><span class="label label-info">Invited</span><% end %>
+                    <% if pickup.status == 'canceled' %><span class="label label-danger">Canceled</span><% end %>
+                    <% if pickup.status == 'declined' %><span class="label label-danger">Declined</span><% end %>
+                </td>
+            </tr>
+        <% end %>
+        <% if rows == 0 %>
+            <tr>
+                <td colspan="5"><div class="text-center">No past pickups</div></td>
+            </tr>        
         <% end %>
     </tbody>
 </table>

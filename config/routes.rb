@@ -46,6 +46,11 @@ Platinum::Application.routes.draw do
       get 'volunteer_to_pickup'
       post 'volunteer_to_pickup'
       get 'pickup_list'
+      get 'invite_pickup'
+      post 'invite_pickup'
+      get 'pickup_registration'
+      post 'pickup_registration'
+      
       get 'players'
       get 'reg_list'
       get 'team_list'

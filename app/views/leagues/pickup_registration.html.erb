@@ -1,0 +1,117 @@
+<% content_for :title, @league.name %>
+<%=render :partial => '/pageheader', :locals => {subtitle: 'Pickup Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Pickup Registration' => nil}} %>
+
+<div class="row">
+    <div class="span5">
+        <%=render :partial => '/league_summary', :locals => {league: @league} %>
+    </div>
+    <div class="span7">
+        <div class="alert alert-warning alert-block">
+            <h4>Please note:</h4>
+            <p>
+                This applies only to the day and team specified, and is not an offer to play on any other day or team.
+            </p>
+        </div>
+
+<h2>Details</h2>
+        <%= form_for @pickup_registration, url: pickup_registration_league_path(@league), html: {class: 'form-horizontal'}, method: :post do |f| %>
+
+            <div class="control-group">
+                <label class="control-label"><strong>Pickup Date</strong></label>
+                <div class="controls">
+                    <span style="display: inline-block; padding: 5px;">
+                        <%=@pickup_registration.assigned_date.strftime("%A, %B %e, %Y")%>   
+                    </span>
+                </div>
+                <label class="control-label"><strong>Game Time</strong></label>
+                <div class="controls">
+                    <span style="display: inline-block; padding: 5px;">
+                        <%= @pickup_registration.games.first&.start_time&.strftime("%I:%M %p") || "TBD" %>   
+                    </span>
+                </div>
+
+                <label class="control-label"><strong>Location</strong></label>
+                <div class="controls">
+                    <span style="display: inline-block; padding: 5px;">
+                        <%= @pickup_registration.games.first&.field_site&.name || "TBD" %>   
+                    </span>
+                </div>
+
+                <label class="control-label"><strong>Team</strong></label>
+                <div class="controls">
+                    <span style="display: inline-block; padding: 5px;">
+                        <% if @pickup_registration.team.present? %>
+                            <%= link_to @pickup_registration.team.name, team_path(@pickup_registration.team) %>   
+                        <% else %>
+                            TBD
+                        <% end %>
+                    </span>
+                </div>
+
+                <label class="control-label"><strong>Captains</strong></label>
+                <div class="controls">
+                    <span style="display: inline-block; padding: 5px;">
+                        <% if @pickup_registration.team.present? %>
+                            <% @pickup_registration.team.captains.each do |captain| %>
+                                <%= link_to captain.name, user_path(captain) %><br />
+                            <% end %>
+                        <% else %>
+                            TBD
+                        <% end %>
+                    </span>
+                </div>
+
+                <label class="control-label"><strong>Price</strong></label>
+                <div class="controls">
+                    <span style="display: inline-block; padding: 5px;">
+                        <% if @league.pickup_price.present? && @pickup_registration.is_comped? == false %>
+                            <%= number_to_currency(@league.pickup_price) %>
+                        <% else %>
+                            Comped by the League
+                        <% end %>
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="answer">&nbsp;</label>
+                <div class="controls">
+                    <%= select_tag :status, options_for_select([['Accept', 'accepted'], ['Decline', 'declined']]), prompt: 'Accept Invite?' %>
+                </div>            
+            </div>
+            <div class="control-group">            
+                <div class="controls">
+                    <label class="checkbox">
+                        <%= check_box_tag :waiver_id, Waiver.get_current._id, false %>
+                            I have read, understand, and accept the AFDC's 
+                            <%= link_to "liability waiver", Waiver.get_current.url, target: '_blank' %> and 
+                            <%= link_to "refund policy".sub(' ', '&nbsp;').html_safe, 'http://www.afdc.com/refund-policy/' %>.
+                    </label>        
+                </div>
+            </div>
+            <div class="form-actions">
+                <%= hidden_field_tag :pickup_registration_id, @pickup_registration._id %>
+                <%= f.submit "Reply", id: 'reply_button',  disable_with: 'Submitting', disabled: true, class: "btn btn-primary" %>
+            </div>
+        <% end %>
+    </div>
+</div>
+
+<% content_for :page_scripts do %>  
+    <script>
+        $(function(){
+            // Enable the reply button when a status is selected and the waiver is checked
+            $('.form-horizontal').on('change', function(){
+                console.log('change');
+                if ($('#status').val() && $('#waiver_id').is(':checked')) {
+                    console.log('enabled');
+                    $('#reply_button').prop('disabled', false);
+                } else {
+                    console.log('disabled');
+                    $('#reply_button').prop('disabled', true);
+                }
+            });
+        });
+    </script>
+<% end %>

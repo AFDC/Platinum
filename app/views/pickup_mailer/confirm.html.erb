@@ -1,0 +1,25 @@
+<p>Greetings!</p>
+
+<p>
+    This is an email to confirm that <%=@pickup_registration.user.name%> has accepted the pickup invitation for <%=@pickup_registration.league.name%>.
+    Please review the details below. Copied on this email are the player, the team captains, and the league commissioners.
+</p>
+
+<h2>Details</h2>
+<ul>
+    <li><b>League:</b> <%=@pickup_registration.league.name%> (<%=@pickup_registration.league.sport%>)</li>
+    <li><b>Date:</b> <%=@pickup_registration.assigned_date.strftime("%A, %B %e, %Y")%></li>
+    <% if @pickup_registration.games.first.present? %>
+        <li><b>Time:</b> <%=@pickup_registration.games.first.start_time.strftime("%I:%M %p")%></li>
+        <li><b>Location:</b> <%=@pickup_registration.games.first.field_site.name%></li>
+    <% else %>
+        <li><b>Time:</b> TBD</li>
+        <li><b>Location:</b> TBD</li>
+    <% end %>
+    <li><b>Team:</b> <%=@pickup_registration.team.name%></li>
+    <li><b>Captains:</b> <%=@pickup_registration.team.captains.map(&:name).join(", ")%></li>
+</ul>
+
+<p>
+    We look forward to seeing you on the field!
+</p>

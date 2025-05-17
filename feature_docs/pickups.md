@@ -39,21 +39,28 @@
 
 ### Objects
  - `PickupCandidate` - an indication that a particular user is interested in picking up for a particular league
- - `PickupRegistration` - a candidate's confirmation that they are playing in a particular league, for a particular team, on a particular day
- - `PickupSlot` - a team/date combination indicating an available opening for a pickup player; can reserve for a specific user
+ - `PickupRegistration` - represents a player's slot in the league, starts in "invite" status until accepted/paid
 
 ### Tasks
  1. ~~Create `PickupCandidate` model~~
  2. ~~Ensure candidate contains all ranking info from a registration~~
  3. ~~Create mechanism for a user to add themsevles as a candidate~~
- 4. Create listing page for pickup candidates, visible to commissioners
+ 4. ~~Create listing page for pickup candidates, visible to commissioners~~
  5. ~~Redirect if grank missing like registration does~~
+ 6. ~~Invite A User page (creates a `PickupRegistration`)~~
+ 7. User acceptance
+  a. ~~User can decline~~
+  b. ~~Comped user can accept~~
+  c. Non-comped user can pay and accept
+ 8. Everybody is emailed to confirm
+ 9. Edit pickup invites
+ 
 
 ### Future Tasks
  - [X] Update league show page to have better pickup CTA logic (currently will hide if registration is closed, for example)
  - [ ] Update homepage to show pickup availability and CTA
  - [ ] Update league summary to be relevant for pickup volunteering
- - [ ] Figure out how to get grank in here
+ - [X] Figure out how to get grank in here
  - [ ] Ensure a player can see their pickup status for a league
 
  ### Tests

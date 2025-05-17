@@ -53,6 +53,78 @@ class LeaguesController < ApplicationController
     def pickup_list
     end
 
+    def invite_pickup
+        @pickup_candidate = PickupCandidate.find(params[:pickup_candidate_id])
+
+        if @pickup_candidate.nil? || @pickup_candidate.league != @league
+            redirect_to pickup_list_league_path(@league), notice: "Pickup candidate not found." and return
+        end
+
+        if request.post?
+            @pickup_registration = PickupRegistration.new(pickup_registration_invite_params)
+
+            if @league.pickup_registrations.where(user: @pickup_registration.user, :status.in => ["invited", "accepted"], assigned_date: @pickup_registration.assigned_date).count > 0
+                redirect_to pickup_list_league_path(@league), notice: "User is already invited to pickup on that date." and return
+            end
+            
+            @pickup_registration.status = "invited"
+            @pickup_registration.league = @league
+            @pickup_registration.pickup_candidate = @pickup_candidate
+            @pickup_registration.user = @pickup_candidate.user
+            @pickup_registration.price = @league.pickup_price
+
+            if @pickup_registration.save
+                PickupMailer.delay.invite(@pickup_registration._id.to_s)
+                redirect_to pickup_list_league_path(@league), notice: "Pickup registration created." and return
+            end
+        else
+            @pickup_registration = PickupRegistration.new(league: @league, pickup_candidate: @pickup_candidate, user: @pickup_candidate.user)
+        end        
+    end
+
+    def pickup_registration
+        @pickup_registration = PickupRegistration.find(params[:pickup_registration_id])
+        if @pickup_registration.nil? || 
+            @pickup_registration.user != current_user || 
+            @pickup_registration.status != "invited" || 
+            @pickup_registration.league != @league || 
+            @pickup_registration.assigned_date < Date.today
+            redirect_to league_path(@league), notice: "That invite does not exist, is expired, or is for a different league." and return
+        end
+
+        if request.post?
+            new_status = params[:status]
+
+            if new_status == "declined"
+                @pickup_registration.update_attribute(:status, "declined")
+                # TODO: Send decline email to commissioners
+                redirect_to home_path, notice: "Pickup registration declined." and return
+            end
+
+            waiver_id = params[:waiver_id]
+
+            if new_status != "accepted" || waiver_id.blank? || Waiver.find(waiver_id).nil?
+                raise "Invalid response or waiver not accepted."
+                redirect_to pickup_registration_league_path(@league, pickup_registration_id: @pickup_registration._id), flash: {error: "Invalid status or waiver not accepted."} and return
+            end
+            
+            signature = WaiverSignature.create_from_registration!(@pickup_registration, Waiver.find(waiver_id))
+
+            if !@pickup_registration.is_comped?
+                redirect_to home_path, flash: {error: "Payment not yet implemented."} and return
+            end
+            
+            @pickup_registration.status = new_status
+            
+            if !@pickup_registration.save!
+                redirect_to pickup_registration_league_path(@league, pickup_registration_id: @pickup_registration._id), flash: {error: "Error updating pickup registration."} and return
+            end
+
+            PickupMailer.delay.confirm(@pickup_registration._id.to_s)
+            redirect_to home_path, notice: "Pickup registration accepted."
+        end
+    end
+
     def volunteer_to_pickup
         if !@league.allow_pickups
             redirect_to @league, notice: "Pickup list is not enabled for this league." and return
@@ -1076,7 +1148,7 @@ class LeaguesController < ApplicationController
 
     def league_params
         permitted_params = [
-            :name, :age_division, :season, :sport, :price, :price_women, :pickup_registration,
+            :name, :age_division, :season, :sport, :price, :price_women, :pickup_price, :pickup_registration,
             :start_date, :end_date, :registration_open, :registration_close,
             :female_registration_open, :female_registration_close, :male_registration_open, :male_registration_close,
             :description, {commissioner_ids: []}, :male_limit, :female_limit,
@@ -1095,5 +1167,9 @@ class LeaguesController < ApplicationController
 
     def pickup_candidate_params
         params.require(:pickup_candidate).permit(:player_strength, :self_rank, :self_rank_experience, :self_rank_athleticism, :self_rank_skills, :commish_rank, :notes)
+    end
+
+    def pickup_registration_invite_params
+        params.require(:pickup_registration).permit(:pickup_candidate_id, :assigned_date, :comped, :team_id)
     end
 end

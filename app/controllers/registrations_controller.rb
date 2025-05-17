@@ -151,7 +151,7 @@ class RegistrationsController < ApplicationController
             @registration.waiver_acceptance_date = Time.now
         end
 
-        @registration.populate_ranks_from_params(reg_params, permitted_to? :manage, @registration.league)
+        @registration.populate_ranks_from_params(reg_params, permitted_to?(:manage, @registration.league))
 
         @registration.availability = {
             'general' => reg_params[:gen_availability],

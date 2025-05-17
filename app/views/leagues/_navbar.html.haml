@@ -56,6 +56,11 @@
                                 = link_to missing_spirit_reports_league_path do
                                     %i.icon-heart-empty
                                     Missing Spirit Reports
+                        - if permitted_to? :invite_pickup, @league
+                            %li
+                                = link_to pickup_list_league_path(@league) do
+                                    %i.icon-bullhorn
+                                    Manage Pickups
                         - if permitted_to? :finances, @league
                             %li
                                 = link_to finances_league_path(@league) do
