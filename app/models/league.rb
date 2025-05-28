@@ -127,14 +127,17 @@ class League
   def can_join_pickup_list?(user)
     return false unless allow_pickups
 
-    return false if user.nil?
-
     # Pickup list closes after the league ends
     return false if (end_date + 1.day) < Time.now
 
     # Pickup list opens as soon as any registration opens
     if registration_open > Time.now && male_registration_open > Time.now && female_registration_open > Time.now
       return false
+    end
+
+    # This allows the CTA to be shown for users who are not logged in
+    if user.nil? && registration_close < Time.now
+      return true
     end
 
     # User is already on the pickup list

@@ -9,7 +9,7 @@
                         =link_to l.name, l
                         - if l.registration_open_for?(current_user) && current_user_reg&.status != "waitlisted" && current_user_reg&.status != "active"
                             (#{link_to 'Register', register_league_path(l)})
-                        - elsif l.allow_pickups && current_user_reg&.status != "active" && (current_user.present? && l.pickup_candidates.where(user: current_user).count == 0)
+                        - elsif l.can_join_pickup_list?(current_user)
                             (#{link_to 'Join Pickup List', volunteer_to_pickup_league_path(l)})
 
         - if @your_teams.any?
