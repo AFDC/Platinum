@@ -1,0 +1,4 @@
+<% content_for :title, @pickup_registration.league.name %>
+<%= render :partial => '/pageheader', :locals => {subtitle: 'Pickup Registration', breadcrumbs: {'Leagues' => leagues_path, @pickup_registration.league.name => league_path(@pickup_registration.league), "Registration for #{@pickup_registration.user.name}" => nil}}%>
+
+<%= render partial: '/payments/league_checkout_form', locals: {registration: @pickup_registration, type: :pickup} %>

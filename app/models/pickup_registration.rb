@@ -30,6 +30,20 @@ class PickupRegistration
         league.games.where(date: self.assigned_date).order(start_time: 'asc')
     end
 
+    def price
+        league.pickup_price
+    end
+
+    def activate_and_notify
+        self.status = "accepted"
+        if !self.save!
+            return false
+        end
+
+        PickupMailer.delay.confirm(self._id.to_s)
+        return true
+    end
+
     private
 
     def ensure_price

@@ -50,6 +50,7 @@ Platinum::Application.routes.draw do
       post 'invite_pickup'
       get 'pickup_registration'
       post 'pickup_registration'
+      get 'pay_pickup'
       
       get 'players'
       get 'reg_list'

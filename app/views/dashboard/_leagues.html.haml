@@ -4,10 +4,13 @@
         - if @league_list.any?
             %ul{style: 'margin-bottom: 20px;'}
                 - @league_list.each do |l|
+                    - current_user_reg = l.registration_for(current_user)
                     %li{style: 'font-weight: bold'}
                         =link_to l.name, l
-                        - if l.registration_open_for?(current_user)
+                        - if l.registration_open_for?(current_user) && current_user_reg&.status != "waitlisted" && current_user_reg&.status != "active"
                             (#{link_to 'Register', register_league_path(l)})
+                        - elsif l.allow_pickups && current_user_reg&.status != "active"
+                            (#{link_to 'Join Pickup List', volunteer_to_pickup_league_path(l)})
 
         - if @your_teams.any?
             %h4 Your Teams

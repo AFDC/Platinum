@@ -111,18 +111,21 @@ class LeaguesController < ApplicationController
             signature = WaiverSignature.create_from_registration!(@pickup_registration, Waiver.find(waiver_id))
 
             if !@pickup_registration.is_comped?
-                redirect_to home_path, flash: {error: "Payment not yet implemented."} and return
+                redirect_to pay_pickup_league_path(@league, pickup_registration_id: @pickup_registration._id) and return
             end
             
-            @pickup_registration.status = new_status
-            
-            if !@pickup_registration.save!
+            if !@pickup_registration.activate_and_notify
                 redirect_to pickup_registration_league_path(@league, pickup_registration_id: @pickup_registration._id), flash: {error: "Error updating pickup registration."} and return
             end
 
-            PickupMailer.delay.confirm(@pickup_registration._id.to_s)
             redirect_to home_path, notice: "Pickup registration accepted."
         end
+    end
+
+    def pay_pickup
+        @pickup_registration = PickupRegistration.find(params[:pickup_registration_id])
+        @league = @pickup_registration.league
+        
     end
 
     def volunteer_to_pickup

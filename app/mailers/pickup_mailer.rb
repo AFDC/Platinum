@@ -25,4 +25,10 @@ class PickupMailer < ActionMailer::Base
 
         mail(to: recipients, subject: subject)
     end
+
+    def decline(pickup_registration_id)
+        @pickup_registration = PickupRegistration.find(pickup_registration_id)
+
+        mail(to: @pickup_registration.league.commissioners.map(&:email_address), subject: "[AFDC] Pickup Invitation Declined for #{@pickup_registration.user.name}")
+    end
 end
