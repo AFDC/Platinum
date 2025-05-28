@@ -144,6 +144,10 @@ class LeaguesController < ApplicationController
             return
         end
 
+        if @league.pickup_candidates.where(user: current_user).count > 0
+            redirect_to @league, notice: "You're already on the pickup list for this league." and return
+        end
+
         @puc = PickupCandidate.new(league: @league, user: current_user)
 
         # Already-registered players don't need to fill anything else out

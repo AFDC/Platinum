@@ -7,6 +7,7 @@
         <tr>
             <th>Date</th>
             <th>Player</th>
+            <th>Matchup</th>
             <th>Team</th>
             <th>Price</th>
             <th>Status</th>
@@ -17,6 +18,10 @@
             <tr>
                 <td><%= pickup.assigned_date&.strftime('%B %d') %></td>
                 <td><%= link_to pickup.user.name, user_path(pickup.user) %></td>
+                <td>
+                    <% short_matchup = {"male" => "MMP", "female" => "WMP"}[pickup.user.gender] %>
+                    <span class="label <%=pickup.user.gender%>"><%= short_matchup %></span>
+                </td>
                 <td><%= link_to pickup.team.name, team_path(pickup.team) %></td>
                 <td>
                     <% if pickup.comped? %>
@@ -42,6 +47,7 @@
         <tr>
             <th>Actions</th>
             <th>Name</th>
+            <th>Matchup</th>
             <th>Role</th>
             <th>Rank</th>
             <th>Notes</th>
@@ -58,6 +64,10 @@
                     <%= link_to "Invite", invite_pickup_league_path(@league, pickup_candidate_id: pickup._id) %>
                 </td>
                 <td><%= link_to pickup.user.name, user_path(pickup.user) %></td>
+                <td>
+                    <% short_matchup = {"male" => "MMP", "female" => "WMP"}[pickup.user.gender] %>
+                    <span class="label <%=pickup.user.gender%>"><%= short_matchup %></span>
+                </td>
                 <td><%= pickup.player_strength %></td>
                 <td><%= pickup.rank %></td>
                 <td><%= pickup.notes %></td>
@@ -67,7 +77,7 @@
         <% end %>
         <% if rows == 0 %>
             <tr>
-                <td colspan="5"><div class="text-center">No upcoming pickups</div></td>
+                <td colspan="8"><div class="text-center">No upcoming pickups</div></td>
             </tr>        
         <% end %>        
     </tbody>
@@ -79,6 +89,7 @@
         <tr>
             <th>Date</th>
             <th>Player</th>
+            <th>Matchup</th>
             <th>Team</th>
             <th>Price</th>
             <th>Status</th>
@@ -91,6 +102,10 @@
             <tr>
                 <td><%= pickup.assigned_date&.strftime('%B %d') %></td>
                 <td><%= link_to pickup.user.name, user_path(pickup.user) %></td>
+                <td>
+                    <% short_matchup = {"male" => "MMP", "female" => "WMP"}[pickup.user.gender] %>
+                    <span class="label <%=pickup.user.gender%>"><%= short_matchup %></span>
+                </td>
                 <td><%= link_to pickup.team.name, team_path(pickup.team) %></td>
                 <td>
                     <% if pickup.comped? %>
@@ -109,7 +124,7 @@
         <% end %>
         <% if rows == 0 %>
             <tr>
-                <td colspan="5"><div class="text-center">No past pickups</div></td>
+                <td colspan="6"><div class="text-center">No past pickups</div></td>
             </tr>        
         <% end %>
     </tbody>
