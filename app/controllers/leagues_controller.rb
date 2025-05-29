@@ -151,12 +151,14 @@ class LeaguesController < ApplicationController
         @puc = PickupCandidate.new(league: @league, user: current_user)
 
         # Already-registered players don't need to fill anything else out
-        if user_registration.present?
+        if user_registration.present? && user_registration.status != "expired"
             @puc.copy_ranks_from(user_registration)
-            if @puc.save
-                redirect_to @league, notice: "You've volunteered to pickup for this league." and return
-            else
-                redirect_to @league, error: "There was an error volunteering to pickup for this league." and return
+            if @puc.valid?
+                if @puc.save
+                    redirect_to @league, notice: "You've volunteered to pickup for this league." and return
+                else
+                    redirect_to @league, flash: {error: "There was an error volunteering to pickup for this league."} and return
+                end
             end
         end
 
