@@ -26,9 +26,12 @@
 				- @team.reporters.each do |r|
 					- cl << link_to("#{r.firstname} #{r.lastname}", r)
 				=raw(cl.join(', '))
-		- if permitted_to?(:edit, @team)
-			.edit{style: 'margin-top: 25px;'}
+		.edit{style: 'margin-top: 25px;'}				
+			- if permitted_to?(:edit, @team)
 				=link_to 'Edit Team', edit_team_path(@team), class: 'btn btn-primary'
+			- if permitted_to?(:show_attendance, @team)
+				= link_to "View Attendance", show_attendance_team_path(@team), class: 'btn btn-primary'
+
 %hr
 .row
 	.span8
@@ -139,6 +142,37 @@
 
 						%td= link_to "#{game.field_site.name} (#{game.field})", field_path(game.field_site)
 	.span4
+		%h3 Attendance
+		- if current_user && @team.players.include?(current_user)
+			- upcoming_dates = @team.games.where(:game_time.gte => Date.current).order_by(game_time: 1).limit(10).map { |g| g.game_time.to_date }.uniq.first(4)
+			- if upcoming_dates.any?
+				%table.table.table-condensed
+					%tbody
+						- upcoming_dates.each do |game_date|
+							- games_on_date = @team.games.where(:game_time.gte => game_date.beginning_of_day, :game_time.lt => game_date.end_of_day)
+							- existing_attendance = current_user.attendances.where(team: @team, game_date: game_date).first
+							%tr
+								%td
+									%strong= game_date.strftime("%a, %b %e")
+									%br
+									%small.muted
+										- if games_on_date.count == 1
+											vs #{games_on_date.first.opponent_for(@team).try(:name) || 'TBD'}
+										- else
+											#{games_on_date.count} games
+								%td{style: 'text-align: center;'}
+									- if existing_attendance
+										- if existing_attendance.attending?
+											%span.label.label-success Attending
+										- else
+											%span.label.label-important Not Attending
+									- else
+										%span.muted Not set
+								%td
+									= link_to "Update", team_attendance_path(@team, existing_attendance || 'new', game_date: game_date), class: 'btn btn-mini'
+			- else
+				%p.muted No upcoming games scheduled.
+
 		%h3 Roster
 		- if permitted_to? :view_roster, @team
 			%table.table.table-striped.table-condensed
@@ -174,36 +208,6 @@
 		- else
 			.alert.alert-info For privacy, league rosters are restricted to AFDC members only. Please log-in to view them.
 
-		%h3 Attendance
-		- if current_user && @team.players.include?(current_user)
-			%p Update your attendance for upcoming game dates:
-			- upcoming_dates = @team.games.where(:game_time.gte => Date.current).order_by(game_time: 1).limit(10).map { |g| g.game_time.to_date }.uniq.first(5)
-			- upcoming_dates.each do |game_date|
-				- games_on_date = @team.games.where(:game_time.gte => game_date.beginning_of_day, :game_time.lt => game_date.end_of_day)
-				- existing_attendance = current_user.attendances.where(team: @team, game_date: game_date).first
-				.row{style: 'margin-bottom: 10px;'}
-					.span3
-						%strong= game_date.strftime("%B %e, %Y")
-						%br
-						%small
-							- if games_on_date.count == 1
-								vs #{games_on_date.first.opponent_for(@team).try(:name) || 'TBD'}
-							- else
-								#{games_on_date.count} games
-					.span2
-						- if existing_attendance
-							- if existing_attendance.attending?
-								%span.label.label-success Attending
-							- else
-								%span.label.label-important Not Attending
-						- else
-							%span.muted Not set
-					.span2
-						= link_to "Update", team_attendance_path(@team, existing_attendance || 'new', game_date: game_date), class: 'btn btn-mini'
-					.span2
-						= link_to "View All", "#{show_attendance_team_path(@team)}#date-#{game_date.strftime('%Y-%m-%d')}", class: 'btn btn-mini btn-info'
-		- if permitted_to?(:show_attendance, @team)
-			= link_to "View Team Attendance", show_attendance_team_path(@team), class: 'btn btn-small btn-info'
 
 #score_reporter.modal.hide.fade
 	.modal-header
