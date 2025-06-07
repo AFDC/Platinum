@@ -96,6 +96,8 @@ Platinum::Application.routes.draw do
   resources :teams, except: [:new, :create] do
     member do
       get 'show_attendance'
+      get 'manage_attendance'
+      put 'update_attendance'
     end
     resources :attendances, only: [:show, :create, :update, :destroy]
   end

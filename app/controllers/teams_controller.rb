@@ -1,5 +1,5 @@
 class TeamsController < ApplicationController
-	before_filter :load_team_from_params, only: [:show, :edit, :update, :show_attendance]
+	before_filter :load_team_from_params, only: [:show, :edit, :update, :show_attendance, :manage_attendance, :update_attendance]
 	before_filter :load_league_from_params, only: [:new, :create]
 	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
@@ -34,6 +34,43 @@ class TeamsController < ApplicationController
 	def show_attendance
 		@attendances = Attendance.where(team: @team).desc(:game_date)
 		@attendance_by_date = @attendances.group_by(&:game_date)
+	end
+
+	def manage_attendance
+		@game_date = Date.parse(params[:game_date]) if params[:game_date]
+		redirect_to team_path(@team), alert: "Game date is required." unless @game_date
+		
+		@attendances = Attendance.where(team: @team, game_date: @game_date)
+		@attendance_by_user = {}
+		@attendances.each { |att| @attendance_by_user[att.user_id] = att }
+		
+		@players = @team.players.sort_by { |p| [p.gender, p.name] }
+	end
+
+	def update_attendance
+		@game_date = Date.parse(params[:game_date]) if params[:game_date]
+		redirect_to team_path(@team), alert: "Game date is required." unless @game_date
+		
+		if params[:attendance]
+			params[:attendance].each do |user_id, attendance_data|
+				next if attendance_data[:attending].blank?
+				
+				user = User.find(user_id)
+				attendance = Attendance.find_or_initialize_by(
+					team: @team,
+					user: user,
+					game_date: @game_date
+				)
+				
+				attendance.attending = attendance_data[:attending] == 'true'
+				attendance.notes = attendance_data[:notes]
+				attendance.updated_by = current_user
+				attendance.save
+			end
+		end
+		
+		redirect_to show_attendance_team_path(@team, anchor: "date-#{@game_date.strftime('%Y-%m-%d')}"), 
+					notice: "Attendance updated successfully."
 	end
 
 	private

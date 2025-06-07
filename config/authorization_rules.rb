@@ -57,7 +57,7 @@ authorization do
 		end
 
 		# User assignments (league commissioner, team captain, etc...)
-		has_permission_on :teams, :to => [:edit, :update, :report_score, :modify_name, :report_spirit_score, :show_attendance] do
+		has_permission_on :teams, :to => [:edit, :update, :report_score, :modify_name, :report_spirit_score, :show_attendance, :manage_attendance, :update_attendance] do
 			if_attribute :captains => contains { user }
 		end
 
@@ -84,7 +84,7 @@ authorization do
 		end
 
 		# League Manager Permissions -- this applies to both universal league managers and also comissioners of individual leagues
-		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score, :show_attendance] do
+		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score, :show_attendance, :manage_attendance, :update_attendance] do
 			if_permitted_to :manage, :league
 		end
 
@@ -116,7 +116,7 @@ authorization do
 		has_permission_on :comp_groups, :to => [:index, :show, :new, :create, :edit, :update]
 		has_permission_on :waivers, to: [:index, :new, :create, :edit, :update, :destroy, :signatures]
 		has_permission_on :waiver_signatures, to: [:show]
-		has_permission_on :teams, to: [:show_attendance]
+		has_permission_on :teams, to: [:show_attendance, :manage_attendance, :update_attendance]
 		has_permission_on :leagues, to: [:show_attendance]
 	end
 
@@ -133,7 +133,7 @@ authorization do
 		includes :'spirit-manager'
 		includes :'covid-admin'
 
-		has_permission_on :teams, to: [:show_attendance]
+		has_permission_on :teams, to: [:show_attendance, :manage_attendance, :update_attendance]
 		has_permission_on :leagues, to: [:show_attendance]
 		has_permission_on :invitations, to: [:index]
 

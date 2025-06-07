@@ -1,0 +1,68 @@
+- content_for :title, "Manage Team Attendance"
+= render partial: '/pageheader', locals: {subtitle: "Manage Attendance for #{@game_date.strftime('%A, %B %e, %Y')}", breadcrumbs: {@team.league.name => league_path(@team.league), @team.name => team_path(@team), 'Team Attendance' => show_attendance_team_path(@team)}}
+
+.row
+  .span12
+    %h3= "#{@team.name} - #{@game_date.strftime('%A, %B %e, %Y')}"
+    
+    - games_on_date = @team.games.where(:game_time.gte => @game_date.beginning_of_day, :game_time.lt => @game_date.end_of_day)
+    - if games_on_date.any?
+      %p
+        %strong Games: 
+        - games_on_date.each_with_index do |game, index|
+          - opponent = game.opponent_for(@team)
+          = "vs #{opponent.try(:name) || 'TBD'}"
+          = " at #{game.game_time.strftime('%l:%M %P')}"
+          - unless index == games_on_date.count - 1
+            = ", "
+
+    = form_tag update_attendance_team_path(@team), method: :put, class: 'form-horizontal' do
+      = hidden_field_tag :game_date, @game_date
+      
+      .well.well-small
+        %p 
+          %strong Instructions: 
+          For each player, select their attendance status. Leave blank if no change is needed.
+      
+      - %w(male female).each do |gender|
+        - gender_players = @players.select { |p| p.gender == gender }
+        - next if gender_players.empty?
+        
+        %h4= "#{User::gender_noun(gender).capitalize} Players"
+        
+        %table.table.table-striped.table-condensed
+          %thead
+            %tr
+              %th Player
+              %th Current Status
+              %th New Status
+              %th Notes
+          %tbody
+            - gender_players.each do |player|
+              - existing_attendance = @attendance_by_user[player._id]
+              %tr
+                %td
+                  = image_tag player.avatar.url(:thumbnail), class: 'img-polaroid', style: 'width: 24px; height: 24px; margin-right: 8px;'
+                  = link_to player.name, player
+                %td
+                  - if existing_attendance
+                    - if existing_attendance.attending?
+                      %span.label.label-success Attending
+                    - else
+                      %span.label.label-important Not Attending
+                  - else
+                    %span.muted No Response
+                %td
+                  = select_tag "attendance[#{player._id}][attending]", 
+                    options_for_select([['No Change', ''], ['Attending', 'true'], ['Not Attending', 'false']], 
+                    existing_attendance.try(:attending)), 
+                    { class: 'span2' }
+                %td
+                  = text_field_tag "attendance[#{player._id}][notes]", 
+                    existing_attendance.try(:notes), 
+                    { class: 'span3', placeholder: 'Optional notes...' }
+        %hr
+      
+      .form-actions
+        = submit_tag "Update All Attendance", class: 'btn btn-primary'
+        = link_to "Cancel", show_attendance_team_path(@team, anchor: "date-#{@game_date.strftime('%Y-%m-%d')}"), class: 'btn'

@@ -7,7 +7,13 @@
   .span12
     - if upcoming_dates.any?
       - upcoming_dates.each do |game_date|
-        %h2{id: "date-#{game_date.strftime('%Y-%m-%d')}"}= game_date.strftime("%A, %B %e, %Y")
+        %h2{id: "date-#{game_date.strftime('%Y-%m-%d')}"}
+          = game_date.strftime("%A, %B %e, %Y")
+          - if permitted_to?(:manage_attendance, @team)
+            %small{style: 'margin-left: 15px;'}
+              = link_to manage_attendance_team_path(@team, game_date: game_date), title: 'Edit attendance for this date' do
+                %i.icon-pencil{style: 'margin-left: 3px;'}
+                Bulk-Update
         
         - team_attendances = @attendances.where(game_date: game_date)
         - team_pickups = PickupRegistration.where(team: @team, assigned_date: game_date, status: 'accepted')
@@ -101,7 +107,13 @@
     
     - if historical_dates.any?
       - historical_dates.each do |game_date|
-        %h2{id: "date-#{game_date.strftime('%Y-%m-%d')}"}= game_date.strftime("%A, %B %e, %Y")
+        %h2{id: "date-#{game_date.strftime('%Y-%m-%d')}"}
+          = game_date.strftime("%A, %B %e, %Y")
+          - if permitted_to?(:manage_attendance, @team)
+            %small{style: 'margin-left: 15px;'}
+              = link_to manage_attendance_team_path(@team, game_date: game_date), title: 'Edit attendance for this date' do
+                %i.icon-pencil{style: 'margin-left: 3px;'}
+                Bulk-Update
         
         - team_attendances = @attendances.where(game_date: game_date)
         - team_pickups = PickupRegistration.where(team: @team, assigned_date: game_date, status: 'accepted')
