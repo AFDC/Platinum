@@ -1,0 +1,59 @@
+- content_for :title, "Update Attendance"
+= render partial: '/pageheader', locals: {subtitle: 'Update Attendance', breadcrumbs: {@team.league.name => league_path(@team.league), @team.name => team_path(@team)}}
+
+- if @attendance.errors.any?
+  - errors = @attendance.errors
+  .alert.alert-error
+    The attendance could not be saved
+    %ul
+      - @attendance.errors.full_messages.each do |message|
+        %li= message
+- else
+  - errors = Hash.new([])
+
+- games_on_date = @team.games.where(:game_time.gte => @attendance.game_date.beginning_of_day, :game_time.lt => @attendance.game_date.end_of_day).order_by(game_time: 1)
+
+.row
+  .span8.offset2
+    %h1= @attendance.game_date.strftime("%A, %B %e, %Y")
+    
+    - if games_on_date.any?
+      %h3 Game Details
+      - games_on_date.each do |game|
+        .well
+          %strong= game.game_time.strftime("%l:%M %P")
+          at #{link_to "#{game.field_site.name} (#{game.field})", field_path(game.field_site)}
+          %br
+          vs 
+          %strong= game.opponent_for(@team).try(:name) || 'TBD'
+    
+    %p Please update your attendance status for this game date.
+
+= form_for [@team, @attendance], html: {class: 'form form-horizontal'} do |f|
+  = f.hidden_field :game_date
+
+  .row
+    .span8.offset2
+      .control-group{class: ('error' if errors[:attending].any?)}
+        %label.control-label Will you be attending?
+        .controls
+          %label.radio
+            = f.radio_button :attending, true
+            %strong Yes, I will be attending
+          %label.radio
+            = f.radio_button :attending, false
+            %strong No, I will not be attending
+          - if errors[:attending].any?
+            %span.help-inline= errors[:attending].first
+
+      .control-group{class: ('error' if errors[:notes].any?)}
+        %label.control-label Notes (optional)
+        .controls
+          = f.text_area :notes, style: 'width: 100%', rows: 3, placeholder: 'Any additional notes about your attendance...'
+          %span.help-block Let your team know if you might be late, have an injury, etc.
+          - if errors[:notes].any?
+            %span.help-inline= errors[:notes].first
+
+      .form-actions
+        = f.submit "Update Attendance", class: 'btn btn-primary'
+        = link_to "Cancel", team_path(@team), class: 'btn'

@@ -44,6 +44,7 @@ class User
   has_many :notification_methods
   has_many :pickup_leagues, class_name: "PickupCandidate"
   has_many :waiver_signatures
+  has_many :attendances
   has_and_belongs_to_many :teams, foreign_key: :teams
 
   validates :firstname, :presence => true

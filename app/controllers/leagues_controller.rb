@@ -1138,6 +1138,12 @@ class LeaguesController < ApplicationController
         end
     end
 
+    def show_attendance
+        @teams = @league.teams
+        @attendances = Attendance.where(:team.in => @teams.map(&:_id)).desc(:game_date)
+        @attendance_by_team_and_date = @attendances.group_by(&:team).transform_values { |atts| atts.group_by(&:game_date) }
+    end
+
     def finances
     end
 

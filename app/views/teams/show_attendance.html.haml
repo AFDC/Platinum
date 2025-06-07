@@ -1,0 +1,192 @@
+- content_for :title, "Team Attendance"
+= render partial: '/pageheader', locals: {subtitle: @team.name, breadcrumbs: {@team.league.name => league_path(@team.league), @team.name => team_path(@team)}}
+
+- upcoming_dates = @team.games.where(:game_time.gte => Date.current).order_by(game_time: 1).limit(10).map { |g| g.game_time.to_date }.uniq.first(5)
+
+.row
+  .span12
+    - if upcoming_dates.any?
+      - upcoming_dates.each do |game_date|
+        %h2{id: "date-#{game_date.strftime('%Y-%m-%d')}"}= game_date.strftime("%A, %B %e, %Y")
+        
+        - team_attendances = @attendances.where(game_date: game_date)
+        - team_pickups = PickupRegistration.where(team: @team, assigned_date: game_date, status: 'accepted')
+        
+        - %w(male female).each do |gender|
+          - gender_players = []
+          - @team.players.each do |player|
+            - if player.gender == gender
+              - gender_players << player
+          
+          - gender_pickups = []
+          - team_pickups.each do |pickup|
+            - if pickup.user.gender == gender
+              - gender_pickups << pickup
+          
+          - next if gender_players.empty? && gender_pickups.empty?
+          
+          %h4= "#{User::gender_noun(gender).capitalize} Players"
+          
+          - attending_list = []
+          - not_attending_list = []
+          - responded_user_ids = []
+          
+          - team_attendances.each do |attendance|
+            - if attendance.user.gender == gender
+              - responded_user_ids << attendance.user_id
+              - if attendance.attending?
+                - attending_list << attendance
+              - else
+                - not_attending_list << attendance
+          
+          - no_response_players = []
+          - gender_players.each do |player|
+            - unless responded_user_ids.include?(player._id)
+              - no_response_players << player
+          
+          .row
+            .span4
+              %h5 Attending (#{attending_list.count + gender_pickups.count})
+              - if attending_list.any?
+                %ul.unstyled
+                  - attending_list.each do |attendance|
+                    %li
+                      = link_to attendance.user.name, attendance.user
+                      - if attendance.notes.present?
+                        %br
+                        %small.muted= attendance.notes
+              - if gender_pickups.any?
+                - if attending_list.any?
+                  %hr{style: 'margin: 10px 0;'}
+                %ul.unstyled
+                  - gender_pickups.each do |pickup|
+                    %li
+                      %i.icon-plus{style: 'color: #5bc0de; font-size: 14px; margin-right: 5px;'}
+                      = link_to pickup.user.name, pickup.user
+                      %small.muted (pickup)
+              - if attending_list.empty? && gender_pickups.empty?
+                %p.muted No players attending yet.
+                
+            .span4
+              %h5 Not Attending (#{not_attending_list.count})
+              - if not_attending_list.any?
+                %ul.unstyled
+                  - not_attending_list.each do |attendance|
+                    %li
+                      = link_to attendance.user.name, attendance.user
+                      - if attendance.notes.present?
+                        %br
+                        %small.muted= attendance.notes
+              - else
+                %p.muted No players marked as not attending.
+                
+            .span4
+              %h5 No Response (#{no_response_players.count})
+              - if no_response_players.any?
+                %ul.unstyled
+                  - no_response_players.each do |player|
+                    %li
+                      = link_to player.name, player
+              - else
+                %p.muted All players have responded.
+        %hr
+    - else
+      .alert.alert-info
+        No upcoming games scheduled for this team.
+
+    %hr
+    %h1 Historical Attendance
+    
+    - historical_dates = @team.games.where(:game_time.lt => Date.current).order_by(game_time: -1).map { |g| g.game_time.to_date }.uniq
+    
+    - if historical_dates.any?
+      - historical_dates.each do |game_date|
+        %h2{id: "date-#{game_date.strftime('%Y-%m-%d')}"}= game_date.strftime("%A, %B %e, %Y")
+        
+        - team_attendances = @attendances.where(game_date: game_date)
+        - team_pickups = PickupRegistration.where(team: @team, assigned_date: game_date, status: 'accepted')
+        
+        - %w(male female).each do |gender|
+          - gender_players = []
+          - @team.players.each do |player|
+            - if player.gender == gender
+              - gender_players << player
+          
+          - gender_pickups = []
+          - team_pickups.each do |pickup|
+            - if pickup.user.gender == gender
+              - gender_pickups << pickup
+          
+          - next if gender_players.empty? && gender_pickups.empty?
+          
+          %h4= "#{User::gender_noun(gender).capitalize} Players"
+          
+          - attending_list = []
+          - not_attending_list = []
+          - responded_user_ids = []
+          
+          - team_attendances.each do |attendance|
+            - if attendance.user.gender == gender
+              - responded_user_ids << attendance.user_id
+              - if attendance.attending?
+                - attending_list << attendance
+              - else
+                - not_attending_list << attendance
+          
+          - no_response_players = []
+          - gender_players.each do |player|
+            - unless responded_user_ids.include?(player._id)
+              - no_response_players << player
+          
+          .row
+            .span4
+              %h5 Attended (#{attending_list.count + gender_pickups.count})
+              - if attending_list.any?
+                %ul.unstyled
+                  - attending_list.each do |attendance|
+                    %li
+                      = link_to attendance.user.name, attendance.user
+                      - if attendance.notes.present?
+                        %br
+                        %small.muted= attendance.notes
+              - if gender_pickups.any?
+                - if attending_list.any?
+                  %hr{style: 'margin: 10px 0;'}
+                %ul.unstyled
+                  - gender_pickups.each do |pickup|
+                    %li
+                      %i.icon-plus{style: 'color: #5bc0de; font-size: 14px; margin-right: 5px;'}
+                      = link_to pickup.user.name, pickup.user
+                      %small.muted (pickup)
+              - if attending_list.empty? && gender_pickups.empty?
+                %p.muted No players attended.
+                
+            .span4
+              %h5 Did Not Attend (#{not_attending_list.count})
+              - if not_attending_list.any?
+                %ul.unstyled
+                  - not_attending_list.each do |attendance|
+                    %li
+                      = link_to attendance.user.name, attendance.user
+                      - if attendance.notes.present?
+                        %br
+                        %small.muted= attendance.notes
+              - else
+                %p.muted No players marked as not attending.
+                
+            .span4
+              %h5 No Response (#{no_response_players.count})
+              - if no_response_players.any?
+                %ul.unstyled
+                  - no_response_players.each do |player|
+                    %li
+                      = link_to player.name, player
+              - else
+                %p.muted All players responded.
+        %hr
+    - else
+      .alert.alert-info
+        No historical games available for this team.
+
+    %p
+      = link_to "Back to Team", team_path(@team), class: 'btn'

@@ -78,6 +78,7 @@ Platinum::Application.routes.draw do
       get 'leave_pair'
 
       get 'missing_spirit_reports'
+      get 'show_attendance'
 
       get 'finances'
     end
@@ -92,7 +93,12 @@ Platinum::Application.routes.draw do
     end
   end
 
-  resources :teams, except: [:new, :create]
+  resources :teams, except: [:new, :create] do
+    member do
+      get 'show_attendance'
+    end
+    resources :attendances, only: [:show, :create, :update, :destroy]
+  end
 
 
   resources :games do

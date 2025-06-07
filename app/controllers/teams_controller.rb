@@ -1,5 +1,5 @@
 class TeamsController < ApplicationController
-	before_filter :load_team_from_params, only: [:show, :edit, :update]
+	before_filter :load_team_from_params, only: [:show, :edit, :update, :show_attendance]
 	before_filter :load_league_from_params, only: [:new, :create]
 	filter_access_to [:edit_avatar, :update_avatar, :destroy_avatar], :attribute_check => true
 
@@ -29,6 +29,11 @@ class TeamsController < ApplicationController
 	def update
 		@team.update_attributes(team_params)
 		redirect_to team_path(@team), notice: 'Team Updated!'
+	end
+
+	def show_attendance
+		@attendances = Attendance.where(team: @team).desc(:game_date)
+		@attendance_by_date = @attendances.group_by(&:game_date)
 	end
 
 	private

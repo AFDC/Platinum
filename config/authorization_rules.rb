@@ -35,6 +35,9 @@ authorization do
 			:volunteer_to_pickup, :pickup_registration, :pay_pickup]
 		has_permission_on :profile, to: [:index, :edit_g_rank, :update_g_rank]
 		has_permission_on :spirit_reports, to: [:index, :new, :create, :show, :edit, :update]
+		has_permission_on :attendances, to: [:show, :create, :update] do
+			if_attribute user_id: is { user._id }
+		end
 
 		has_permission_on :waivers, to: [:signatures] do
 			if_attribute admin_ids: contains { user._id }
@@ -54,9 +57,10 @@ authorization do
 		end
 
 		# User assignments (league commissioner, team captain, etc...)
-		has_permission_on :teams, :to => [:edit, :update, :report_score, :modify_name, :report_spirit_score] do
+		has_permission_on :teams, :to => [:edit, :update, :report_score, :modify_name, :report_spirit_score, :show_attendance] do
 			if_attribute :captains => contains { user }
 		end
+
 
 		has_permission_on :teams, :to => [:report_score] do
 			if_attribute :reporters => contains { user }
@@ -80,8 +84,12 @@ authorization do
 		end
 
 		# League Manager Permissions -- this applies to both universal league managers and also comissioners of individual leagues
-		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score] do
+		has_permission_on :teams, to: [:new, :create, :edit, :update, :modify_name, :modify_captains, :report_score, :show_attendance] do
 			if_permitted_to :manage, :league
+		end
+
+		has_permission_on :leagues, to: [:show_attendance] do
+			if_permitted_to :manage
 		end
 
 		has_permission_on :registration_groups, to: [:new, :create, :edit, :update, :add_to_team, :invite_players] do
@@ -95,6 +103,7 @@ authorization do
 		has_permission_on :games, to: [:edit_score, :update_score] do
 			if_permitted_to :manage, :league
 		end
+
 	end
 
 	role :'roster-manager' do
@@ -107,6 +116,8 @@ authorization do
 		has_permission_on :comp_groups, :to => [:index, :show, :new, :create, :edit, :update]
 		has_permission_on :waivers, to: [:index, :new, :create, :edit, :update, :destroy, :signatures]
 		has_permission_on :waiver_signatures, to: [:show]
+		has_permission_on :teams, to: [:show_attendance]
+		has_permission_on :leagues, to: [:show_attendance]
 	end
 
 	role :'spirit-manager' do 
@@ -122,6 +133,8 @@ authorization do
 		includes :'spirit-manager'
 		includes :'covid-admin'
 
+		has_permission_on :teams, to: [:show_attendance]
+		has_permission_on :leagues, to: [:show_attendance]
 		has_permission_on :invitations, to: [:index]
 
 		has_permission_on :invitations, to: [:show, :accept, :decline] do

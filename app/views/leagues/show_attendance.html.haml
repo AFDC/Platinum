@@ -1,0 +1,213 @@
+- content_for :title, "League Attendance"
+= render partial: '/pageheader', locals: {subtitle: 'League Attendance Summary', breadcrumbs: {@league.name => league_path(@league)}}
+
+- upcoming_dates = @league.games.where(:game_time.gte => Date.current).order_by(game_time: 1).map { |g| g.game_time.to_date }.uniq
+
+.row
+  .span12
+    %h1 Upcoming Game Attendance Summary
+    
+    .well.well-small
+      %strong Legend: 
+      %i.icon-user{style: 'color: #5cb85c; font-size: 16px; margin-right: 5px;'}
+      Attending
+      %i.icon-user{style: 'color: #d9534f; font-size: 16px; margin-left: 15px; margin-right: 5px;'}
+      Not Attending
+      %i.icon-user{style: 'color: #999; font-size: 16px; margin-left: 15px; margin-right: 5px;'}
+      No Response
+      %i.icon-plus{style: 'color: #5bc0de; font-size: 16px; margin-left: 15px; margin-right: 5px;'}
+      Pickup Player
+    
+    - if upcoming_dates.any?
+      - upcoming_dates.each do |game_date|
+        %h2= game_date.strftime("%A, %B %e, %Y")
+        
+        - date_attendances = @attendances.where(game_date: game_date)
+        - date_pickups = PickupRegistration.where(assigned_date: game_date, status: 'accepted', :team.in => @teams.map(&:_id))
+        
+        - if date_attendances.any? || date_pickups.any?
+          %table.table.table-striped.table-bordered
+            %thead
+              %tr
+                %th Team
+                %th Male Players
+                %th Female Players
+                %th Actions
+            %tbody
+              - @teams.each do |team|
+                - team_attendances = date_attendances.where(team: team)
+                
+                - male_players_count = 0
+                - female_players_count = 0
+                - team.players.each do |player|
+                  - if player.gender == 'male'
+                    - male_players_count += 1
+                  - elsif player.gender == 'female'
+                    - female_players_count += 1
+                
+                - male_attending = 0
+                - male_not_attending = 0
+                - female_attending = 0
+                - female_not_attending = 0
+                - male_pickup = 0
+                - female_pickup = 0
+                
+                - team_attendances.each do |attendance|
+                  - if attendance.user.gender == 'male'
+                    - if attendance.attending?
+                      - male_attending += 1
+                    - else
+                      - male_not_attending += 1
+                  - elsif attendance.user.gender == 'female'
+                    - if attendance.attending?
+                      - female_attending += 1
+                    - else
+                      - female_not_attending += 1
+                
+                - pickup_registrations = date_pickups.where(team: team)
+                - pickup_registrations.each do |pickup|
+                  - if pickup.user.gender == 'male'
+                    - male_pickup += 1
+                  - elsif pickup.user.gender == 'female'
+                    - female_pickup += 1
+                
+                - male_no_response = male_players_count - male_attending - male_not_attending
+                - female_no_response = female_players_count - female_attending - female_not_attending
+                
+                %tr
+                  %td= link_to team.name, team_path(team)
+                  %td
+                    - if male_players_count > 0 || male_pickup > 0
+                      .attendance-grid{style: 'line-height: 1.2;'}
+                        - male_attending.times do
+                          %i.icon-user{style: 'color: #5cb85c; font-size: 16px; margin: 1px;', title: 'Attending'}
+                        - male_pickup.times do
+                          %i.icon-plus{style: 'color: #5bc0de; font-size: 16px; margin: 1px;', title: 'Pickup Player'}
+                        - male_not_attending.times do
+                          %i.icon-user{style: 'color: #d9534f; font-size: 16px; margin: 1px;', title: 'Not Attending'}
+                        - male_no_response.times do
+                          %i.icon-user{style: 'color: #999; font-size: 16px; margin: 1px;', title: 'No Response'}
+                    - else
+                      %span.muted No male players
+                  %td
+                    - if female_players_count > 0 || female_pickup > 0
+                      .attendance-grid{style: 'line-height: 1.2;'}
+                        - female_attending.times do
+                          %i.icon-user{style: 'color: #5cb85c; font-size: 16px; margin: 1px;', title: 'Attending'}
+                        - female_pickup.times do
+                          %i.icon-plus{style: 'color: #5bc0de; font-size: 16px; margin: 1px;', title: 'Pickup Player'}
+                        - female_not_attending.times do
+                          %i.icon-user{style: 'color: #d9534f; font-size: 16px; margin: 1px;', title: 'Not Attending'}
+                        - female_no_response.times do
+                          %i.icon-user{style: 'color: #999; font-size: 16px; margin: 1px;', title: 'No Response'}
+                    - else
+                      %span.muted No female players
+                  %td
+                    = link_to "View Details", "#{show_attendance_team_path(team)}#date-#{game_date.strftime('%Y-%m-%d')}", class: 'btn btn-mini'
+        - else
+          %p.muted No attendance data yet.
+        %hr
+    - else
+      .alert.alert-info
+        No upcoming games scheduled for this league.
+
+    %hr
+    %h1 Historical Attendance
+    
+    - historical_dates = @league.games.where(:game_time.lt => Date.current).order_by(game_time: -1).map { |g| g.game_time.to_date }.uniq
+    
+    - if historical_dates.any?
+      - historical_dates.each do |game_date|
+        %h2= game_date.strftime("%A, %B %e, %Y")
+        
+        - date_attendances = @attendances.where(game_date: game_date)
+        - date_pickups = PickupRegistration.where(assigned_date: game_date, status: 'accepted', :team.in => @teams.map(&:_id))
+        
+        - if date_attendances.any? || date_pickups.any?
+          %table.table.table-striped.table-bordered
+            %thead
+              %tr
+                %th Team
+                %th Male Players
+                %th Female Players
+                %th Actions
+            %tbody
+              - @teams.each do |team|
+                - team_attendances = date_attendances.where(team: team)
+                
+                - male_players_count = 0
+                - female_players_count = 0
+                - team.players.each do |player|
+                  - if player.gender == 'male'
+                    - male_players_count += 1
+                  - elsif player.gender == 'female'
+                    - female_players_count += 1
+                
+                - male_attending = 0
+                - male_not_attending = 0
+                - female_attending = 0
+                - female_not_attending = 0
+                - male_pickup = 0
+                - female_pickup = 0
+                
+                - team_attendances.each do |attendance|
+                  - if attendance.user.gender == 'male'
+                    - if attendance.attending?
+                      - male_attending += 1
+                    - else
+                      - male_not_attending += 1
+                  - elsif attendance.user.gender == 'female'
+                    - if attendance.attending?
+                      - female_attending += 1
+                    - else
+                      - female_not_attending += 1
+                
+                - pickup_registrations = date_pickups.where(team: team)
+                - pickup_registrations.each do |pickup|
+                  - if pickup.user.gender == 'male'
+                    - male_pickup += 1
+                  - elsif pickup.user.gender == 'female'
+                    - female_pickup += 1
+                
+                - male_no_response = male_players_count - male_attending - male_not_attending
+                - female_no_response = female_players_count - female_attending - female_not_attending
+                
+                %tr
+                  %td= link_to team.name, team_path(team)
+                  %td
+                    - if male_players_count > 0 || male_pickup > 0
+                      .attendance-grid{style: 'line-height: 1.2;'}
+                        - male_attending.times do
+                          %i.icon-user{style: 'color: #5cb85c; font-size: 16px; margin: 1px;', title: 'Attending'}
+                        - male_pickup.times do
+                          %i.icon-plus{style: 'color: #5bc0de; font-size: 16px; margin: 1px;', title: 'Pickup Player'}
+                        - male_not_attending.times do
+                          %i.icon-user{style: 'color: #d9534f; font-size: 16px; margin: 1px;', title: 'Not Attending'}
+                        - male_no_response.times do
+                          %i.icon-user{style: 'color: #999; font-size: 16px; margin: 1px;', title: 'No Response'}
+                    - else
+                      %span.muted No male players
+                  %td
+                    - if female_players_count > 0 || female_pickup > 0
+                      .attendance-grid{style: 'line-height: 1.2;'}
+                        - female_attending.times do
+                          %i.icon-user{style: 'color: #5cb85c; font-size: 16px; margin: 1px;', title: 'Attending'}
+                        - female_pickup.times do
+                          %i.icon-plus{style: 'color: #5bc0de; font-size: 16px; margin: 1px;', title: 'Pickup Player'}
+                        - female_not_attending.times do
+                          %i.icon-user{style: 'color: #d9534f; font-size: 16px; margin: 1px;', title: 'Not Attending'}
+                        - female_no_response.times do
+                          %i.icon-user{style: 'color: #999; font-size: 16px; margin: 1px;', title: 'No Response'}
+                    - else
+                      %span.muted No female players
+                  %td
+                    = link_to "View Details", "#{show_attendance_team_path(team)}#date-#{game_date.strftime('%Y-%m-%d')}", class: 'btn btn-mini'
+        - else
+          %p.muted No attendance data.
+        %hr
+    - else
+      .alert.alert-info
+        No historical games available for this league.
+
+    %p
+      = link_to "Back to League", league_path(@league), class: 'btn'
