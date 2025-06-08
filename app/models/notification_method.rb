@@ -28,8 +28,8 @@ class NotificationMethod
     def send_text(message)
         return if method != 'text'
         
-        twilio_client = Twilio::REST::Client.new
-        twilio_client.api.account.messages.create({ 
+        twilio_client = Twilio::REST::Client.new(ENV['twilio_sid'], ENV['twilio_token'])
+        twilio_client.messages.create({ 
             from: ENV['twilio_number'], 
             to:   target,
             body: message
