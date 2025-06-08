@@ -1,6 +1,7 @@
 class AttendancesController < ApplicationController
   before_filter :load_attendance_by_params, only: [:show, :create, :update]
   before_filter :load_attendance_by_id, only: [:destroy]
+  before_filter :load_attendance_from_signed_token, only: [:quick_update]
 
   def show
   end
@@ -26,6 +27,21 @@ class AttendancesController < ApplicationController
     redirect_to team_path(@attendance.team), notice: "Attendance record removed."
   end
 
+  def quick_update
+    attending = params[:attending] == 'true'
+    
+    @attendance.attending = attending
+    @attendance.notes = nil  # Clear any existing notes for quick updates
+    @attendance.updated_by = @user if @attendance.user != @user
+    
+    if @attendance.save
+      status_text = attending ? "attending" : "not attending"
+      redirect_to team_path(@team), notice: "Thanks! We've marked you as #{status_text} for #{@team.name} on #{@attendance.game_date.strftime('%A, %B %e')}."
+    else
+      redirect_to team_path(@team), alert: "Sorry, there was an error updating your attendance. Please try again."
+    end
+  end
+
   private
 
   def load_attendance_by_id
@@ -36,6 +52,13 @@ class AttendancesController < ApplicationController
   def load_attendance_by_params
     @team = Team.find(params[:team_id])
     @user = current_user
+    
+    # Check if user is on this team
+    unless @team.players.include?(@user)
+      redirect_to team_path(@team), flash: {error: "You can only update attendance for teams you're on."}
+      return
+    end
+    
     game_date = Date.parse(params[:game_date]) if params[:game_date]
     
     @attendance = Attendance.find_or_initialize_by(
@@ -43,6 +66,40 @@ class AttendancesController < ApplicationController
       user: @user,
       game_date: game_date
     )
+  end
+
+  def load_attendance_from_signed_token
+    begin
+      # Verify and decode the signed token
+      token_data = Rails.application.message_verifier('attendance').verify(params[:token])
+      
+      # Check expiration manually (7 days)
+      if token_data['created_at'] && Time.parse(token_data['created_at']) < 7.days.ago
+        redirect_to root_path, alert: "This attendance link has expired."
+        return
+      end
+      
+      @user = User.find(token_data['user_id'])
+      @team = Team.find(token_data['team_id'])
+      game_date = Date.parse(token_data['game_date'])
+      
+      # Verify user is still on the team
+      unless @team.players.include?(@user)
+        redirect_to team_path(@team), alert: "You are no longer on this team."
+        return
+      end
+      
+      @attendance = Attendance.find_or_initialize_by(
+        team: @team,
+        user: @user,
+        game_date: game_date
+      )
+      
+    rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
+      redirect_to root_path, alert: "This attendance link is invalid or has expired."
+    rescue Mongoid::Errors::DocumentNotFound
+      redirect_to root_path, alert: "The user or team for this attendance link no longer exists."
+    end
   end
 
   def attendance_params

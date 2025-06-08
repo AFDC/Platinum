@@ -99,7 +99,11 @@ Platinum::Application.routes.draw do
       get 'manage_attendance'
       put 'update_attendance'
     end
-    resources :attendances, only: [:show, :create, :update, :destroy]
+    resources :attendances, only: [:show, :create, :update, :destroy] do
+      collection do
+        get 'quick_update'
+      end
+    end
   end
 
 

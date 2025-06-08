@@ -103,6 +103,23 @@
                 - PickupRegistration.where(user: current_user, status: "invited", assigned_date: {'$gte' => Date.today}).each do |reg|
                   - link_text = "#{reg.league.name} on #{reg.assigned_date.strftime("%A, %B %e, %Y")}"
                   %li #{link_to(link_text, pickup_registration_league_path(reg.league, pickup_registration_id: reg._id))}
+        - pending_attendance = pending_attendance_games_for_user(current_user)
+        - if pending_attendance.any?
+          .alert.alert-warning
+            %h4 
+              %i.icon-calendar
+              Attendance Needed!
+            %p Please update your attendance for upcoming games:
+            %ul
+              - pending_attendance.each do |pending|
+                - games_on_date = pending[:team].games.where(:game_time.gte => pending[:game_date].beginning_of_day, :game_time.lt => pending[:game_date].end_of_day)
+                - game_info = if games_on_date.count == 1
+                  - opponent = games_on_date.first.opponent_for(pending[:team])
+                  - "vs #{opponent.try(:name) || 'TBD'}"
+                - else
+                  - "#{games_on_date.count} games"
+                - link_text = "#{pending[:team].name} on #{pending[:game_date].strftime('%A, %B %e')} (#{game_info})"
+                %li #{link_to(link_text, team_attendance_path(pending[:team], 'new', game_date: pending[:game_date]))}
 
     .container{style: "display: flex; height: 100%; flex-flow: column; flex-grow: 1"}
       = yield

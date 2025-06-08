@@ -1,0 +1,49 @@
+<p>Hi <%= @user.firstname %>,</p>
+
+<p>You have upcoming games for <%= @team.name %> on <%= @game_date.strftime('%A, %B %e, %Y') %> -- are you going to make it?</p>
+
+<div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+  <h4 style="margin-top: 0; color: #34495e;"><%= @game_date.strftime('%A, %B %e, %Y') %></h4>
+  
+  <% @pending_games.each do |game| %>
+    <% opponent = game.opponent_for(@team) %>
+    <div style="margin-bottom: 8px; padding-left: 10px;">
+      <strong><%= game.game_time.strftime('%l:%M %P') %></strong> 
+      vs <%= opponent.try(:name) || 'TBD' %>
+      <% if game.field_site %>
+        at <%= game.field_site.name %>
+        <% if game.field.present? %>
+          (<%= game.field %>)
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+  
+  <div style="margin-top: 20px; text-align: center;">
+    <table style="margin: 0 auto; border-spacing: 10px;">
+      <tr>
+        <td>
+          <%= link_to "✓ I'll be there", signed_attendance_url(@user, @team, @game_date, true), style: 'background-color: #27ae60; color: white; padding: 12px 18px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; font-size: 16px;' %>
+        </td>
+        <td>
+          <%= link_to "✗ Can't make it", signed_attendance_url(@user, @team, @game_date, false), style: 'background-color: #e74c3c; color: white; padding: 12px 18px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; font-size: 16px;' %>
+        </td>
+        <td>
+          <%= link_to "It's complicated", team_attendance_url(@team, 'new', game_date: @game_date), style: 'background-color: #f39c12; color: white; padding: 12px 18px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; font-size: 16px;' %>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<p style="margin-top: 30px;">Please update your attendance as soon as possible so your teammates and captains can plan accordingly.</p>
+
+<p>Thanks,<br>
+The AFDC Team</p>
+
+<hr>
+<p>
+  <small>
+    You received this email because you're registered for AFDC leagues. If you have questions, please contact us at help@afdc.com.
+  </small>
+</p>
