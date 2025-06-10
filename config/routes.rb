@@ -102,6 +102,8 @@ Platinum::Application.routes.draw do
     resources :attendances, only: [:show, :create, :update, :destroy] do
       collection do
         get 'quick_update'
+        get 'twilio_webhook'
+        get 'twilio_webhook_failure'
       end
     end
   end

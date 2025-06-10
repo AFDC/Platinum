@@ -1,36 +1,4 @@
 namespace :attendance do
-  # Helper method to collect users who need attendance reminders for a given date
-  def self.collect_users_needing_reminders(target_date)
-    # Find all games happening on the target date
-    games = Game.where(
-      :game_time.gte => target_date.beginning_of_day,
-      :game_time.lt => target_date.end_of_day
-    )
-    
-    return { games: games, users_to_remind: {} } if games.empty?
-    
-    # Collect all users who need reminders
-    users_to_remind = {}
-    
-    games.each do |game|
-      game.teams.each do |team|
-        next unless team
-        
-        team.players.each do |player|
-          # Check if player has attendance record for this date
-          attendance = player.attendances.where(team: team, game_date: target_date).first
-          
-          unless attendance
-            # Player needs a reminder
-            users_to_remind[player._id] ||= { user: player, pending_games: [] }
-            users_to_remind[player._id][:pending_games] << { team: team, game_date: target_date }
-          end
-        end
-      end
-    end
-    
-    { games: games, users_to_remind: users_to_remind }
-  end
   
   desc 'Send attendance reminders for games happening in 3 days'
   task :send_reminders => :environment do
@@ -38,54 +6,20 @@ namespace :attendance do
     
     puts "Sending attendance reminders for games on #{target_date.strftime('%A, %B %e, %Y')}"
     
-    result = collect_users_needing_reminders(target_date)
-    games = result[:games]
-    users_to_remind = result[:users_to_remind]
+    result = AttendanceNotifier.send_attendance_reminders(target_date, 2)
     
-    if games.empty?
-      puts "No games found for #{target_date.strftime('%A, %B %e, %Y')}"
+    if result[:error]
+      puts result[:error]
       next
     end
     
-    puts "Found #{games.count} games"
-    puts "Found #{users_to_remind.count} users who need attendance reminders"
+    puts "Found #{result[:total_users]} users who need attendance reminders"
+    puts "Successfully sent #{result[:sent_count]} attendance reminder emails"
     
-    # Send reminder emails grouped by user, team, and date
-    sent_count = 0
-    users_to_remind.each do |user_id, data|
-      begin
-        # Group user's pending games by team, then by date
-        games_by_team = data[:pending_games].group_by { |pg| pg[:team] }
-        
-        games_by_team.each do |team, team_games|
-          games_by_date = team_games.group_by { |pg| pg[:game_date] }
-          
-          games_by_date.each do |game_date, date_games|
-            # Get all game IDs for this team on this date
-            team_games_on_date = team.games.where(
-              :game_time.gte => game_date.beginning_of_day,
-              :game_time.lt => game_date.end_of_day
-            )
-            
-            # Send one email per team per date
-            AttendanceMailer.attendance_reminder(
-              user_id, 
-              team._id.to_s, 
-              game_date.strftime('%Y-%m-%d'), 
-              team_games_on_date.map(&:_id).map(&:to_s)
-            ).deliver_now
-            puts "Sent reminder to #{data[:user].name} for #{team.name} on #{game_date.strftime('%A, %B %e')}"
-          end
-        end
-        
-        sent_count += 1
-        break if sent_count == 2
-      rescue => e
-        puts "Failed to send reminder to #{data[:user].name}: #{e.message}"
-      end
+    if result[:errors].any?
+      puts "Errors encountered:"
+      result[:errors].each { |error| puts "  - #{error}" }
     end
-    
-    puts "Successfully sent #{sent_count} attendance reminder emails"
   end
   
   desc 'Preview attendance reminders for games happening in 3 days (dry run)'
@@ -94,7 +28,7 @@ namespace :attendance do
     
     puts "Preview: attendance reminders for games on #{target_date.strftime('%A, %B %e, %Y')}"
     
-    result = collect_users_needing_reminders(target_date)
+    result = AttendanceNotifier.collect_users_needing_reminders(target_date)
     games = result[:games]
     users_to_remind = result[:users_to_remind]
     
@@ -115,5 +49,31 @@ namespace :attendance do
     end
     
     puts "\nTo actually send these emails, run: rake attendance:send_reminders"
+  end
+  
+  desc 'Send Twilio Studio attendance reminder for a specific user'
+  task :send_twilio_reminder, [:user_email] => :environment do |t, args|
+    unless args.user_email
+      puts "Usage: rake attendance:send_twilio_reminder[user@example.com]"
+      exit
+    end
+    
+    user = User.where(email_address: args.user_email).first
+    unless user
+      puts "User not found: #{args.user_email}"
+      exit
+    end
+    
+    puts "Triggering Twilio flow for #{user.name} (#{user.email_address})"
+    
+    result = AttendanceNotifier.send_sms_attendance_reminder(user)
+    
+    if result[:error]
+      puts result[:error]
+    else
+      puts "Team: #{result[:team]}"
+      puts "Date: #{result[:date]}"
+      puts "Twilio flow triggered successfully: #{result[:execution_sid]}"
+    end
   end
 end

@@ -4,7 +4,7 @@ class AttendanceMailer < ActionMailer::Base
   add_template_helper(ApplicationHelper) 
 
   def self.notification_lead_time
-    3.days
+    4.days
   end
   
   def attendance_reminder(user_id, team_id, game_date, game_ids)
