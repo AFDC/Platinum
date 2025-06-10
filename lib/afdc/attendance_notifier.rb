@@ -81,6 +81,11 @@ class AttendanceNotifier
   end
   
   def self.send_sms_attendance_reminder(user, team = nil, game_date = nil)
+    # Check if user has unsubscribed from SMS notifications
+    if user.unsubscribed_from_attendance_sms
+      return { error: "User #{user.name} has unsubscribed from attendance SMS notifications" }
+    end
+    
     # Find user's next pending game if not specified
     if team.nil? || game_date.nil?
       pending_game = find_next_pending_attendance_for_user(user)
@@ -122,6 +127,7 @@ class AttendanceNotifier
     # Generate signed tokens for webhook responses
     yes_token = generate_attendance_token(user, team, game_date, true)
     no_token = generate_attendance_token(user, team, game_date, false)
+    unsub_token = generate_unsubscribe_token(user)
     
     flow_parameters = {
       'user_name' => user.firstname,
@@ -129,7 +135,8 @@ class AttendanceNotifier
       'friendly_game_date' => game_date.strftime('%A, %B %e'),
       'game_date' => game_date.strftime('%Y-%m-%d'),
       'yes_token' => yes_token,
-      'no_token' => no_token
+      'no_token' => no_token,
+      'unsub_token' => unsub_token
     }
     
     # Create Studio flow execution using the SDK
@@ -148,6 +155,16 @@ class AttendanceNotifier
       'team_id' => team._id.to_s,
       'game_date' => game_date.strftime('%Y-%m-%d'),
       'attending' => attending,
+      'created_at' => Time.current.iso8601
+    }
+    
+    Rails.application.message_verifier('twilio_attendance').generate(token_data)
+  end
+  
+  def self.generate_unsubscribe_token(user)
+    token_data = {
+      'user_id' => user._id.to_s,
+      'action' => 'unsubscribe',
       'created_at' => Time.current.iso8601
     }
     

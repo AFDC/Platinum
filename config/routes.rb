@@ -104,6 +104,8 @@ Platinum::Application.routes.draw do
         get 'quick_update'
         get 'twilio_webhook'
         get 'twilio_webhook_failure'
+        get 'twilio_unsubscribe'
+        get 'twilio_sms_failure'
       end
     end
   end

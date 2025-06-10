@@ -24,6 +24,7 @@ class User
   field :confirmed_covid_booster, type: Boolean, default: false
   field :permission_groups, type: Array, default: ['user']
   field :minimum_rank, type: Integer
+  field :unsubscribed_from_attendance_sms, type: Boolean, default: false
 
   field :password_digest
   field :remember_me_cookie

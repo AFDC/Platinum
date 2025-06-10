@@ -3,9 +3,10 @@ class AttendancesController < ApplicationController
   before_filter :load_attendance_by_id, only: [:destroy]
   before_filter :load_attendance_from_signed_token, only: [:quick_update]
   before_filter :load_attendance_from_twilio_token, only: [:twilio_webhook]
+  before_filter :load_user_from_twilio_token, only: [:twilio_unsubscribe]
   
   # Skip CSRF for Twilio webhooks
-  skip_before_filter :verify_authenticity_token, only: [:twilio_webhook, :twilio_webhook_failure]
+  skip_before_filter :verify_authenticity_token, only: [:twilio_webhook, :twilio_webhook_failure, :twilio_unsubscribe, :twilio_sms_failure]
 
   def show
   end
@@ -68,6 +69,32 @@ class AttendancesController < ApplicationController
     
     # Return TwiML response for failure
     render xml: "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Say>We couldn't process your response. Please contact your team captain.</Say></Response>"
+  end
+
+  def twilio_unsubscribe
+    @user.unsubscribed_from_attendance_sms = true
+    
+    if @user.save
+      Rails.logger.info "Twilio unsubscribe: User #{@user.name} (#{@user.email_address}) unsubscribed from attendance SMS"
+      render plain: "You have been unsubscribed from attendance text messages. You will still receive email reminders."
+    else
+      Rails.logger.error "Twilio unsubscribe: Failed to unsubscribe #{@user.name}: #{@user.errors.full_messages}"
+      render status: :internal_server_error, plain: "Sorry, there was an error processing your unsubscribe request."
+    end
+  end
+
+  def twilio_sms_failure
+    Rails.logger.error "Twilio SMS failure: #{params.inspect}"
+    
+    # Extract relevant info from Twilio's error webhook
+    phone_number = params[:To]
+    error_code = params[:ErrorCode]
+    error_message = params[:ErrorMessage]
+    
+    Rails.logger.error "SMS delivery failed to #{phone_number} - Error #{error_code}: #{error_message}"
+    
+    # Return plain text response for Twilio
+    render plain: "SMS failure logged"
   end
 
   private
@@ -165,6 +192,29 @@ class AttendancesController < ApplicationController
     rescue Mongoid::Errors::DocumentNotFound
       Rails.logger.error "Twilio webhook: User or team not found"
       render status: :not_found, plain: "User or team no longer exists."
+    end
+  end
+
+  def load_user_from_twilio_token
+    begin
+      # Verify and decode the signed token
+      token_data = Rails.application.message_verifier('twilio_attendance').verify(params[:token])
+      
+      # Check expiration manually (7 days)
+      if token_data['created_at'] && Time.parse(token_data['created_at']) < 7.days.ago
+        Rails.logger.error "Twilio unsubscribe: Expired token"
+        render status: :gone, plain: "This request has expired."
+        return
+      end
+      
+      @user = User.find(token_data['user_id'])
+      
+    rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
+      Rails.logger.error "Twilio unsubscribe: Invalid token signature"
+      render status: :unauthorized, plain: "Invalid request."
+    rescue Mongoid::Errors::DocumentNotFound
+      Rails.logger.error "Twilio unsubscribe: User not found"
+      render status: :not_found, plain: "User no longer exists."
     end
   end
 
