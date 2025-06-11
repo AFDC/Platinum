@@ -1,0 +1,29 @@
+<p>Greetings!</p>
+
+<p>
+    We're letting you know that your registration to pickup for <%= @pickup_registration.league.name %> 
+    on <%= @pickup_registration.assigned_date.strftime("%A, %B %e, %Y") %> has been canceled.
+</p>
+
+<h2>Canceled Pickup Details</h2>
+<ul>
+    <li><b>Player:</b> <%= @pickup_registration.user.name %></li>
+    <li><b>League:</b> <%= @pickup_registration.league.name %> (<%= @pickup_registration.league.sport %>)</li>
+    <li><b>Date:</b> <%= @pickup_registration.assigned_date.strftime("%A, %B %e, %Y") %></li>
+    <% if @pickup_registration.games.first.present? %>
+        <li><b>Time:</b> <%= @pickup_registration.games.first.start_time.strftime("%I:%M %p") %></li>
+        <li><b>Location:</b> <%= @pickup_registration.games.first.field_site.name %></li>
+    <% else %>
+        <li><b>Time:</b> TBD</li>
+        <li><b>Location:</b> TBD</li>
+    <% end %>
+    <li><b>Team:</b> <%= @pickup_registration.team.name %></li>
+</ul>
+
+<% if @refund_processed %>
+<p><b>Refund Status:</b> Your pickup fee has been automatically refunded to your original payment method.</p>
+<% end %>
+
+<p>
+    If you have any questions, please contact the league commissioners.
+</p>

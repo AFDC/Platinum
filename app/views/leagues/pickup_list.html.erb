@@ -2,44 +2,63 @@
 <%=render :partial => '/pageheader', :locals => {subtitle: 'Pickup Players', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Manage Pickups' => nil}} %>
 
 <h3>Upcoming Pickups</h3>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Player</th>
-            <th>Matchup</th>
-            <th>Team</th>
-            <th>Price</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        <% @league.pickup_registrations.where(assigned_date: {'$gte' => Date.today}).order_by(assigned_date: 'asc').each do |pickup| %>
+<% @league.pickup_registrations.where(assigned_date: {'$gte' => Date.today}).order_by(assigned_date: 'asc').group_by { |pr| pr.assigned_date.strftime('%A, %B %d') }.each do |date, pickups| %>
+    <h4 class="text-center"><%= date %></h4>
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td><%= pickup.assigned_date&.strftime('%B %d') %></td>
-                <td><%= link_to pickup.user.name, user_path(pickup.user) %></td>
-                <td>
-                    <% short_matchup = {"male" => "MMP", "female" => "WMP"}[pickup.user.gender] %>
-                    <span class="label <%=pickup.user.gender%>"><%= short_matchup %></span>
-                </td>
-                <td><%= link_to pickup.team.name, team_path(pickup.team) %></td>
-                <td>
-                    <% if pickup.comped? %>
-                        Comped
-                    <% else %>
-                        <%= number_to_currency(pickup.price) %>
-                    <% end %>
-                </td>
-                <td>
-                    <% if pickup.status == 'accepted' %><span class="label label-success">Accepted</span><% end %>
-                    <% if pickup.status == 'invited' %><span class="label label-info">Invited</span><% end %>
-                    <% if pickup.status == 'canceled' %><span class="label label-danger">Canceled</span><% end %>
-                    <% if pickup.status == 'declined' %><span class="label label-danger">Declined</span><% end %>
-                </td>
+                <th>Player</th>
+                <th>Matchup</th>
+                <th>Team</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
-        <% end %>
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            <% pickups.each do |pickup| %>
+                <tr>
+                    <td><%= link_to pickup.user.name, user_path(pickup.user) %></td>
+                    <td>
+                        <% short_matchup = {"male" => "MMP", "female" => "WMP"}[pickup.user.gender] %>
+                        <span class="label <%=pickup.user.gender%>"><%= short_matchup %></span>
+                    </td>
+                    <td><%= link_to pickup.team.name, team_path(pickup.team) %></td>
+                    <td>
+                        <% if pickup.comped? %>
+                            Comped
+                        <% else %>
+                            <%= number_to_currency(pickup.price) %>
+                        <% end %>
+                    </td>
+                    <td>
+                        <% if pickup.status == 'accepted' %><span class="label label-success">Accepted</span><% end %>
+                        <% if pickup.status == 'invited' %><span class="label label-info">Invited</span><% end %>
+                        <% if pickup.status == 'canceled' %><span class="label label-danger">Canceled</span><% end %>
+                        <% if pickup.status == 'declined' %><span class="label label-danger">Declined</span><% end %>
+                    </td>
+                    <td>
+                        <% if pickup.status == 'invited' %>
+                            <%= button_to "Cancel", 
+                                cancel_pickup_registration_league_path(@league, pickup_registration_id: pickup._id), 
+                                method: :post, 
+                                class: "btn btn-mini btn-danger",
+                                form: { style: "display: inline-block; margin: 0;" },
+                                data: { confirm: "Are you sure you want to cancel this pickup invitation?" } %>
+                        <% elsif pickup.status == 'accepted' %>
+                            <%= button_to "Cancel & Refund", 
+                                cancel_pickup_registration_league_path(@league, pickup_registration_id: pickup._id), 
+                                method: :post, 
+                                class: "btn btn-mini btn-danger",
+                                form: { style: "display: inline-block; margin: 0;" },
+                                data: { confirm: "Are you sure you want to cancel this pickup registration? The player will be automatically refunded if they paid." } %>
+                        <% end %>
+                    </td>
+                </tr>
+            <% end %>
+        </tbody>
+    </table>
+<% end %>
 
 <h3>Pickup List</h3>
 <table class="table table-striped">
@@ -93,6 +112,7 @@
             <th>Team</th>
             <th>Price</th>
             <th>Status</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -120,12 +140,28 @@
                     <% if pickup.status == 'canceled' %><span class="label label-danger">Canceled</span><% end %>
                     <% if pickup.status == 'declined' %><span class="label label-danger">Declined</span><% end %>
                 </td>
+                <td>
+                    <!-- No actions for past pickups -->
+                </td>
             </tr>
         <% end %>
         <% if rows == 0 %>
             <tr>
-                <td colspan="6"><div class="text-center">No past pickups</div></td>
+                <td colspan="7"><div class="text-center">No past pickups</div></td>
             </tr>        
         <% end %>
     </tbody>
 </table>
+
+<script>
+$(document).ready(function() {
+    // Handle confirmation for pickup cancellation buttons
+    $('input[data-confirm]').click(function(e) {
+        var confirmMessage = $(this).data('confirm');
+        if (confirmMessage && !confirm(confirmMessage)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>

@@ -89,7 +89,13 @@ class LeaguesController < ApplicationController
             @pickup_registration.status != "invited" || 
             @pickup_registration.league != @league || 
             @pickup_registration.assigned_date < Date.today
-            redirect_to league_path(@league), notice: "That invite does not exist, is expired, or is for a different league." and return
+            
+            # Provide specific error message for canceled registrations
+            if @pickup_registration&.status == "canceled"
+                redirect_to league_path(@league), flash: {error: "This pickup invitation has been canceled and can no longer be accepted."} and return
+            else
+                redirect_to league_path(@league), notice: "That invite does not exist, is expired, or is for a different league." and return
+            end
         end
 
         if request.post?
@@ -126,6 +132,50 @@ class LeaguesController < ApplicationController
         @pickup_registration = PickupRegistration.find(params[:pickup_registration_id])
         @league = @pickup_registration.league
         
+    end
+
+    def cancel_pickup_registration
+        @pickup_registration = PickupRegistration.find(params[:pickup_registration_id])
+        
+        unless @pickup_registration
+            redirect_to pickup_list_league_path(@league), flash: {error: "Pickup registration not found."} and return
+        end
+
+        begin
+            case @pickup_registration.status
+            when 'invited'
+                @pickup_registration.status = 'canceled'
+                @pickup_registration.save!
+                redirect_to pickup_list_league_path(@league), notice: "Pickup invitation canceled."
+                
+            when 'accepted'
+                # Refund if player paid
+                refund_attempted = false
+                if @pickup_registration.paid? && !@pickup_registration.is_comped?
+                    begin
+                        @pickup_registration.refund!
+                        refund_attempted = true
+                    rescue StandardError => e
+                        redirect_to pickup_list_league_path(@league), flash: {error: "Failed to refund pickup registration: #{e.message}"} and return
+                    end
+                else
+                    @pickup_registration.status = 'canceled'
+                    @pickup_registration.save!
+                end
+                
+                # Send notifications
+                PickupMailer.delay.cancel(@pickup_registration._id.to_s, refund_attempted)
+                
+                refund_msg = refund_attempted ? " and refunded" : ""
+                redirect_to pickup_list_league_path(@league), notice: "Pickup registration canceled#{refund_msg}. Notifications sent to player, captain, and commissioners."
+                
+            else
+                redirect_to pickup_list_league_path(@league), flash: {error: "Cannot cancel pickup registration with status: #{@pickup_registration.status}"} and return
+            end
+            
+        rescue StandardError => e
+            redirect_to pickup_list_league_path(@league), flash: {error: "Error canceling pickup registration: #{e.message}"} and return
+        end
     end
 
     def volunteer_to_pickup
@@ -1181,4 +1231,5 @@ class LeaguesController < ApplicationController
     def pickup_registration_invite_params
         params.require(:pickup_registration).permit(:pickup_candidate_id, :assigned_date, :comped, :team_id)
     end
+
 end

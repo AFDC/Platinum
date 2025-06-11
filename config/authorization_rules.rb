@@ -70,7 +70,7 @@ authorization do
 			:manage_roster, :finances, :players, :reg_list, :team_list, :cancel_registration, 
 			:promote_waitlisted_registration, :add_player_to_team, :update_invites, :edit, :update, 
 			:setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games, :rainout_games, :process_rainout, 
-			:upload_roster, :setup_roster_import, :import_roster, :pickup_list, :invite_pickup] do
+			:upload_roster, :setup_roster_import, :import_roster, :pickup_list, :invite_pickup, :cancel_pickup_registration] do
 
 			if_permitted_to :manage
 		end
