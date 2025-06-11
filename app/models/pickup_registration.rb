@@ -44,6 +44,36 @@ class PickupRegistration
         return true
     end
 
+    def refund!(amount = nil)
+        return false unless status == 'accepted'
+        return false if comped
+
+        pt = payment_transactions.first
+        return false unless pt
+
+        refund_amount = amount || pt.amount
+        
+        if refund_amount > pt.amount
+            raise "Attempted to refund $#{refund_amount} but pickup registration was only $#{pt.amount}"
+        end
+
+        result = Braintree::Transaction.refund(pt.transaction_id, amount: ("%.2f" % refund_amount))
+
+        unless result.success?
+            raise result.errors.first.message
+        end
+
+        pt.refunded_amount = refund_amount
+        pt.save
+
+        self.status = 'canceled'
+        save!
+    end
+
+    def paid?
+        payment_transactions.any?
+    end
+
     private
 
     def ensure_price

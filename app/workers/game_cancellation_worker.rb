@@ -35,6 +35,8 @@ class GameCancellationWorker
 
     return if notify == :nobody
     player_list = {}
+    pickup_players = {}
+    
     teams.each do |team_id, team|
         if notify == :captains
             team.captains.each do |u|
@@ -51,11 +53,50 @@ class GameCancellationWorker
         end
     end
 
+    # Find pickup players for canceled games
+    canceled_game_dates = games_to_cancel.map { |game| game.game_time.to_date }.uniq
+    canceled_game_dates.each do |game_date|
+        team_ids = teams.keys
+        pickup_registrations = PickupRegistration.where(
+            assigned_date: game_date,
+            team_id: { '$in' => team_ids },
+            status: 'accepted'
+        )
+        
+        pickup_registrations.each do |pickup_reg|
+            user = pickup_reg.user
+            pickup_players[user._id] = {
+                user: user,
+                pickup_registration: pickup_reg,
+                team: pickup_reg.team,
+                refunded: false
+            }
+            
+            # Attempt to refund if player paid
+            if pickup_reg.paid? && !pickup_reg.is_comped?
+                begin
+                    pickup_reg.refund!
+                    pickup_players[user._id][:refunded] = true
+                rescue StandardError => e
+                    # Log the error but continue with notifications
+                    Rails.logger.error "Failed to refund pickup registration #{pickup_reg._id}: #{e.message}"
+                end
+            end
+        end
+    end
+
     game_date     = Time.at(start_ts).strftime('%a, %b %e')
     text_message  = "Bad news! Your AFDC games at #{@fieldsite.name} are canceled for (#{game_date})."
 
     player_list.each do |user_id, p|
         notify_user(p, text_message, start_ts)
+    end
+    
+    # Notify pickup players with their team context and refund info
+    pickup_players.each do |user_id, pickup_info|
+        refund_text = pickup_info[:refunded] ? " Your pickup fee has been refunded." : ""
+        pickup_text_message = "Bad news! Your AFDC game with #{pickup_info[:team].name} at #{@fieldsite.name} is canceled for (#{game_date}).#{refund_text}"
+        notify_user(pickup_info[:user], pickup_text_message, start_ts)
     end
   end
 
