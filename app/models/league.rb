@@ -131,7 +131,7 @@ class League
     return false if (end_date + 1.day) < Time.now
 
     # Pickup list opens as soon as any registration opens
-    if registration_open > Time.now && male_registration_open > Time.now && female_registration_open > Time.now
+    if general_registration_open? == false && registration_open_for_gender?("male") == false && registration_open_for_gender?("female") == false
       return false
     end
 
