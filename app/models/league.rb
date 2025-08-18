@@ -130,13 +130,17 @@ class League
     # Pickup list closes after the league ends
     return false if (end_date + 1.day) < Time.now
 
-    # Pickup list opens as soon as any registration opens; chaking in separate if statements to make things more clear
-    if registration_open.present? && open_time_on_date(registration_open).past?
-      return true
+    # Find the first moment a registration is open
+    general_registration_open_date = registration_open
+    gender_registration_open_date = self["#{user&.gender}_registration_open"]
+    first_open_date = [general_registration_open_date, gender_registration_open_date].compact.min
+    if first_open_date.nil? 
+      return false
     end
 
-    if user.present? &&self["#{user.gender}_registration_open"].present? && open_time_on_date(self["#{user.gender}_registration_open"]).past?
-      return true
+    # Prevent the pickup list from opening before the league registration opens
+    if open_time_on_date(first_open_date).future?
+      return false
     end
 
     # This allows the CTA to be shown for users who are not logged in
