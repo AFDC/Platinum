@@ -356,9 +356,9 @@ class LeaguesController < ApplicationController
                     u   = reg.user
 
                     if team.nil?
-                        @league.remove_player_from_teams(u)
+                        @league.remove_player_from_teams(u, current_user)
                     else
-                        @league.add_player_to_team(u, team, false)
+                        @league.add_player_to_team(u, team, false, current_user)
                     end
                     user_list << u.name
                 end

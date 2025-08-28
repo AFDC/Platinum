@@ -15,13 +15,25 @@ services: {
     "ports": ["3000:3000"],
     "volumes": [".:/var/app"],
     "links": ["mongodb", "redis", "memcached", "mailhog"],
-    "env_file": [".env"]
+    "env_file": [".env"],
+    "environment": {
+      "REDIS_URL": "redis://redis:6379",
+      "MONGO_HOST": "mongodb",
+      "RAILS_ENV": "development",
+      "RACK_ENV": "development"
+    }
   },
   "sidekiq": {
     "build": ".",
     "volumes": [".:/var/app"],
     "links": ["mongodb", "redis", "memcached", "mailhog"],
     "env_file": [".env"],
-    "command": "bundle exec sidekiq"
+    "command": "bundle exec sidekiq",
+    "environment": {
+      "REDIS_URL": "redis://redis:6379",
+      "MONGO_HOST": "mongodb",
+      "RAILS_ENV": "development",
+      "RACK_ENV": "development"
+    }
   }
 }

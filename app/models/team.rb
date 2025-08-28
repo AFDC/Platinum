@@ -19,6 +19,7 @@ class Team
   has_and_belongs_to_many :players, class_name: "User", foreign_key: :players
   has_many :games, foreign_key: :teams
   belongs_to :league, inverse_of: :teams
+  has_many :roster_changelogs
 
   has_mongoid_attached_file :avatar,
     default_url: lambda {|attachment| "https://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(attachment.instance._id)}?d=identicon&s=330"},

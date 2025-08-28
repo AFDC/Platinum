@@ -54,6 +54,7 @@ class League
   has_many :payment_transactions
   has_many :pickup_candidates
   has_many :pickup_registrations
+  has_many :roster_changelogs
   has_and_belongs_to_many :commissioners, class_name: "User", foreign_key: :commissioner_ids, inverse_of: nil
   has_and_belongs_to_many :comped_groups, class_name: "CompGroup", inverse_of: nil
   has_and_belongs_to_many :comped_players, class_name: "User", inverse_of: nil
@@ -194,28 +195,36 @@ class League
     end
   end
 
-  def remove_player_from_teams(user)
-    # remove user from all teams in the league
-    Team.collection.find(_id: {'$in' => self.team_ids}).update({"$pull" => {players: user._id}}, {multi: true})
+  def remove_player_from_teams(user, acting_user)
+    team_list = Team.where(league: self, players: user)
+
+    team_list.each do |team|
+      team.players_will_change!       # In-place attribute modifications are not automatically tracked by Mongoid
+      team[:players].delete(user._id) # We do this because we did a hacky thing with the player field rather than using a standard relationship
+      team.save(validate: false)
+      RosterChangelog.log_removal(user, acting_user, team)
+    end
 
     # remove all league teams from player
     User.collection.find(_id: user._id).update({"$pullAll" => {teams: self.team_ids}})
   end
 
-  def add_player_to_team(user,team,send_mail=true)
+  def add_player_to_team(user, team, send_mail=true, acting_user = nil)
     raise ArgumentError.new "Must supply a user account to add" unless user.instance_of?(User)
     raise ArgumentError.new "Must supply a team to be added to" unless team.instance_of?(Team)
     raise ArgumentError.new "Team not a part of this league" unless team.league == self
 
     return true if self.team_for(user) == team
 
-    remove_player_from_teams(user)
+    remove_player_from_teams(user, acting_user)
 
     # add player to team
     Team.collection.find({_id: team._id}).update({"$addToSet" => {players: user._id}}, {multi: false})
 
     # add team to player
     User.collection.find(_id: user._id).update({"$addToSet" => {teams: team._id}})
+
+    RosterChangelog.log_addition(user, acting_user, team)
 
     if (send_mail)
       TeamMailer.delay.added_to_team(user._id.to_s, team._id.to_s)
