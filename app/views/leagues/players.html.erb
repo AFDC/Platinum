@@ -63,7 +63,21 @@
         <div class="row-fluid">
             <div class="span12">
                 <h2>Roster Changes</h2>
-                <div id="roster-changelog-data"></div>
+                <div id="roster-changelog-data">
+                    <table class="table table-striped table-bordered" id="roster-changelog-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                                <th>Player</th>
+                                <th>Team</th>
+                                <th>Acting User</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -339,8 +353,7 @@
                             successMessageElement.html(data["msg"])
                             successMessageElement.show();
                             errorMessageElement.hide();
-                            reg_table.setData(ajaxURL);
-                            team_table.setData(teamDataURL);
+                            refresh_data();
                             remove_button.hide();
                             $("#team-selector option:selected").prop("selected", false)
                         }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -373,8 +386,7 @@
                         successMessageElement.html(data["msg"])
                         successMessageElement.show();
                         errorMessageElement.hide();
-                        reg_table.setData(ajaxURL);
-                        team_table.setData(teamDataURL);
+                        refresh_data();
                         var remove_button = $("#remove-team-button");
                         remove_button.show();
                     }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -418,7 +430,7 @@
                         successMessageElement.html(data["msg"])
                         successMessageElement.show();
                         errorMessageElement.hide();
-                        reg_table.setData(ajaxURL);
+                        refresh_data();
                     }).fail(function(jqXHR, textStatus, errorThrown) {
                         errorMessageElement.html(jqXHR.responseJSON["msg"]);
                         errorMessageElement.show();
@@ -442,7 +454,7 @@
                         successMessageElement.html(data["msg"])
                         successMessageElement.show();
                         errorMessageElement.hide();
-                        reg_table.setData(ajaxURL);
+                        refresh_data();
                     }).fail(function(jqXHR, textStatus, errorThrown) {
                         errorMessageElement.html(jqXHR.responseJSON["msg"]);
                         errorMessageElement.show();
@@ -478,9 +490,7 @@
             reg_table.clearFilter(true);
         });
 
-        $('#refresh-data').on('click', function() {
-            reg_table.setData(ajaxURL);
-        });
+        $('#refresh-data').on('click', refresh_data);
 
         $('#toggle-cores').on('click', function() {
             var filterList = reg_table.getFilters();
@@ -554,6 +564,38 @@
                 });
             });
         });
+
+        function refresh_data() {
+            reg_table.setData(ajaxURL);
+            team_table.setData(teamDataURL);
+            load_roster_changelog();
+        }
+
+        function load_roster_changelog() {
+            var roster_changelog_data = $("#roster-changelog-data");
+            // Table Loading Indicator
+            var table = $("#roster-changelog-table tbody");
+            table.html("<tr><td colspan='5'>Loading...</td></tr>");
+
+            $.ajax({
+                url: "<%=roster_changelog_league_path(@league, :json)%>",
+            }).done(function(data) {
+                var changelogs = data["roster_changelog"];
+                table.empty();
+                changelogs.forEach(function(changelog) {
+                    var row = $("<tr>");
+                    row.append($("<td>").text(moment.unix(changelog.timestamp).format('MMM Do, h:mm a')));
+                    row.append($("<td>").text(changelog.action));
+                    row.append($("<td>").text(changelog.player));
+                    row.append($("<td>").text(changelog.team));
+                    row.append($("<td>").text(changelog.acting_user));
+                    table.append(row);
+                });
+            });
+        }
+
+        load_roster_changelog();
+
     });
 </script>
 

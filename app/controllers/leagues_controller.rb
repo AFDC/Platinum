@@ -770,6 +770,29 @@ class LeaguesController < ApplicationController
         end
     end
 
+    def roster_changelog
+        respond_to do |format|
+            format.json do
+                changelogs = []
+                @league.roster_changelogs.order_by(created_at: :desc).each do |changelog|
+                    changelogs << {
+                        id: changelog._id.to_s,
+                        player: changelog.player.name_with_pronouns,
+                        player_link: user_path(changelog.player),
+                        matchup: changelog.player.gender_noun,
+                        team: changelog.team.name,
+                        team_link: team_path(changelog.team),
+                        action: changelog.action,
+                        timestamp: changelog.created_at.to_i,
+                        acting_user: changelog.acting_user.name,
+                        acting_user_link: user_path(changelog.acting_user),
+                    }
+                end
+                render json: {roster_changelog: changelogs}
+            end
+        end
+    end
+
     # This powers the player-visible registraiton list
     def old_registrations
         respond_to do |format|

@@ -81,6 +81,8 @@ Platinum::Application.routes.draw do
       get 'missing_spirit_reports'
 
       get 'finances'
+
+      get 'roster_changelog'
     end
 
     resources :teams, only: [:new, :create]
