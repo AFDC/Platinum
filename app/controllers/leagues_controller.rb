@@ -343,7 +343,7 @@ class LeaguesController < ApplicationController
                         return
                     end
 
-                    if reg.status != "active"
+                    if reg.status != "active" and team != nil
                         render json: {msg: "Only active players may be added to teams."}, status: 400
                         return
                     end                        
