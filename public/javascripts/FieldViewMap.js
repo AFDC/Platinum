@@ -23,10 +23,16 @@ function initFieldViewMap() {
             fullscreenControl: false
         });
 
-        new google.maps.Marker({
+        var marker = new google.maps.Marker({
             position: { lat: centerLat, lng: centerLng },
             map: fieldDisplayMap,
             title: 'Field Location'
+        });
+
+        // When marker is clicked, open Google Maps directions
+        marker.addListener('click', function() {
+            var directionsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + centerLat + ',' + centerLng;
+            window.open(directionsUrl, '_blank');
         });
     } else {
         $("#mapHeader").html("Map not available because no field location is defined.");

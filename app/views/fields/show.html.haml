@@ -17,5 +17,5 @@
 = render :partial => '/game_schedule', :locals => {start_date: Date.today, fieldsite_id: @field._id, title: 'Upcoming Games'}
 
 - content_for :page_scripts do
-    = javascript_include_tag "/javascripts/FieldViewMap.js?v=2"
+    = javascript_include_tag "/javascripts/FieldViewMap.js?v=3"
     = javascript_include_tag "https://maps.googleapis.com/maps/api/js?key=#{ENV['google_maps_api_token']}&loading=async&callback=initFieldViewMap"

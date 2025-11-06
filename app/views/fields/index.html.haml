@@ -20,6 +20,9 @@
                 %div= simple_format(f.directions)
                 %hr
                 %p{style: "text-align: right"}
+                    - if f.latitude.present? && f.longitude.present?
+                        %i.icon-road
+                        = link_to 'Get Directions', "https://www.google.com/maps/dir/?api=1&destination=#{f.latitude},#{f.longitude}", target: '_blank', style: 'margin-right: 10px'
                     %i.icon-search
                     =link_to 'View Field Page', field_path(f)
 
