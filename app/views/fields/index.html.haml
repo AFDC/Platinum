@@ -24,5 +24,5 @@
                     =link_to 'View Field Page', field_path(f)
 
 - content_for :page_scripts do
-    = javascript_include_tag "/javascripts/FieldsDisplayMap.js"
+    = javascript_include_tag "/javascripts/FieldsDisplayMap.js?v=2"
     = javascript_include_tag "https://maps.googleapis.com/maps/api/js?key=#{ENV['google_maps_api_token']}&loading=async&callback=initFieldsDisplayMap"
