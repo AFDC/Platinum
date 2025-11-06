@@ -67,3 +67,8 @@ span.label.male {
   font-family: monospace;
   background-color: #3A87AD;
 }
+
+.google-map {
+  height: 400px;
+  width: 100%;
+}
