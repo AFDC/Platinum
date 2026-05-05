@@ -11,6 +11,10 @@ every 1.hours do
     rake "league:expire_registrations"
 end
 
+every 1.hours do
+    runner "AttendancePromptWorker.new.perform"
+end
+
 #
 # every 2.hours do
 #   command "/usr/bin/some_great_command"
