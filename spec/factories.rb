@@ -41,6 +41,14 @@ FactoryGirl.define do
     confirmed true
     enabled true
     user
+
+    # NotificationMethod's before_create resets confirmed/enabled unless target equals user.email_address.
+    # In tests we want to be able to fabricate a confirmed+enabled phone NM directly.
+    after(:create) do |nm, evaluator|
+      if nm.confirmed != evaluator.confirmed || nm.enabled != evaluator.enabled
+        nm.update_attributes(confirmed: evaluator.confirmed, enabled: evaluator.enabled)
+      end
+    end
   end
 
   factory :attendance_prompt do
