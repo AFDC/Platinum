@@ -23,5 +23,6 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
       - MONGO_HOST=mongodb
+      - TEST_MONGO_HOST=mongodb
       - RAILS_ENV=test
       - RACK_ENV=test
