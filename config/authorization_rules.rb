@@ -63,6 +63,14 @@ authorization do
 			if_attribute :reporters => contains { user }
 		end
 
+		# Attendance: captains for their team, plus league commissioners/admins
+		has_permission_on :teams, :to => [:attendance, :attendance_override, :bulk_attendance, :apply_bulk_attendance] do
+			if_attribute :captains => contains { user }
+		end
+		has_permission_on :teams, :to => [:attendance, :attendance_override, :bulk_attendance, :apply_bulk_attendance] do
+			if_permitted_to :manage, :league
+		end
+
 		has_permission_on :leagues, :to => [:manage] do
 			if_attribute commissioners: contains { user }
 		end

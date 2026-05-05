@@ -99,7 +99,14 @@ Platinum::Application.routes.draw do
     end
   end
 
-  resources :teams, except: [:new, :create]
+  resources :teams, except: [:new, :create] do
+    member do
+      get 'attendance'
+      patch 'attendance_override'
+      get 'bulk_attendance'
+      patch 'apply_bulk_attendance'
+    end
+  end
 
 
   resources :games do

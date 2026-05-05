@@ -1,0 +1,43 @@
+.container
+	%h2= "Bulk Update — #{@team.name}"
+	%h3= @game_day.strftime('%A, %B %-d, %Y')
+	- if @games.any?
+		%ul
+			- @games.each do |g|
+				- opponent = g.opponent_for(@team)
+				%li= "#{g.game_time.strftime('%-l:%M%P').sub('m','')} vs #{opponent ? opponent.name : 'TBD'}"
+
+	= form_tag apply_bulk_attendance_team_path(@team), method: :patch, class: 'form-horizontal' do
+		= hidden_field_tag :game_date, @game_day.strftime('%Y-%m-%d')
+		.well.well-small
+			%strong Instructions:
+			Set status for each player you need to update. Leave at "No change" to keep their current answer.
+		- %w(male female).each do |gender|
+			- gender_players = @players.select { |p| p.gender == gender }
+			- next if gender_players.empty?
+			%h4= "#{gender.capitalize} Players"
+			%table.table.table-striped.table-condensed
+				%thead
+					%tr
+						%th Player
+						%th Current
+						%th New Status
+						%th Note
+				%tbody
+					- gender_players.each do |player|
+						- existing = @existing[player._id]
+						%tr
+							%td= "#{player.firstname} #{player.lastname}"
+							%td
+								- if existing && existing.status != 'pending'
+									= existing.status.upcase
+								- else
+									%em Not answered
+							%td
+								= select_tag "attendance[#{player._id}][status]",
+									options_for_select([['No change','no_change'],['Yes','yes'],['No','no'],['Partial','partial']], 'no_change')
+							%td
+								= text_field_tag "attendance[#{player._id}][note]", existing.try(:note), placeholder: 'Optional', class: 'span3'
+		.form-actions
+			= submit_tag "Apply", class: 'btn btn-primary'
+			= link_to "Cancel", attendance_team_path(@team), class: 'btn'
