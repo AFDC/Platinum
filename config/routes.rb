@@ -87,6 +87,8 @@ Platinum::Application.routes.draw do
       get 'finances'
 
       get 'roster_changelog'
+
+      get 'attendance_overview'
     end
 
     resources :teams, only: [:new, :create]
