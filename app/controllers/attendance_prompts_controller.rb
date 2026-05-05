@@ -22,7 +22,7 @@ class AttendancePromptsController < ApplicationController
     when :unresolved_codes
       render_twiml("Sorry, I couldn't match that. Reply with the codes from the most recent message, or visit https://leagues.afdc.com.")
     when :note_only
-      link = "https://#{ENV['MAILER_HOST'] || 'leagues.afdc.com'}/attendance/#{result.note_only_prompt.web_token}"
+      link = attendance_token_url(token: result.note_only_prompt.web_token, host: request.host, protocol: 'https')
       render_twiml("Got your note — to set yes/no/partial, visit #{link}.")
     end
   end

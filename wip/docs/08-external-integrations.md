@@ -79,8 +79,9 @@ Players reply with two-digit codes (e.g. `11` = YES) provided in the outbound pr
 
 ### Required env vars
 
-- `MAILER_HOST` — host name used in tokenized RSVP URLs in attendance emails (e.g. `leagues.afdc.com`).
 - `TEST_MONGO_HOST` (optional) — overrides the test Mongo host. Defaults to `localhost`. Set to `mongodb` when running the test suite via `docker-compose.test.yml`.
+
+(Tokenized RSVP URLs in attendance emails use `config.action_mailer.default_url_options[:host]`, already configured in `config/environments/production.rb`.)
 
 ---
 
