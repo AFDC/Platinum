@@ -493,10 +493,10 @@ class League
   end
 
   def open_time_on_date(open_date)
-    Time.zone.parse("#{open_date} 12pm")
+    Time.zone.parse("#{open_date.to_date} 12pm")
   end
 
   def close_time_on_date(close_date)
-    Time.zone.parse("#{close_date}").end_of_day
+    Time.zone.parse("#{close_date.to_date}").end_of_day
   end
 end
