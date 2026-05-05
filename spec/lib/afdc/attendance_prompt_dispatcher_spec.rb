@@ -66,6 +66,32 @@ describe AttendancePromptDispatcher do
     end
   end
 
+  describe "ATTENDANCE_RECIPIENT_ALLOWLIST trial guard" do
+    around do |example|
+      original = ENV['ATTENDANCE_RECIPIENT_ALLOWLIST']
+      example.run
+      ENV['ATTENDANCE_RECIPIENT_ALLOWLIST'] = original
+    end
+
+    it "dispatches normally when the allowlist is unset" do
+      ENV['ATTENDANCE_RECIPIENT_ALLOWLIST'] = nil
+      AttendancePromptDispatcher.new(user: user, prompts: [p1], kind: 'initial').dispatch!
+      AttendancePromptDispatch.where(user_id: user._id).count.should eq(1)
+    end
+
+    it "dispatches when the user's email is in the allowlist (case-insensitive)" do
+      ENV['ATTENDANCE_RECIPIENT_ALLOWLIST'] = "someone@x.com, #{user.email_address.upcase}"
+      AttendancePromptDispatcher.new(user: user, prompts: [p1], kind: 'initial').dispatch!
+      AttendancePromptDispatch.where(user_id: user._id).count.should eq(1)
+    end
+
+    it "skips when the user's email is not in the allowlist" do
+      ENV['ATTENDANCE_RECIPIENT_ALLOWLIST'] = 'someone@x.com,other@y.com'
+      AttendancePromptDispatcher.new(user: user, prompts: [p1], kind: 'initial').dispatch!
+      AttendancePromptDispatch.where(user_id: user._id).count.should eq(0)
+    end
+  end
+
   describe "Dispatch persistence" do
     it "stores prompt-id/prefix mapping in order" do
       p2 = FactoryGirl.create(:attendance_prompt, user: user, team: team, league: league, game_day: Date.current + 6)

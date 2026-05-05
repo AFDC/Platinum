@@ -7,6 +7,16 @@ class AttendancePromptDispatcher
   end
 
   def dispatch!
+    # TRIAL — REMOVE BEFORE GA: when ATTENDANCE_RECIPIENT_ALLOWLIST is set,
+    # only users whose email is in the comma-separated list actually get
+    # SMS/email. Prompt records are still created upstream by the worker
+    # (so the captain dashboard reflects reality), but this guard prevents
+    # outbound messages to anyone not in the trial cohort.
+    unless recipient_allowed?
+      Rails.logger.info("AttendancePromptDispatcher: skipping outbound for #{@user.email_address} (not in ATTENDANCE_RECIPIENT_ALLOWLIST)")
+      return
+    end
+
     sms_targets = confirmed_sms_targets
     if sms_targets.any?
       sms_targets.each { |nm| send_sms_via(nm) }
@@ -29,6 +39,14 @@ class AttendancePromptDispatcher
   end
 
   private
+
+  # TRIAL — REMOVE BEFORE GA along with the guard in dispatch!.
+  def recipient_allowed?
+    list = ENV['ATTENDANCE_RECIPIENT_ALLOWLIST']
+    return true if list.blank?
+    allowed = list.split(',').map { |e| e.strip.downcase }
+    allowed.include?(@user.email_address.to_s.downcase)
+  end
 
   def single_line(prompt, index, with_codes: false)
     games = Game.where(:_id.in => prompt.game_ids).to_a.sort_by(&:game_time)
