@@ -4,7 +4,15 @@ class AttendancePromptWorker
   INITIAL_LEAD_DAYS  = 4
   REMINDER_LEAD_DAYS = 2
 
+  # Quiet hours: do not generate or dispatch prompts between 9pm and 9am local
+  # (Eastern). The hourly cron still ticks during this window, but the worker
+  # short-circuits so players don't get a midnight buzz.
+  QUIET_HOURS_START = 21  # inclusive (9pm)
+  QUIET_HOURS_END   = 9   # exclusive (9am)
+
   def perform
+    return if quiet_hours?
+
     today = Date.current
     initial_day  = today + INITIAL_LEAD_DAYS
     reminder_day = today + REMINDER_LEAD_DAYS
@@ -17,6 +25,11 @@ class AttendancePromptWorker
     end
 
     dispatch_pending_per_user!
+  end
+
+  def quiet_hours?
+    hour = Time.now.in_time_zone(LOCAL_TIMEZONE).hour
+    hour >= QUIET_HOURS_START || hour < QUIET_HOURS_END
   end
 
   def self.preview(today: Date.current)

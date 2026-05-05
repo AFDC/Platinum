@@ -12,6 +12,8 @@ describe AttendancePromptWorker do
     FactoryGirl.create(:notification_method, user: user1, target: '4045551111')
     FactoryGirl.create(:notification_method, user: user2, target: '4045552222')
     NotificationMethod.any_instance.stub(:send_text).and_return(true)
+    # Pretend we're outside quiet hours for the existing behavior tests.
+    AttendancePromptWorker.any_instance.stub(:quiet_hours?).and_return(false)
   end
 
   def make_game(game_day, time = '7:00pm', league_arg = league)
@@ -102,6 +104,35 @@ describe AttendancePromptWorker do
       output = AttendancePromptWorker.preview
       output.should be_a(Array)
       output.any? { |line| line.include?('Initial') }.should eq(true)
+    end
+  end
+
+  describe "quiet hours" do
+    before { AttendancePromptWorker.any_instance.unstub(:quiet_hours?) }
+
+    it "creates and dispatches no prompts during quiet hours" do
+      AttendancePromptWorker.any_instance.stub(:quiet_hours?).and_return(true)
+      future_day = Date.current + 4
+      make_game(future_day)
+      AttendancePromptWorker.new.perform
+      AttendancePrompt.count.should eq(0)
+      AttendancePromptDispatch.count.should eq(0)
+    end
+
+    # Pre-compute the times before stubbing Time.now (the stub installation
+    # itself precedes argument evaluation, and Date.current relies on Time.now).
+    {
+      "9pm Eastern as quiet"        => ['21:00', true],
+      "8:59pm Eastern as not quiet" => ['20:59', false],
+      "9am Eastern as not quiet"    => ['09:00', false],
+      "8:59am Eastern as quiet"     => ['08:59', true],
+      "midnight Eastern as quiet"   => ['00:00', true],
+    }.each do |label, (clock, expected)|
+      it "treats #{label}" do
+        target = LOCAL_TIMEZONE.parse("#{Date.current} #{clock}")
+        Time.stub(:now).and_return(target)
+        AttendancePromptWorker.new.send(:quiet_hours?).should eq(expected)
+      end
     end
   end
 end

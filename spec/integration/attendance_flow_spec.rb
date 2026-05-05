@@ -13,6 +13,7 @@ describe "Attendance end-to-end" do
     FactoryGirl.create(:notification_method, user: captain, target: '4045551111')
     FactoryGirl.create(:notification_method, user: player,  target: '4045552222')
     NotificationMethod.any_instance.stub(:send_text).and_return(true)
+    AttendancePromptWorker.any_instance.stub(:quiet_hours?).and_return(false)
   end
 
   it "creates prompts on the worker run, applies an SMS reply, and persists status" do
