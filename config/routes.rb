@@ -2,6 +2,10 @@ require 'sidekiq/web'
 
 Platinum::Application.routes.draw do
   match '/users/search' => 'users#search', via: :get
+
+  post '/attendance_prompts/sms' => 'attendance_prompts#sms_webhook'
+  get  '/attendance/:token'      => 'attendance_prompts#show',   as: :attendance_token
+  patch '/attendance/:token'     => 'attendance_prompts#update', as: :attendance_token_update
   resources :fields, :waivers, :schedules, :comp_groups, :payments, :spirit_reports
 
   resources :waivers do

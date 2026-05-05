@@ -19,6 +19,7 @@ authorization do
 		has_permission_on :covid, to: [:index]
 		has_permission_on :waivers, to: [:show, :sign_waiver]
 		has_permission_on :waiver_signatures, to: [:show]
+		has_permission_on :attendance_prompts, to: [:sms_webhook, :show, :update]
 	end
 
 	role :user do
