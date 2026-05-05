@@ -13,11 +13,18 @@ Replace captain-run GroupMe attendance polls with an in-app system that automati
 
 ## 2. Player journey
 
-Three channels, layered. A given player only ever receives the prompt on one channel per dispatch (we don't double-prompt by SMS *and* email).
+Three channels, layered. A given player gets exactly one **type** of channel per prompt (SMS *or* email — never both), but if they have multiple targets of the chosen type, all are sent — see "Multiple targets" below.
 
-- **Primary — SMS.** Any player with a `NotificationMethod` of method `text` that is both `confirmed` and `enabled` gets the prompt by SMS. They reply with a 2-digit code (e.g., `11` = YES) optionally followed by a free-text note.
-- **Backup — Email.** Players without a confirmed+enabled text method get an email at `user.email_address` with a tokenized link.
+- **Primary — SMS.** If the player has any `NotificationMethod` with `method = 'text'`, `confirmed: true`, and `enabled: true`, the SMS channel is selected. The prompt is sent to **every** confirmed+enabled SMS NotificationMethod the player has (matching the existing `GameCancellationWorker.notify_user` pattern). Each send creates its own `AttendancePromptDispatch`. Players reply with a 2-digit code (e.g., `11` = YES) optionally followed by a free-text note.
+- **Backup — Email.** If the SMS channel is *not* selected (no confirmed+enabled text method), the email channel is used. Email recipient resolution:
+    1. If the player has any `NotificationMethod` with `method = 'email'`, `confirmed: true`, `enabled: true` → send to **every** such target.
+    2. Else, if the player has `email`-type NotificationMethods but none confirmed+enabled (i.e., they explicitly disabled their email channel) → **no email is sent**; this player is silently uncovered for this prompt cycle.
+    3. Else (no `email` NotificationMethods at all) → fall back to `user.email_address`. (Default behavior: registration already verifies the primary email, so absence of an explicit NotificationMethod implies consent.)
 - **Tertiary — Web.** The tokenized link from the email lands on a no-login RSVP page with YES/NO/PARTIAL buttons and a notes field. Suffix-3 SMS replies (`13`) auto-reply with this same link so players can leave more nuanced answers.
+
+**Multiple targets.** A player with two confirmed+enabled phone numbers gets the same SMS to both, with the same prefix→prompt mapping (one `AttendancePromptDispatch` per send). Inbound from either phone resolves to the same player and the same anchor dispatch (whichever is more recent — usually they're the same `sent_at`). This matches existing app behavior for cancellation notifications.
+
+**Channel asymmetry, called out explicitly.** SMS requires explicit confirmation (TCPA/compliance); email defaults to opted-in (registration consent). The two channels are *not* symmetric, and that's deliberate.
 
 Tokenized URLs are single-purpose: they RSVP exactly one (player, game-day) prompt, expire when the game-day is past, and do not authenticate the user into Platinum.
 
@@ -56,17 +63,28 @@ This convention is global (suffix `1` is always YES) which makes parsing a near-
 >
 > *(2) **Thu 5/15** 7pm at Brookhaven vs Wolves — Reply 21 YES / 22 NO / 23 partial"*
 
+### "Active pending" — defining the parser's working set
+
+The parser operates only on **active pending** prompts: `status = 'pending' AND game_day >= today_in_eastern`. We do **not** flip past-game prompts to a separate `expired` status — there's no daily reaper worker. Instead, every parser query (and the captain dashboard's "not answered" count for current games) goes through a single Mongoid scope (e.g., `AttendancePrompt.active_pending`) that filters on both fields. Past-game prompts keep `status = 'pending'` forever; they simply stop being eligible for matching. This is the entire mechanism by which stale codes don't conflict with future prompts.
+
 ### Reply parsing rules (in precedence order)
 
-1. Tokenize the reply on whitespace; locate any 2-digit numeric tokens (`\d{2}`).
-2. For each code, split into `(prefix, suffix)`. Look up the most-recent-pending `AttendancePrompt` for `(player, prefix)`. Apply the answer based on suffix.
-3. Any text between a code and the next code is captured as the `note` for that prompt.
-4. If no codes are found *and* the reply matches a fuzzy YES/NO variant (`y`, `yes`, `yep`, `yeah`, `in`, `coming`, `n`, `no`, `nope`, `out`, `cant`, `can't`) *and* the player has exactly one outstanding prompt, apply to that single prompt.
-5. Anything else: save as a note on the most-recent outstanding prompt, status stays `pending`, send an auto-reply with the web link.
+The parser is **dispatch-mediated**. Twilio inbound carries no thread/conversation reference, so we resolve codes via the most recent SMS dispatch that still has active-pending prompts for this user.
+
+1. Identify the user via `From` (Twilio inbound phone) → `NotificationMethod.target` → `User`. If no match, see the unknown-phone case in §9.
+2. Find the user's most recent `AttendancePromptDispatch` (channel = `sms`, ordered by `sent_at` desc) that contains at least one active-pending prompt. Call this the **anchor dispatch**. If none exists, see the no-pending case in §9.
+3. Tokenize the reply body on whitespace; locate any 2-digit numeric tokens (`\d{2}`).
+4. For each code, split into `(prefix, suffix)`:
+    - Look up `prefix` in the anchor dispatch's `prompts` mapping → resolve to a `prompt_id`.
+    - If that prompt is still active-pending, record the answer based on `suffix` (1 = YES, 2 = NO, 3 = PARTIAL).
+    - If the prompt is no longer active-pending (already answered or game-day has passed), ignore that code.
+5. Any text between a code and the next code is captured as the `note` for that prompt.
+6. If no codes are found *and* the reply matches a fuzzy YES/NO variant (`y`, `yes`, `yep`, `yeah`, `in`, `coming`, `n`, `no`, `nope`, `out`, `cant`, `can't`) *and* the anchor dispatch references exactly one active-pending prompt, apply to that single prompt.
+7. Anything else (codes that don't resolve, freeform text without recognizable intent, ambiguous fuzzy reply with multiple pending): save the entire reply text as a note on the anchor dispatch's most recent active-pending prompt, leave status as `pending`, send an auto-reply with the web link.
 
 ### Stale replies
 
-Codes are scoped to the SMS message they were sent in. Stale replies (player answers a code from a 2-day-old message after a fresher message has gone out) resolve naturally: each `AttendancePromptDispatch` records its own prefix→prompt mapping, so the parser picks the prompt referenced in the original message regardless of newer messages. By the next week, the previous game-day has happened and its prompts are no longer pending, so the same code on a future message can't conflict.
+The dispatch-mediated lookup means each code's meaning is anchored to whichever message the player is currently looking at — typically the most recent one. By the time a *new* dispatch reuses prefix `1` (e.g., next week's Sunday SMS), the previous prompt with prefix `1` has either been answered (no longer pending) or its game-day has passed (no longer active-pending). Either way it falls out of the parser's working set and the new prefix `1` resolves cleanly.
 
 ## 5. Dashboards
 
@@ -106,6 +124,11 @@ One per `(player, team, game-day)`.
 | `created_at`       | DateTime            |                                                                    |
 | `actually_attended`| Boolean (nullable)  | v2 ground-truth field; included now to avoid migration later       |
 | `web_token`        | String              | Single-purpose URL key                                             |
+
+**Scopes:**
+
+- `active_pending`: `status: 'pending', game_day: { '$gte' => Date.current_eastern }`. Used by the parser and "not answered" counts. The parser's correctness depends on this scope — see §4.
+- `for_team(team)`, `for_user(user)`, `for_game_day(date)`: convenience scopes for the dashboard and worker queries.
 
 ### `AttendancePromptDispatch`
 
@@ -151,7 +174,7 @@ These rules slot into the existing `declarative_authorization` setup.
 - **Twilio outbound failure:** caught and logged via Bugsnag (existing pattern). The `AttendancePromptDispatch` is still created but flagged with no `provider_message_id`; a follow-up can retry. Prompts are still considered sent for cron-scheduling purposes (we don't want infinite retries blowing up the queue).
 - **Inbound from unknown phone:** auto-reply *"We don't recognize this number. Visit \[link to AFDC site\] to manage your notification methods."* and discard.
 - **Inbound from a player with no pending prompts:** auto-reply *"No active attendance questions right now. Visit \[link\] to manage notifications or see your schedule."*
-- **STOP / unsubscribe:** Twilio handles `STOP` keywords automatically at the carrier level. We rely on that for v1.
+- **STOP / unsubscribe — known consequence.** Twilio handles `STOP` keywords automatically at the carrier level by blocking the AFDC sending number for that phone. This is **all-or-nothing**: a player who replies `STOP` to an attendance ping also stops receiving rainout SMS from `GameCancellationWorker` and confirmation codes from `NotificationConfirmationWorker`. We accept this as a known consequence rather than adding per-feature opt-out language to every prompt — the existing AFDC SMS compliance setup is already operating this way for rainouts and confirmation codes, and adding "reply STOP to opt out" copy to every attendance message would invite more opt-outs than it prevents complaints. Captains can use the override path to record attendance for STOP'd players manually.
 - **Player on multiple teams:** prompts are scoped to `(player, team, game-day)` so a player on two teams in different leagues simply gets multiple prompts. The prefix system disambiguates within an SMS.
 - **Captain override after a player has already responded:** the override wins (most recent wins). The previous answer is overwritten; the prior `responded_by`/`response_method` are not preserved (we accept this for v1 simplicity — adding an audit log is v2 if anyone misses it).
 - **Game cancelled / rained out before prompts go out:** the worker filters to game-days that have at least one non-rained-out game when scheduling prompts. A day where every game is already rained out gets no prompt.
