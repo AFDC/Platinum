@@ -25,6 +25,12 @@
                         = f.check_box :pickup_registration
                         Pickup Player Signup
 
+            .control-group
+                .controls
+                    %label.checkbox
+                        = f.check_box :attendance_enabled
+                        Enable attendance prompts (SMS/email)
+
             .control-group{ class: ('error' if errors[:age_division].any?)}
                 %label.control-label{for: 'league_age_division'} Age Division
                 .controls
