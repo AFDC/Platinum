@@ -38,5 +38,6 @@ Platinum::Application.configure do
 
   config.eager_load = false
 
-  config.secret_token = SecureRandom.hex(64)
+  config.secret_token    = SecureRandom.hex(64)
+  config.secret_key_base = SecureRandom.hex(64)
 end

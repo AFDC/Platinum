@@ -4,5 +4,5 @@
 # If you change this key, all old signed cookies will become invalid!
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-Platinum::Application.config.secret_token = ENV['secret_token']
-Platinum::Application.config.secret_key_base = ENV['secret_key_base']
+Platinum::Application.config.secret_token    = ENV['secret_token']    if ENV['secret_token'].present?
+Platinum::Application.config.secret_key_base = ENV['secret_key_base'] if ENV['secret_key_base'].present?
