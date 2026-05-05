@@ -52,6 +52,12 @@ ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
 require 'rspec/autorun'
+require 'sidekiq/testing'
+
+# Run Sidekiq workers inline during tests so that `perform_async` doesn't
+# require Redis. This matches the behavior of FactoryGirl-created records
+# triggering after-save callbacks that enqueue workers.
+Sidekiq::Testing.inline!
 
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
@@ -88,6 +94,10 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
   config.before(:suite) do
+    Mongoid.default_session.drop
+  end
+
+  config.before(:each) do
     Mongoid.default_session.drop
   end
 end
