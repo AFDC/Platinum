@@ -30,15 +30,18 @@
 | `lib/afdc/attendance_reply_parser.rb` | new | Parses inbound SMS body into status updates |
 | `lib/afdc/attendance_prompt_dispatcher.rb` | new | Builds + sends the SMS/email; creates Dispatch records |
 | `app/workers/attendance_prompt_worker.rb` | new | Hourly cron; finds eligible game-days, creates prompts, calls dispatcher |
-| `app/mailers/notification_mailer.rb` | modify | Add `attendance_prompt(dispatch_id)` method |
-| `app/views/notification_mailer/attendance_prompt.html.haml` | new | HTML email body |
-| `app/views/notification_mailer/attendance_prompt.text.haml` | new | Plain-text email body |
+| `app/mailers/attendance_mailer.rb` | new | Dedicated mailer (matches `PickupMailer`/`RegistrationMailer` pattern) |
+| `app/views/attendance_mailer/attendance_prompt.html.haml` | new | HTML email body |
+| `app/views/attendance_mailer/attendance_prompt.text.haml` | new | Plain-text email body |
+| `app/helpers/attendance_mailer_helper.rb` | new | URL helpers for the mailer |
 | `app/controllers/attendance_prompts_controller.rb` | new | Twilio webhook + tokenized web flow |
 | `app/views/attendance_prompts/show.html.haml` | new | No-login web RSVP page |
 | `app/controllers/teams_controller.rb` | modify | Add `attendance` action |
-| `app/views/teams/attendance.html.haml` | new | Captain dashboard |
+| `app/views/teams/attendance.html.haml` | new | Captain dashboard (gender-split, pickups inline) |
+| `app/views/teams/bulk_attendance.html.haml` | new | Captain bulk-update view |
 | `app/controllers/leagues_controller.rb` | modify | Add `attendance_overview` action |
-| `app/views/leagues/attendance_overview.html.haml` | new | Commissioner overview |
+| `app/views/leagues/attendance_overview.html.haml` | new | Commissioner overview (gender-split, pickups) |
+| `lib/tasks/attendance.rake` | new | Preview / run-now rake tasks for ops |
 | `app/views/leagues/_form.html.haml` | modify | Add `attendance_enabled` checkbox |
 | `config/routes.rb` | modify | Add new routes |
 | `config/schedule.rb` | modify | Add hourly attendance cron |
@@ -50,7 +53,10 @@
 | `spec/lib/afdc/attendance_prompt_dispatcher_spec.rb` | new | Dispatcher spec |
 | `spec/workers/attendance_prompt_worker_spec.rb` | new | Worker spec |
 | `spec/controllers/attendance_prompts_controller_spec.rb` | new | Controller spec |
-| `spec/mailers/notification_mailer_attendance_prompt_spec.rb` | new | Mailer spec |
+| `spec/controllers/teams_controller_attendance_spec.rb` | new | Captain dashboard spec |
+| `spec/controllers/teams_controller_bulk_attendance_spec.rb` | new | Bulk-update spec |
+| `spec/controllers/leagues_controller_attendance_spec.rb` | new | Commissioner overview spec |
+| `spec/mailers/attendance_mailer_spec.rb` | new | Mailer spec |
 | `spec/integration/attendance_flow_spec.rb` | new | End-to-end |
 
 ---
@@ -226,6 +232,15 @@ describe AttendancePrompt do
     end
   end
 
+  describe "uniqueness" do
+    it "rejects a duplicate (user, team, game_day) tuple" do
+      day = Date.current + 3
+      FactoryGirl.create(:attendance_prompt, user: user, team: team, league: league, game_day: day)
+      dup = FactoryGirl.build(:attendance_prompt, user: user, team: team, league: league, game_day: day)
+      dup.should_not be_valid
+    end
+  end
+
   describe "#record_response!" do
     let(:prompt) { FactoryGirl.create(:attendance_prompt, user: user, team: team, league: league) }
 
@@ -278,6 +293,7 @@ class AttendancePrompt
   validates :status, inclusion: { in: STATUSES }
   validates :response_method, inclusion: { in: RESPONSE_METHODS, allow_nil: true }
   validates :user, :team, :league, :game_day, presence: true
+  validates :game_day, uniqueness: { scope: [:user_id, :team_id] }
 
   before_validation :ensure_web_token
 
@@ -830,7 +846,7 @@ describe Afdc::AttendancePromptDispatcher do
       sms_nm.update_attributes!(enabled: false)
       dispatcher = Afdc::AttendancePromptDispatcher.new(user: user, prompts: [p1], kind: 'initial')
       mock_mail = double('mail', deliver: true)
-      NotificationMailer.should_receive(:attendance_prompt).and_return(mock_mail)
+      AttendanceMailer.should_receive(:attendance_prompt).and_return(mock_mail)
       dispatcher.dispatch!
       AttendancePromptDispatch.where(user_id: user._id, channel: 'email').count.should eq(1)
     end
@@ -839,7 +855,7 @@ describe Afdc::AttendancePromptDispatcher do
       sms_nm.update_attributes!(enabled: false)
       FactoryGirl.create(:notification_method, user: user, method: 'email', target: 'optout@example.com', confirmed: true, enabled: false)
       dispatcher = Afdc::AttendancePromptDispatcher.new(user: user, prompts: [p1], kind: 'initial')
-      NotificationMailer.should_not_receive(:attendance_prompt)
+      AttendanceMailer.should_not_receive(:attendance_prompt)
       dispatcher.dispatch!
       AttendancePromptDispatch.where(user_id: user._id).count.should eq(0)
     end
@@ -848,7 +864,7 @@ describe Afdc::AttendancePromptDispatcher do
       sms_nm.destroy
       dispatcher = Afdc::AttendancePromptDispatcher.new(user: user, prompts: [p1], kind: 'initial')
       mock_mail = double('mail', deliver: true)
-      NotificationMailer.should_receive(:attendance_prompt).and_return(mock_mail)
+      AttendanceMailer.should_receive(:attendance_prompt).and_return(mock_mail)
       dispatcher.dispatch!
       d = AttendancePromptDispatch.where(user_id: user._id, channel: 'email').first
       d.target.should eq(user.email_address)
@@ -981,7 +997,7 @@ module Afdc
           kind: @kind, target: email,
           prompts: prompts_payload
         )
-        NotificationMailer.attendance_prompt(dispatch._id.to_s).deliver
+        AttendanceMailer.attendance_prompt(dispatch._id.to_s).deliver
       end
     rescue StandardError => e
       Rails.logger.error("AttendancePromptDispatcher email failure for user #{@user._id}: #{e.message}")
@@ -1290,22 +1306,22 @@ git commit -m "Schedule AttendancePromptWorker hourly via whenever"
 
 ---
 
-## Task 9: NotificationMailer.attendance_prompt + email views
+## Task 9: AttendanceMailer + email views
 
-**Goal:** Email channel implementation. The mailer takes a dispatch ID, fetches its prompts, renders an email with the same per-game-day info as the SMS, plus tokenized RSVP links per prompt.
+**Goal:** Email channel implementation as a dedicated mailer (matching the existing pattern of `PickupMailer`, `RegistrationMailer`, `WaiverMailer`). The mailer takes a dispatch ID, fetches its prompts, renders an email with the same per-game-day info as the SMS, plus tokenized RSVP links per prompt.
 
 **Files:**
-- Modify: `app/mailers/notification_mailer.rb`
-- Create: `app/views/notification_mailer/attendance_prompt.html.haml`
-- Create: `app/views/notification_mailer/attendance_prompt.text.haml`
-- Test: `spec/mailers/notification_mailer_attendance_prompt_spec.rb`
+- Create: `app/mailers/attendance_mailer.rb`
+- Create: `app/views/attendance_mailer/attendance_prompt.html.haml`
+- Create: `app/views/attendance_mailer/attendance_prompt.text.haml`
+- Test: `spec/mailers/attendance_mailer_spec.rb`
 
 - [ ] **Step 1: Write failing mailer spec**:
 
 ```ruby
 require 'spec_helper'
 
-describe NotificationMailer do
+describe AttendanceMailer do
   describe "#attendance_prompt" do
     let(:user)   { FactoryGirl.create(:user, firstname: 'Pete') }
     let(:league) { FactoryGirl.create(:league) }
@@ -1319,42 +1335,51 @@ describe NotificationMailer do
     }
 
     it "renders the user's first name and game date" do
-      mail = NotificationMailer.attendance_prompt(dispatch._id.to_s)
+      mail = AttendanceMailer.attendance_prompt(dispatch._id.to_s)
       mail.to.should eq(['pete@example.com'])
       mail.subject.should match(/AFDC/i)
+      mail.subject.should match(/ACTION REQUIRED/i)
       mail.body.encoded.should match(/Pete/)
       mail.body.encoded.should match(p1.game_day.strftime('%-m/%-d'))
     end
 
     it "includes a tokenized RSVP link per prompt" do
-      mail = NotificationMailer.attendance_prompt(dispatch._id.to_s)
+      mail = AttendanceMailer.attendance_prompt(dispatch._id.to_s)
       mail.body.encoded.should match(p1.web_token)
     end
   end
 end
 ```
 
-- [ ] **Step 2: Run, expect failure** (method not defined).
+- [ ] **Step 2: Run, expect failure** (constant not defined).
 
-Run: `bundle exec rspec spec/mailers/notification_mailer_attendance_prompt_spec.rb`
+Run: `bundle exec rspec spec/mailers/attendance_mailer_spec.rb`
 Expected: FAIL.
 
-- [ ] **Step 3: Add the mailer method** to `app/mailers/notification_mailer.rb`:
+- [ ] **Step 3: Create `app/mailers/attendance_mailer.rb`**:
 
 ```ruby
-def attendance_prompt(dispatch_id)
-  @dispatch = AttendancePromptDispatch.find(dispatch_id)
-  @user     = @dispatch.user
-  @prompts  = @dispatch.prompts.map { |entry|
-    AttendancePrompt.find(entry['prompt_id'])
-  }
-  @target   = @dispatch.target
+class AttendanceMailer < ActionMailer::Base
+  default from: "system@leagues.afdc.com"
+  layout 'zurb_ink_basic'
 
-  mail(to: @target, subject: "AFDC: please confirm your attendance")
+  def attendance_prompt(dispatch_id)
+    @dispatch = AttendancePromptDispatch.find(dispatch_id)
+    @user     = @dispatch.user
+    @prompts  = @dispatch.prompts.map { |entry| AttendancePrompt.find(entry['prompt_id']) }
+    @target   = @dispatch.target
+
+    first_day = @prompts.map(&:game_day).min
+    subject_date = first_day.strftime('%A, %B %-d')
+    mail(
+      to: @target,
+      subject: "[AFDC] Will you be attending your games on #{subject_date}? (ACTION REQUIRED)"
+    )
+  end
 end
 ```
 
-- [ ] **Step 4: Create `app/views/notification_mailer/attendance_prompt.text.haml`** (use tabs, matching existing files):
+- [ ] **Step 4: Create `app/views/attendance_mailer/attendance_prompt.text.haml`** (use tabs, matching existing files):
 
 ```haml
 Hi #{@user.firstname}!
@@ -1373,7 +1398,7 @@ If you have questions, contact your captain.
 — AFDC
 ```
 
-- [ ] **Step 5: Create `app/views/notification_mailer/attendance_prompt.html.haml`** (HTML version using the existing zurb_ink_basic layout):
+- [ ] **Step 5: Create `app/views/attendance_mailer/attendance_prompt.html.haml`** (HTML version using the existing zurb_ink_basic layout):
 
 ```haml
 %h2 Hi #{@user.firstname}!
@@ -1392,12 +1417,12 @@ If you have questions, contact your captain.
 %p — AFDC
 ```
 
-- [ ] **Step 6: Add the URL helper** for `rsvp_url(token)`. We will define a route `attendance_token GET /attendance/:token` in Task 10. For now, define a temporary helper if needed:
+- [ ] **Step 6: Add the URL helper** for `rsvp_url(token)`. We will define a route `attendance_token GET /attendance/:token` in Task 10. For now, define a helper:
 
-In `app/helpers/notification_mailer_helper.rb` (create if absent):
+In `app/helpers/attendance_mailer_helper.rb` (create new):
 
 ```ruby
-module NotificationMailerHelper
+module AttendanceMailerHelper
   def rsvp_url(token)
     Rails.application.routes.url_helpers.attendance_token_url(token: token, host: ENV['MAILER_HOST'] || 'leagues.afdc.com')
   end
@@ -1416,14 +1441,16 @@ OR — preferably — implement Task 10 and Task 9 close together. Either order 
 
 - [ ] **Step 8: Run, expect pass**.
 
-Run: `bundle exec rspec spec/mailers/notification_mailer_attendance_prompt_spec.rb`
+Run: `bundle exec rspec spec/mailers/attendance_mailer_spec.rb`
 Expected: PASS.
 
-- [ ] **Step 9: Commit**.
+- [ ] **Step 9: Update the dispatcher reference**. In Task 6's `send_email_to`, the call is `AttendanceMailer.attendance_prompt(...)`. Change it to `AttendanceMailer.attendance_prompt(...)` in `lib/afdc/attendance_prompt_dispatcher.rb`. Re-run the dispatcher spec to ensure no regression: `bundle exec rspec spec/lib/afdc/attendance_prompt_dispatcher_spec.rb`.
+
+- [ ] **Step 10: Commit**.
 
 ```bash
-git add app/mailers/notification_mailer.rb app/views/notification_mailer/attendance_prompt.html.haml app/views/notification_mailer/attendance_prompt.text.haml app/helpers/notification_mailer_helper.rb spec/mailers/notification_mailer_attendance_prompt_spec.rb
-git commit -m "Add attendance_prompt mailer with text and HTML views"
+git add app/mailers/attendance_mailer.rb app/views/attendance_mailer/ app/helpers/attendance_mailer_helper.rb spec/mailers/attendance_mailer_spec.rb lib/afdc/attendance_prompt_dispatcher.rb
+git commit -m "Add AttendanceMailer with attendance_prompt action and views"
 ```
 
 ---
@@ -1731,8 +1758,34 @@ describe TeamsController do
       FactoryGirl.create(:attendance_prompt, user: player, team: team, league: league, game_day: day, status: 'pending')
       get :attendance, id: team._id
       counts = assigns(:counts_by_day)[day]
-      counts[:yes].should eq(1)
-      counts[:not_answered].should eq(1)
+      counts[:total][:yes].should eq(1)
+      counts[:total][:not_answered].should eq(1)
+    end
+
+    it "provides gender-split counts" do
+      day = Date.current + 3
+      Game.create!(league: league, game_time: Time.zone.parse("#{day} 7pm"), teams: [team._id])
+      male_player = FactoryGirl.create(:user, gender: 'male')
+      female_player = FactoryGirl.create(:user, gender: 'female')
+      team.players = [male_player._id, female_player._id]
+      team.save!
+      FactoryGirl.create(:attendance_prompt, user: male_player, team: team, league: league, game_day: day, status: 'yes')
+      FactoryGirl.create(:attendance_prompt, user: female_player, team: team, league: league, game_day: day, status: 'pending')
+      get :attendance, id: team._id
+      counts = assigns(:counts_by_day)[day]
+      counts[:male][:yes].should eq(1)
+      counts[:female][:not_answered].should eq(1)
+    end
+
+    it "exposes accepted pickup registrations for the day" do
+      day = Date.current + 3
+      Game.create!(league: league, game_time: Time.zone.parse("#{day} 7pm"), teams: [team._id])
+      pickup_user = FactoryGirl.create(:user, gender: 'female')
+      PickupRegistration.create!(user: pickup_user, team: team, league: league,
+                                 assigned_date: day, status: 'accepted')
+      get :attendance, id: team._id
+      assigns(:pickups_by_day)[day].size.should eq(1)
+      assigns(:pickups_by_day)[day].first.user.should eq(pickup_user)
     end
   end
 
@@ -1762,17 +1815,16 @@ Expected: FAIL.
 def attendance
   @team   = Team.find(params[:id])
   @league = @team.league
-  @upcoming_days = upcoming_game_days(@team)
+  @upcoming_days  = upcoming_game_days(@team)
   @prompts_by_day = {}
+  @pickups_by_day = {}
   @counts_by_day  = {}
   @upcoming_days.each do |day|
     prompts = AttendancePrompt.where(team_id: @team._id, game_day: day).to_a
+    pickups = PickupRegistration.where(team: @team, assigned_date: day, status: 'accepted').to_a
     @prompts_by_day[day] = prompts
-    @counts_by_day[day] = {
-      yes:          prompts.count { |p| p.status == 'yes' || p.status == 'partial' },
-      no:           prompts.count { |p| p.status == 'no' },
-      not_answered: prompts.count { |p| p.status == 'pending' } + (@team.players.count - prompts.size),
-    }
+    @pickups_by_day[day] = pickups
+    @counts_by_day[day]  = build_counts(@team, prompts, pickups)
   end
 end
 
@@ -1798,14 +1850,46 @@ def upcoming_game_days(team)
       .uniq
       .sort
 end
+
+# Returns { total: {yes:,no:,not_answered:}, male: {...}, female: {...} } with pickups added to yes counts.
+def build_counts(team, prompts, pickups)
+  by_gender = { 'male' => team.players.select { |p| p.gender == 'male' },
+                'female' => team.players.select { |p| p.gender == 'female' } }
+  pickup_by_gender = pickups.group_by { |pr| pr.user.gender }
+  result = { total: bucket_zero, male: bucket_zero, female: bucket_zero }
+  %w(male female).each do |gender|
+    players = by_gender[gender]
+    gender_prompts = prompts.select { |p| p.user && p.user.gender == gender }
+    yes_count          = gender_prompts.count { |p| p.status == 'yes' || p.status == 'partial' }
+    no_count           = gender_prompts.count { |p| p.status == 'no' }
+    not_answered_count = gender_prompts.count { |p| p.status == 'pending' } + (players.count - gender_prompts.size)
+    pickup_count       = (pickup_by_gender[gender] || []).size
+    bucket = { yes: yes_count + pickup_count, no: no_count, not_answered: not_answered_count, pickups: pickup_count }
+    result[gender.to_sym] = bucket
+  end
+  result[:total] = {
+    yes:          result[:male][:yes] + result[:female][:yes],
+    no:           result[:male][:no] + result[:female][:no],
+    not_answered: result[:male][:not_answered] + result[:female][:not_answered],
+    pickups:      result[:male][:pickups] + result[:female][:pickups],
+  }
+  result
+end
+
+def bucket_zero
+  { yes: 0, no: 0, not_answered: 0, pickups: 0 }
+end
 ```
 
-- [ ] **Step 6: Create the view** at `app/views/teams/attendance.html.haml`:
+- [ ] **Step 6: Create the view** at `app/views/teams/attendance.html.haml`. Tabs for indentation:
 
 ```haml
 .container
 	%h2= "Attendance — #{@team.name}"
-	%p= link_to "← Back to team", team_path(@team)
+	%p
+		= link_to "← Back to team", team_path(@team)
+		\ |
+		= link_to "Bulk update", bulk_attendance_team_path(@team)
 
 	- if @upcoming_days.empty?
 		%p No upcoming games this week.
@@ -1815,37 +1899,62 @@ end
 				%h3= day.strftime('%A %-m/%-d')
 				- counts = @counts_by_day[day]
 				%p
-					%span.label.label-success= "✅ #{counts[:yes]}"
-					%span.label.label-important= "❌ #{counts[:no]}"
-					%span.label= "❓ #{counts[:not_answered]}"
+					%strong Total:
+					%span.label.label-success= "✅ #{counts[:total][:yes]}"
+					%span.label.label-important= "❌ #{counts[:total][:no]}"
+					%span.label= "❓ #{counts[:total][:not_answered]}"
+					- if counts[:total][:pickups] > 0
+						%span.label.label-info= "+#{counts[:total][:pickups]} pickup#{'s' if counts[:total][:pickups] != 1}"
 
-				%table.table.table-striped
-					%thead
-						%tr
-							%th Player
-							%th Status
-							%th Note
-							%th Method
-							%th Override
-					%tbody
-						- @team.players.each do |player|
-							- prompt = @prompts_by_day[day].detect { |p| p.user_id == player._id }
-							%tr
-								%td= "#{player.firstname} #{player.lastname}"
-								%td
-									- if prompt && prompt.status != 'pending'
-										= prompt.status.upcase
-									- else
-										%em Not answered
-								%td= prompt && prompt.note
-								%td= prompt && prompt.response_method
-								%td
-									- if prompt
-										= form_tag attendance_override_team_path(@team), method: :patch, style: 'display:inline' do
-											= hidden_field_tag :prompt_id, prompt._id
-											= select_tag :status, options_for_select([['Yes','yes'],['No','no'],['Partial','partial']], prompt.status), prompt: 'Override...'
-											= text_field_tag :note, '', placeholder: 'note', size: 12
-											= submit_tag 'Set', class: 'btn btn-mini'
+				.row
+					- %w(male female).each do |gender|
+						.span6
+							%h4= "#{gender.capitalize} Players"
+							%p
+								%span.label.label-success= "✅ #{counts[gender.to_sym][:yes]}"
+								%span.label.label-important= "❌ #{counts[gender.to_sym][:no]}"
+								%span.label= "❓ #{counts[gender.to_sym][:not_answered]}"
+								- if counts[gender.to_sym][:pickups] > 0
+									%span.label.label-info= "+#{counts[gender.to_sym][:pickups]} pickup"
+							%table.table.table-striped.table-condensed
+								%thead
+									%tr
+										%th Player
+										%th Status
+										%th Note
+										%th Method
+										%th Override
+								%tbody
+									- gender_players = @team.players.select { |p| p.gender == gender }
+									- gender_players.each do |player|
+										- prompt = @prompts_by_day[day].detect { |p| p.user_id == player._id }
+										%tr
+											%td= "#{player.firstname} #{player.lastname}"
+											%td
+												- if prompt && prompt.status != 'pending'
+													= prompt.status.upcase
+												- else
+													%em Not answered
+											%td= prompt && prompt.note
+											%td= prompt && prompt.response_method
+											%td
+												- if prompt
+													= form_tag attendance_override_team_path(@team), method: :patch, style: 'display:inline' do
+														= hidden_field_tag :prompt_id, prompt._id
+														= select_tag :status, options_for_select([['Yes','yes'],['No','no'],['Partial','partial']], prompt.status), prompt: 'Override...'
+														= text_field_tag :note, '', placeholder: 'note', size: 12
+														= submit_tag 'Set', class: 'btn btn-mini'
+									- gender_pickups = @pickups_by_day[day].select { |pr| pr.user.gender == gender }
+									- gender_pickups.each do |pickup|
+										%tr.info
+											%td
+												%i.icon-plus
+												= "#{pickup.user.firstname} #{pickup.user.lastname}"
+											%td
+												%span.label.label-info Pickup
+											%td
+											%td accepted
+											%td —
 ```
 
 - [ ] **Step 7: Run, expect pass**.
@@ -1862,7 +1971,221 @@ git commit -m "Add captain attendance dashboard with manual override"
 
 ---
 
-## Task 12: Commissioner / league-admin overview
+## Task 12: Captain bulk-update view
+
+**Goal:** A single-form page for captains to mark many players' attendance at once for one game-day. Inspired by past-Pete's `manage_attendance.html.haml`. The single-row override on Task 11 is good for one-offs; this is for the "I just heard from the GroupMe that 4 people are out" workflow.
+
+**Files:**
+- Modify: `app/controllers/teams_controller.rb` (add `bulk_attendance` GET + `apply_bulk_attendance` PATCH)
+- Create: `app/views/teams/bulk_attendance.html.haml`
+- Modify: `config/routes.rb`
+- Modify: `config/authorization_rules.rb`
+- Test: `spec/controllers/teams_controller_bulk_attendance_spec.rb`
+
+- [ ] **Step 1: Add routes** to the `resources :teams` member block:
+
+```ruby
+resources :teams do
+  member do
+    get 'attendance'
+    patch 'attendance_override'
+    get 'bulk_attendance'
+    patch 'apply_bulk_attendance'
+  end
+end
+```
+
+- [ ] **Step 2: Add auth rules** in `config/authorization_rules.rb`. Extend the existing captain block from Task 11:
+
+```ruby
+has_permission_on :teams, to: [:attendance, :attendance_override, :bulk_attendance, :apply_bulk_attendance] do
+  if_attribute captains: contains { user }
+end
+
+has_permission_on :teams, to: [:attendance, :attendance_override, :bulk_attendance, :apply_bulk_attendance] do
+  if_permitted_to :manage, :league
+end
+```
+
+- [ ] **Step 3: Write controller spec** at `spec/controllers/teams_controller_bulk_attendance_spec.rb`:
+
+```ruby
+require 'spec_helper'
+
+describe TeamsController do
+  let(:captain) { FactoryGirl.create(:user) }
+  let(:league)  { FactoryGirl.create(:league, attendance_enabled: true) }
+  let(:team)    { FactoryGirl.create(:team, league: league) }
+  let(:p1)      { FactoryGirl.create(:user) }
+  let(:p2)      { FactoryGirl.create(:user) }
+
+  before do
+    team.captains = [captain._id]
+    team.players  = [captain._id, p1._id, p2._id]
+    team.save!
+    session[:user_id] = captain._id
+    controller.stub(:current_user).and_return(captain)
+  end
+
+  describe "GET #bulk_attendance" do
+    it "loads players and existing prompts for the requested date" do
+      day = Date.current + 3
+      Game.create!(league: league, game_time: Time.zone.parse("#{day} 7pm"), teams: [team._id])
+      FactoryGirl.create(:attendance_prompt, user: p1, team: team, league: league, game_day: day, status: 'no')
+      get :bulk_attendance, id: team._id, game_date: day.strftime('%Y-%m-%d')
+      response.should be_successful
+      assigns(:game_day).should eq(day)
+      assigns(:players).map(&:_id).should include(p1._id, p2._id)
+    end
+  end
+
+  describe "PATCH #apply_bulk_attendance" do
+    let(:day) { Date.current + 3 }
+
+    it "creates or updates prompts from the form payload" do
+      Game.create!(league: league, game_time: Time.zone.parse("#{day} 7pm"), teams: [team._id])
+      patch :apply_bulk_attendance, id: team._id,
+            game_date: day.strftime('%Y-%m-%d'),
+            attendance: {
+              p1._id.to_s => { 'status' => 'yes', 'note' => 'in' },
+              p2._id.to_s => { 'status' => 'no', 'note' => '' },
+            }
+      AttendancePrompt.where(user_id: p1._id, game_day: day).first.status.should eq('yes')
+      AttendancePrompt.where(user_id: p2._id, game_day: day).first.status.should eq('no')
+    end
+
+    it "skips entries with status='no_change'" do
+      Game.create!(league: league, game_time: Time.zone.parse("#{day} 7pm"), teams: [team._id])
+      FactoryGirl.create(:attendance_prompt, user: p1, team: team, league: league, game_day: day, status: 'pending')
+      patch :apply_bulk_attendance, id: team._id,
+            game_date: day.strftime('%Y-%m-%d'),
+            attendance: { p1._id.to_s => { 'status' => 'no_change', 'note' => '' } }
+      AttendancePrompt.where(user_id: p1._id, game_day: day).first.status.should eq('pending')
+    end
+
+    it "records response_method as captain_override and stamps the captain as responded_by" do
+      Game.create!(league: league, game_time: Time.zone.parse("#{day} 7pm"), teams: [team._id])
+      patch :apply_bulk_attendance, id: team._id,
+            game_date: day.strftime('%Y-%m-%d'),
+            attendance: { p1._id.to_s => { 'status' => 'yes', 'note' => '' } }
+      prompt = AttendancePrompt.where(user_id: p1._id, game_day: day).first
+      prompt.response_method.should eq('captain_override')
+      prompt.responded_by.should eq(captain)
+    end
+  end
+end
+```
+
+- [ ] **Step 4: Run, expect failure**.
+
+Run: `bundle exec rspec spec/controllers/teams_controller_bulk_attendance_spec.rb`
+Expected: FAIL.
+
+- [ ] **Step 5: Add controller actions** to `app/controllers/teams_controller.rb`:
+
+```ruby
+def bulk_attendance
+  @team     = Team.find(params[:id])
+  @game_day = Date.parse(params[:game_date])
+  @players  = @team.players.to_a
+  @games    = Game.where(:teams => @team._id,
+                         :game_time.gte => @game_day.beginning_of_day,
+                         :game_time.lte => @game_day.end_of_day).to_a
+  @existing = AttendancePrompt.where(team_id: @team._id, game_day: @game_day).to_a.index_by(&:user_id)
+end
+
+def apply_bulk_attendance
+  @team     = Team.find(params[:id])
+  @game_day = Date.parse(params[:game_date])
+  game_ids  = Game.where(:teams => @team._id,
+                         :game_time.gte => @game_day.beginning_of_day,
+                         :game_time.lte => @game_day.end_of_day).map(&:_id)
+
+  (params[:attendance] || {}).each do |user_id, fields|
+    status = fields['status']
+    next if status.blank? || status == 'no_change'
+    user = User.find(user_id)
+    prompt = AttendancePrompt.find_or_initialize_by(
+      team_id: @team._id, user_id: user._id, game_day: @game_day
+    )
+    prompt.league = @team.league
+    prompt.game_ids = game_ids
+    prompt.save!  # ensures the record exists with web_token
+    prompt.record_response!(
+      status: status,
+      responded_by: current_user,
+      response_method: 'captain_override',
+      note: fields['note'].presence
+    )
+  end
+
+  redirect_to attendance_team_path(@team), notice: "Bulk attendance updated for #{@game_day.strftime('%A %-m/%-d')}."
+end
+```
+
+- [ ] **Step 6: Create the view** at `app/views/teams/bulk_attendance.html.haml`:
+
+```haml
+.container
+	%h2= "Bulk Update — #{@team.name}"
+	%h3= @game_day.strftime('%A, %B %-d, %Y')
+	- if @games.any?
+		%ul
+			- @games.each do |g|
+				- opponent = g.opponent_for(@team)
+				%li= "#{g.game_time.strftime('%-l:%M%P').sub('m','')} vs #{opponent ? opponent.name : 'TBD'}"
+
+	= form_tag apply_bulk_attendance_team_path(@team), method: :patch, class: 'form-horizontal' do
+		= hidden_field_tag :game_date, @game_day.strftime('%Y-%m-%d')
+		.well.well-small
+			%strong Instructions:
+			Set status for each player you need to update. Leave at "No change" to keep their current answer.
+		- %w(male female).each do |gender|
+			- gender_players = @players.select { |p| p.gender == gender }
+			- next if gender_players.empty?
+			%h4= "#{gender.capitalize} Players"
+			%table.table.table-striped.table-condensed
+				%thead
+					%tr
+						%th Player
+						%th Current
+						%th New Status
+						%th Note
+				%tbody
+					- gender_players.each do |player|
+						- existing = @existing[player._id]
+						%tr
+							%td= "#{player.firstname} #{player.lastname}"
+							%td
+								- if existing && existing.status != 'pending'
+									= existing.status.upcase
+								- else
+									%em Not answered
+							%td
+								= select_tag "attendance[#{player._id}][status]",
+									options_for_select([['No change','no_change'],['Yes','yes'],['No','no'],['Partial','partial']], 'no_change')
+							%td
+								= text_field_tag "attendance[#{player._id}][note]", existing.try(:note), placeholder: 'Optional', class: 'span3'
+		.form-actions
+			= submit_tag "Apply", class: 'btn btn-primary'
+			= link_to "Cancel", attendance_team_path(@team), class: 'btn'
+```
+
+- [ ] **Step 7: Run, expect pass**.
+
+Run: `bundle exec rspec spec/controllers/teams_controller_bulk_attendance_spec.rb`
+Expected: PASS.
+
+- [ ] **Step 8: Commit**.
+
+```bash
+git add app/controllers/teams_controller.rb app/views/teams/bulk_attendance.html.haml config/routes.rb config/authorization_rules.rb spec/controllers/teams_controller_bulk_attendance_spec.rb
+git commit -m "Add captain bulk-update view for marking many players at once"
+```
+
+---
+
+## Task 13: Commissioner / league-admin overview
 
 **Goal:** League-wide table showing per-team counts for upcoming game-days. Drill-down reuses the captain view.
 
@@ -1940,7 +2263,7 @@ end
 
 - [ ] **Step 4: Run, expect failure**.
 
-- [ ] **Step 5: Add `attendance_overview` action** to `app/controllers/leagues_controller.rb`:
+- [ ] **Step 5: Add `attendance_overview` action** to `app/controllers/leagues_controller.rb`. This reuses the same `build_counts` helper from `TeamsController` — extract it to a shared concern (`app/controllers/concerns/attendance_counts.rb`) or duplicate as a private method. The plan duplicates for simplicity:
 
 ```ruby
 def attendance_overview
@@ -1956,16 +2279,41 @@ def attendance_overview
       day_games = upcoming.select { |g| g.game_time.in_time_zone(LOCAL_TIMEZONE).to_date == day && g.team_ids.include?(team._id) }
       next if day_games.empty?
       prompts = AttendancePrompt.where(team_id: team._id, game_day: day).to_a
-      counts_per_day[day] = {
-        yes:          prompts.count { |p| p.status == 'yes' || p.status == 'partial' },
-        no:           prompts.count { |p| p.status == 'no' },
-        not_answered: prompts.count { |p| p.status == 'pending' } + (team.players.count - prompts.size),
-      }
+      pickups = PickupRegistration.where(team: team, assigned_date: day, status: 'accepted').to_a
+      counts_per_day[day] = build_counts_for(team, prompts, pickups)
     end
     next if counts_per_day.empty?
     @rows << { team: team, counts_per_day: counts_per_day }
   end
   @game_days = game_days
+end
+
+private
+
+# Same shape as TeamsController#build_counts. If extracted to a concern, both controllers include it.
+def build_counts_for(team, prompts, pickups)
+  by_gender = { 'male' => team.players.select { |p| p.gender == 'male' },
+                'female' => team.players.select { |p| p.gender == 'female' } }
+  pickup_by_gender = pickups.group_by { |pr| pr.user.gender }
+  result = { total: { yes: 0, no: 0, not_answered: 0, pickups: 0 },
+             male:  { yes: 0, no: 0, not_answered: 0, pickups: 0 },
+             female:{ yes: 0, no: 0, not_answered: 0, pickups: 0 } }
+  %w(male female).each do |gender|
+    players = by_gender[gender]
+    gender_prompts = prompts.select { |p| p.user && p.user.gender == gender }
+    yes_count          = gender_prompts.count { |p| p.status == 'yes' || p.status == 'partial' }
+    no_count           = gender_prompts.count { |p| p.status == 'no' }
+    not_answered_count = gender_prompts.count { |p| p.status == 'pending' } + (players.count - gender_prompts.size)
+    pickup_count       = (pickup_by_gender[gender] || []).size
+    result[gender.to_sym] = { yes: yes_count + pickup_count, no: no_count, not_answered: not_answered_count, pickups: pickup_count }
+  end
+  result[:total] = {
+    yes:          result[:male][:yes] + result[:female][:yes],
+    no:           result[:male][:no] + result[:female][:no],
+    not_answered: result[:male][:not_answered] + result[:female][:not_answered],
+    pickups:      result[:male][:pickups] + result[:female][:pickups],
+  }
+  result
 end
 ```
 
@@ -1980,22 +2328,30 @@ end
 		%table.table.table-bordered
 			%thead
 				%tr
-					%th Team
+					%th{rowspan: 2} Team
 					- @game_days.each do |d|
-						%th= d.strftime('%a %-m/%-d')
+						%th{colspan: 2}= d.strftime('%a %-m/%-d')
+				%tr
+					- @game_days.each do |d|
+						%th{title: 'Male'} M
+						%th{title: 'Female'} F
 			%tbody
 				- @rows.each do |row|
 					%tr
 						%td= link_to row[:team].name, attendance_team_path(row[:team])
 						- @game_days.each do |d|
-							%td
-								- counts = row[:counts_per_day][d]
-								- if counts
-									%span.label.label-success= counts[:yes]
-									%span.label.label-important= counts[:no]
-									%span.label= counts[:not_answered]
-								- else
-									—
+							- counts = row[:counts_per_day][d]
+							- %w(male female).each do |gender|
+								%td
+									- if counts
+										- bucket = counts[gender.to_sym]
+										%span.label.label-success= bucket[:yes]
+										%span.label.label-important= bucket[:no]
+										%span.label= bucket[:not_answered]
+										- if bucket[:pickups] > 0
+											%span.label.label-info= "+#{bucket[:pickups]}"
+									- else
+										—
 ```
 
 - [ ] **Step 7: Run, expect pass**.
@@ -2009,7 +2365,7 @@ git commit -m "Add commissioner league-wide attendance overview"
 
 ---
 
-## Task 13: Per-league enable flag UI
+## Task 14: Per-league enable flag UI
 
 **Goal:** Surface the `attendance_enabled` flag on the league edit form so commissioners can opt their league in.
 
@@ -2042,7 +2398,7 @@ git commit -m "Add attendance_enabled toggle to league edit form"
 
 ---
 
-## Task 14: End-to-end integration spec
+## Task 15: End-to-end integration spec
 
 **Goal:** A single integration test that runs the worker, simulates an inbound SMS, and verifies the captain dashboard reflects it.
 
@@ -2106,7 +2462,7 @@ git commit -m "Add end-to-end attendance flow integration spec"
 
 ---
 
-## Task 15: Twilio webhook URL configuration (manual / docs)
+## Task 16: Twilio webhook URL configuration (manual / docs)
 
 **Goal:** Document the production rollout step that's outside the codebase: pointing the Twilio number's inbound webhook at the new endpoint.
 
@@ -2142,12 +2498,75 @@ git commit -m "Document Twilio inbound webhook URL for attendance replies"
 
 ---
 
+## Task 17: Operational rake task — preview / dry-run
+
+**Goal:** A `rake attendance:preview` task that prints what the next worker run *would* do without dispatching anything. Useful during initial rollout for ops to verify cadence and recipient lists.
+
+**Files:**
+- Create: `lib/tasks/attendance.rake`
+- Test: `spec/tasks/attendance_rake_spec.rb` (optional — small, but worth a test)
+
+- [ ] **Step 1: Add a class method** to `app/workers/attendance_prompt_worker.rb`:
+
+```ruby
+def self.preview(today: Date.current)
+  initial_day  = today + INITIAL_LEAD_DAYS
+  reminder_day = today + REMINDER_LEAD_DAYS
+  output = []
+
+  League.where(attendance_enabled: true).each do |league|
+    output << "League: #{league.name}"
+    games_initial  = league.games.where(:game_time.gte => initial_day.beginning_of_day,
+                                        :game_time.lte => initial_day.end_of_day)
+    games_reminder = league.games.where(:game_time.gte => reminder_day.beginning_of_day,
+                                        :game_time.lte => reminder_day.end_of_day)
+    output << "  Initial (#{initial_day}): #{games_initial.count} game(s) across #{games_initial.map { |g| g.team_ids }.flatten.uniq.size} team(s)"
+    output << "  Reminder (#{reminder_day}): #{games_reminder.count} game(s); pending prompts to remind: #{AttendancePrompt.where(:team_id.in => games_reminder.flat_map(&:team_ids), game_day: reminder_day, status: 'pending').count}"
+  end
+
+  output
+end
+```
+
+- [ ] **Step 2: Create `lib/tasks/attendance.rake`**:
+
+```ruby
+namespace :attendance do
+  desc 'Preview what AttendancePromptWorker would do on its next run'
+  task preview: :environment do
+    AttendancePromptWorker.preview.each { |line| puts line }
+  end
+
+  desc 'Run AttendancePromptWorker once, immediately'
+  task run_now: :environment do
+    AttendancePromptWorker.new.perform
+    puts "Done."
+  end
+end
+```
+
+- [ ] **Step 3: Test it manually** in a dev environment with a seeded league.
+
+Run: `bundle exec rake attendance:preview`
+Expected: Lines like `League: Test League`, `Initial (2026-05-08): 4 game(s) across 8 team(s)`, etc.
+
+- [ ] **Step 4: Commit**.
+
+```bash
+git add app/workers/attendance_prompt_worker.rb lib/tasks/attendance.rake
+git commit -m "Add attendance:preview and attendance:run_now rake tasks for ops"
+```
+
+---
+
 ## Self-Review Checklist (run after writing the plan)
 
 This is for the plan author; do not execute as a task.
 
-- [x] **Spec coverage.** Every section of `2026-05-04-game-attendance-design.md` has a corresponding task: §1 goal/scope (whole plan), §2 channels (Tasks 6, 9, 10), §3 cadence (Task 7), §4 SMS protocol (Tasks 4, 5, 10), §5 dashboards (Tasks 11, 12), §6 data model (Tasks 1, 2, 3), §7 architecture (Tasks 6, 7, 9, 10), §8 authorization (Tasks 10, 11, 12), §9 error/edge cases (covered in dispatcher rescue blocks, controller TwiML responses, and the worker's rainout filter), §10 testing (every task ships with specs), §11 rollout (Task 13), §12 deferred (out of plan by design).
+- [x] **Spec coverage.** Every section of `2026-05-04-game-attendance-design.md` has a corresponding task: §1 goal/scope (whole plan), §2 channels (Tasks 6, 9, 10), §3 cadence (Task 7), §4 SMS protocol (Tasks 4, 5, 10), §5 dashboards (Tasks 11, 12, 13), §6 data model (Tasks 1, 2, 3), §7 architecture (Tasks 6, 7, 9, 10), §8 authorization (Tasks 10, 11, 12, 13), §9 error/edge cases (covered in dispatcher rescue blocks, controller TwiML responses, and the worker's rainout filter), §10 testing (every task ships with specs), §11 rollout (Task 14), §12 deferred (out of plan by design).
 
 - [x] **Placeholder scan.** No "TBD," "TODO," "implement later," or "similar to Task N" without code.
 
-- [x] **Type / name consistency.** `AttendancePrompt`, `AttendancePromptDispatch`, `Afdc::AttendanceReplyParser`, `Afdc::AttendancePromptDispatcher`, `AttendancePromptWorker`, `AttendancePromptsController` — used consistently. Codes are 2-digit `<prefix><suffix>` throughout. Statuses `pending/yes/no/partial`. Channels `sms/email`. Kinds `initial/reminder`. Response methods `sms/email/web/captain_override`.
+- [x] **Type / name consistency.** `AttendancePrompt`, `AttendancePromptDispatch`, `Afdc::AttendanceReplyParser`, `Afdc::AttendancePromptDispatcher`, `AttendancePromptWorker`, `AttendancePromptsController`, `AttendanceMailer` — used consistently. Codes are 2-digit `<prefix><suffix>` throughout. Statuses `pending/yes/no/partial`. Channels `sms/email`. Kinds `initial/reminder`. Response methods `sms/email/web/captain_override`.
+
+- [x] **Past-Pete amendments incorporated.** Gender-split counts (Tasks 11, 13), pickup-display (Tasks 11, 13), bulk-update view (Task 12), dedicated `AttendanceMailer` class (Task 9), `(ACTION REQUIRED)` subject style (Task 9), uniqueness validation (Task 2), preview/dry-run rake (Task 17).
