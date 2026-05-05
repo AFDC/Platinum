@@ -12,4 +12,15 @@ FactoryGirl.define do
 
     password_digest "xxx"
   end
+
+  factory :league do
+    name 'Test League'
+    age_division 'adult'
+    season 'spring'
+    sport 'ultimate'
+    start_date Date.today
+    end_date Date.today + 60
+    price 50
+    self_rank_type 'simple'
+  end
 end
