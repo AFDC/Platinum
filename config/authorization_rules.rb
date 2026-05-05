@@ -19,6 +19,7 @@ authorization do
 		has_permission_on :covid, to: [:index]
 		has_permission_on :waivers, to: [:show, :sign_waiver]
 		has_permission_on :waiver_signatures, to: [:show]
+		has_permission_on :attendance_prompts, to: [:sms_webhook, :show, :update]
 	end
 
 	role :user do
@@ -62,15 +63,24 @@ authorization do
 			if_attribute :reporters => contains { user }
 		end
 
+		# Attendance: captains for their team, plus league commissioners/admins
+		has_permission_on :teams, :to => [:attendance, :attendance_override, :bulk_attendance, :apply_bulk_attendance] do
+			if_attribute :captains => contains { user }
+		end
+		has_permission_on :teams, :to => [:attendance, :attendance_override, :bulk_attendance, :apply_bulk_attendance] do
+			if_permitted_to :manage, :league
+		end
+
 		has_permission_on :leagues, :to => [:manage] do
 			if_attribute commissioners: contains { user }
 		end
 
 		has_permission_on :leagues, :to => [
-			:manage_roster, :finances, :players, :reg_list, :team_list, :cancel_registration, 
-			:promote_waitlisted_registration, :add_player_to_team, :update_invites, :edit, :update, 
-			:setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games, :rainout_games, :process_rainout, 
-			:upload_roster, :setup_roster_import, :import_roster, :pickup_list, :invite_pickup, :cancel_pickup_registration] do
+			:manage_roster, :finances, :players, :reg_list, :team_list, :cancel_registration,
+			:promote_waitlisted_registration, :add_player_to_team, :update_invites, :edit, :update,
+			:setup_schedule_import, :upload_schedule, :import_schedule, :remove_future_games, :rainout_games, :process_rainout,
+			:upload_roster, :setup_roster_import, :import_roster, :pickup_list, :invite_pickup, :cancel_pickup_registration,
+			:attendance_overview] do
 
 			if_permitted_to :manage
 		end

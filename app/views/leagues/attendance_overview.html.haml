@@ -1,0 +1,32 @@
+.container
+	%h2= "Attendance — #{@league.name}"
+	- if @rows.empty?
+		%p No upcoming games for this league.
+	- else
+		%table.table.table-bordered
+			%thead
+				%tr
+					%th{rowspan: 2} Team
+					- @game_days.each do |d|
+						%th{colspan: 2}= d.strftime('%a %-m/%-d')
+				%tr
+					- @game_days.each do |d|
+						%th{title: 'Male'} M
+						%th{title: 'Female'} F
+			%tbody
+				- @rows.each do |row|
+					%tr
+						%td= link_to row[:team].name, attendance_team_path(row[:team])
+						- @game_days.each do |d|
+							- counts = row[:counts_per_day][d]
+							- %w(male female).each do |gender|
+								%td
+									- if counts
+										- bucket = counts[gender.to_sym]
+										%span.label.label-success= bucket[:yes]
+										%span.label.label-important= bucket[:no]
+										%span.label= bucket[:not_answered]
+										- if bucket[:pickups] > 0
+											%span.label.label-info= "+#{bucket[:pickups]}"
+									- else
+										—

@@ -92,7 +92,7 @@ test:
     default:
       database: platinum_test
       hosts:
-        - mongodb:27017
+        - <%= ENV['TEST_MONGO_HOST'] || 'localhost' %>:27017
       options:
         # In the test environment we lower the retries and retry interval to
         # low amounts for fast failures.

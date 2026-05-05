@@ -1,0 +1,72 @@
+.container
+	%h2= "Attendance — #{@team.name}"
+	%p
+		= link_to "← Back to team", team_path(@team)
+
+	- if @upcoming_days.empty?
+		%p No upcoming games this week.
+	- else
+		- @upcoming_days.each do |day|
+			.well
+				%h3
+					= day.strftime('%A %-m/%-d')
+					%small{style: 'margin-left: 10px;'}
+						= link_to "Bulk update", bulk_attendance_team_path(@team, game_date: day.strftime('%Y-%m-%d')), class: 'btn btn-mini'
+				- counts = @counts_by_day[day]
+				%p
+					%strong Total:
+					%span.label.label-success= "✅ #{counts[:total][:yes]}"
+					%span.label.label-important= "❌ #{counts[:total][:no]}"
+					%span.label= "❓ #{counts[:total][:not_answered]}"
+					- if counts[:total][:pickups] > 0
+						%span.label.label-info= "+#{counts[:total][:pickups]} pickup#{'s' if counts[:total][:pickups] != 1}"
+
+				.row
+					- %w(male female).each do |gender|
+						.span6
+							%h4= "#{gender.capitalize} Players"
+							%p
+								%span.label.label-success= "✅ #{counts[gender.to_sym][:yes]}"
+								%span.label.label-important= "❌ #{counts[gender.to_sym][:no]}"
+								%span.label= "❓ #{counts[gender.to_sym][:not_answered]}"
+								- if counts[gender.to_sym][:pickups] > 0
+									%span.label.label-info= "+#{counts[gender.to_sym][:pickups]} pickup"
+							%table.table.table-striped.table-condensed
+								%thead
+									%tr
+										%th Player
+										%th Status
+										%th Note
+										%th Method
+										%th Override
+								%tbody
+									- gender_players = @team.players.select { |p| p.gender == gender }
+									- gender_players.each do |player|
+										- prompt = @prompts_by_day[day].detect { |p| p.user_id == player._id }
+										%tr
+											%td= "#{player.firstname} #{player.lastname}"
+											%td
+												- if prompt && prompt.status != 'pending'
+													= prompt.status.upcase
+												- else
+													%em Not answered
+											%td= prompt && prompt.note
+											%td= prompt && prompt.response_method
+											%td
+												- if prompt
+													= form_tag attendance_override_team_path(@team), method: :patch, style: 'display:inline' do
+														= hidden_field_tag :prompt_id, prompt._id
+														= select_tag :status, options_for_select([['Yes','yes'],['No','no'],['Partial','partial']], prompt.status), prompt: 'Override...'
+														= text_field_tag :note, '', placeholder: 'note', size: 12
+														= submit_tag 'Set', class: 'btn btn-mini'
+									- gender_pickups = @pickups_by_day[day].select { |pr| pr.user.gender == gender }
+									- gender_pickups.each do |pickup|
+										%tr.info
+											%td
+												%i.icon-plus
+												= "#{pickup.user.firstname} #{pickup.user.lastname}"
+											%td
+												%span.label.label-info Pickup
+											%td
+											%td accepted
+											%td —

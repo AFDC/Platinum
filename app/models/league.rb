@@ -43,6 +43,7 @@ class League
   field :donation_pitch, type: String, default: nil
 
   field :pickup_registration, type: Boolean, default: false
+  field :attendance_enabled, type: Boolean, default: false
 
   after_initialize :build_options_if_nil
   after_find :migrate_self_rank_opts
@@ -493,10 +494,10 @@ class League
   end
 
   def open_time_on_date(open_date)
-    Time.zone.parse("#{open_date} 12pm")
+    Time.zone.parse("#{open_date.to_date} 12pm")
   end
 
   def close_time_on_date(close_date)
-    Time.zone.parse("#{close_date}").end_of_day
+    Time.zone.parse("#{close_date.to_date}").end_of_day
   end
 end

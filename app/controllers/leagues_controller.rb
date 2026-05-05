@@ -1214,7 +1214,53 @@ class LeaguesController < ApplicationController
     def finances
     end
 
+    def attendance_overview
+        end_of_week = Date.current.end_of_week + 1
+        upcoming = @league.games.where(:game_time.gte => Date.current.beginning_of_day,
+                                       :game_time.lte => end_of_week.end_of_day).to_a
+        game_days = upcoming.map { |g| g.game_time.in_time_zone(LOCAL_TIMEZONE).to_date }.uniq.sort
+        @rows = []
+        @league.teams.each do |team|
+            counts_per_day = {}
+            game_days.each do |day|
+                day_games = upcoming.select { |g| g.game_time.in_time_zone(LOCAL_TIMEZONE).to_date == day && g.team_ids.include?(team._id) }
+                next if day_games.empty?
+                prompts = AttendancePrompt.where(team_id: team._id, game_day: day).to_a
+                pickups = PickupRegistration.where(team: team, assigned_date: day, status: 'accepted').to_a
+                counts_per_day[day] = build_attendance_counts_for(team, prompts, pickups)
+            end
+            next if counts_per_day.empty?
+            @rows << { team: team, counts_per_day: counts_per_day }
+        end
+        @game_days = game_days
+    end
+
     private
+
+    def build_attendance_counts_for(team, prompts, pickups)
+        by_gender = { 'male' => team.players.select { |p| p.gender == 'male' },
+                      'female' => team.players.select { |p| p.gender == 'female' } }
+        pickup_by_gender = pickups.group_by { |pr| pr.user.gender }
+        result = { total: { yes: 0, no: 0, not_answered: 0, pickups: 0 },
+                   male:  { yes: 0, no: 0, not_answered: 0, pickups: 0 },
+                   female:{ yes: 0, no: 0, not_answered: 0, pickups: 0 } }
+        %w(male female).each do |gender|
+            players = by_gender[gender]
+            gender_prompts = prompts.select { |p| p.user && p.user.gender == gender }
+            yes_count          = gender_prompts.count { |p| p.status == 'yes' || p.status == 'partial' }
+            no_count           = gender_prompts.count { |p| p.status == 'no' }
+            not_answered_count = gender_prompts.count { |p| p.status == 'pending' } + (players.count - gender_prompts.size)
+            pickup_count       = (pickup_by_gender[gender] || []).size
+            result[gender.to_sym] = { yes: yes_count + pickup_count, no: no_count, not_answered: not_answered_count, pickups: pickup_count }
+        end
+        result[:total] = {
+            yes:          result[:male][:yes] + result[:female][:yes],
+            no:           result[:male][:no] + result[:female][:no],
+            not_answered: result[:male][:not_answered] + result[:female][:not_answered],
+            pickups:      result[:male][:pickups] + result[:female][:pickups],
+        }
+        result
+    end
 
     def load_league_from_params
         begin
@@ -1236,7 +1282,7 @@ class LeaguesController < ApplicationController
             :description, {commissioner_ids: []}, :male_limit, :female_limit,
             :max_grank_age, :allow_pairs, :covid_vax_required, :track_spirit_scores, :display_spirit_scores, :self_rank_type, :eos_tourney, :mst_tourney, :eos_champion_id, :mst_champion_id,
             {core_options: [:type, :male_limit, :female_limit, :rank_limit, :male_rank_constant, :female_rank_constant]}, :allow_pickups,
-            :solicit_donations, :donation_earmark, :donation_pitch
+            :solicit_donations, :donation_earmark, :donation_pitch, :attendance_enabled
         ]
 
         if permitted_to? :assign_comps, self

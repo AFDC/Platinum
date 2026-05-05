@@ -1,0 +1,19 @@
+.container
+	%h2= "AFDC Attendance — #{@prompt.game_day.strftime('%A %-m/%-d')}"
+	%h4= @prompt.team.name
+	%ul
+		- @games.each do |g|
+			%li= "#{g.game_time.strftime('%-l:%M%P').sub('m','')} at #{g.field_site ? g.field_site.name : ''}#{g.opponent_for(@prompt.team) ? " vs #{g.opponent_for(@prompt.team).name}" : ''}"
+
+	= form_tag attendance_token_update_path(@prompt.web_token), method: :patch, class: 'form-horizontal' do
+		.row
+			.span4
+				%button.btn.btn-large.btn-success{name: 'status', value: 'yes', style: 'width:100%'} YES, I'll be there
+			.span4
+				%button.btn.btn-large.btn-danger{name: 'status', value: 'no', style: 'width:100%'} NO, can't make it
+			.span4
+				%button.btn.btn-large.btn-warning{name: 'status', value: 'partial', style: 'width:100%'} It's complicated
+		.row{style: 'margin-top: 16px;'}
+			.span12
+				%label Notes (optional)
+				= text_area_tag :note, '', class: 'span12', rows: 3, placeholder: "e.g., 'second game only', 'running 30 min late'"

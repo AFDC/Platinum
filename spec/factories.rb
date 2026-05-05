@@ -12,4 +12,59 @@ FactoryGirl.define do
 
     password_digest "xxx"
   end
+
+  factory :league do
+    name 'Test League'
+    age_division 'adult'
+    season 'spring'
+    sport 'ultimate'
+    start_date Date.today
+    end_date Date.today + 60
+    price 50
+    self_rank_type 'simple'
+  end
+
+  factory :team do
+    name 'Test Team'
+    league
+  end
+
+  factory :game do
+    game_time { Time.now.in_time_zone(LOCAL_TIMEZONE) + 3.days }
+    field 'Field 1'
+    league
+  end
+
+  factory :notification_method do
+    method 'text'
+    target { '4045551212' }
+    confirmed true
+    enabled true
+    user
+
+    # NotificationMethod's before_create resets confirmed/enabled unless target equals user.email_address.
+    # In tests we want to be able to fabricate a confirmed+enabled phone NM directly.
+    after(:create) do |nm, evaluator|
+      if nm.confirmed != evaluator.confirmed || nm.enabled != evaluator.enabled
+        nm.update_attributes(confirmed: evaluator.confirmed, enabled: evaluator.enabled)
+      end
+    end
+  end
+
+  factory :attendance_prompt do
+    user
+    team
+    league
+    game_day { Date.current + 3 }
+    status 'pending'
+    web_token { SecureRandom.hex(16) }
+  end
+
+  factory :attendance_prompt_dispatch do
+    user
+    channel 'sms'
+    sent_at { Time.now }
+    kind 'initial'
+    prompts { [] }
+  end
 end

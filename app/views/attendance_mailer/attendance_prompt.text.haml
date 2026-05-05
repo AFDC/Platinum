@@ -1,0 +1,14 @@
+Hi #{@user.firstname}!
+
+We need to confirm your attendance for the following AFDC game day#{@prompts.size > 1 ? 's' : ''}:
+
+- @prompts.each do |prompt|
+	= prompt.game_day.strftime('%A %-m/%-d')
+	- games = Game.where(:_id.in => prompt.game_ids).to_a.sort_by(&:game_time)
+	- games.each do |g|
+		\  - #{g.game_time.strftime('%-l:%M%P').sub('m','')} at #{g.field_site ? g.field_site.name : ''}#{g.opponent_for(prompt.team) ? " vs #{g.opponent_for(prompt.team).name}" : ''}
+	RSVP: #{rsvp_url(prompt.web_token)}
+
+If you have questions, contact your captain.
+
+— AFDC

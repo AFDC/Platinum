@@ -2,6 +2,10 @@ require 'sidekiq/web'
 
 Platinum::Application.routes.draw do
   match '/users/search' => 'users#search', via: :get
+
+  post '/attendance_prompts/sms' => 'attendance_prompts#sms_webhook'
+  get  '/attendance/:token'      => 'attendance_prompts#show',   as: :attendance_token
+  patch '/attendance/:token'     => 'attendance_prompts#update', as: :attendance_token_update
   resources :fields, :waivers, :schedules, :comp_groups, :payments, :spirit_reports
 
   resources :waivers do
@@ -83,6 +87,8 @@ Platinum::Application.routes.draw do
       get 'finances'
 
       get 'roster_changelog'
+
+      get 'attendance_overview'
     end
 
     resources :teams, only: [:new, :create]
@@ -95,7 +101,14 @@ Platinum::Application.routes.draw do
     end
   end
 
-  resources :teams, except: [:new, :create]
+  resources :teams, except: [:new, :create] do
+    member do
+      get 'attendance'
+      patch 'attendance_override'
+      get 'bulk_attendance'
+      patch 'apply_bulk_attendance'
+    end
+  end
 
 
   resources :games do
