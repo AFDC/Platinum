@@ -44,6 +44,8 @@ Platinum::Application.routes.draw do
     member do
       get 'cachekey'
       get 'register'
+      get 'choose_days'
+      post 'choose_days', action: 'submit_day_choice'
       get 'registrations'
       post 'registrations'
 
