@@ -43,17 +43,26 @@
 									- gender_players = @team.players.select { |p| p.gender == gender }
 									- gender_players.each do |player|
 										- prompt = @prompts_by_day[day].detect { |p| p.user_id == player._id }
-										%tr
-											%td= "#{player.firstname} #{player.lastname}"
+										- reg = @team.league.registration_for(player)
+										- participates = reg.nil? || reg.participates_on?(day.strftime('%A').downcase)
+										%tr{class: ('muted' unless participates), style: ('color: #999;' unless participates)}
 											%td
-												- if prompt && prompt.status != 'pending'
+												= "#{player.firstname} #{player.lastname}"
+												- unless participates
+													%br
+													%small
+														%em Single-day registration — not playing this night
+											%td
+												- if !participates
+													%em —
+												- elsif prompt && prompt.status != 'pending'
 													= prompt.status.upcase
 												- else
 													%em Not answered
-											%td= prompt && prompt.note
-											%td= prompt && prompt.response_method
+											%td= participates ? (prompt && prompt.note) : ''
+											%td= participates ? (prompt && prompt.response_method) : ''
 											%td
-												- if prompt
+												- if participates && prompt
 													= form_tag attendance_override_team_path(@team), method: :patch, style: 'display:inline' do
 														= hidden_field_tag :prompt_id, prompt._id
 														= select_tag :status, options_for_select([['Yes','yes'],['No','no'],['Partial','partial']], prompt.status), prompt: 'Override...'

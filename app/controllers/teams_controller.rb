@@ -43,7 +43,7 @@ class TeamsController < ApplicationController
 			pickups = PickupRegistration.where(team: @team, assigned_date: day, status: 'accepted').to_a
 			@prompts_by_day[day] = prompts
 			@pickups_by_day[day] = pickups
-			@counts_by_day[day]  = build_attendance_counts(@team, prompts, pickups)
+			@counts_by_day[day]  = build_attendance_counts(@team, prompts, pickups, day)
 		end
 	end
 
@@ -106,14 +106,24 @@ class TeamsController < ApplicationController
 				.sort
 	end
 
-	def build_attendance_counts(team, prompts, pickups)
+	def build_attendance_counts(team, prompts, pickups, day = nil)
+		league = team.league
+		day_label = day&.strftime('%A')&.downcase
 		by_gender = { 'male' => team.players.select { |p| p.gender == 'male' },
 									'female' => team.players.select { |p| p.gender == 'female' } }
 		pickup_by_gender = pickups.group_by { |pr| pr.user.gender }
 		result = { total: bucket_zero, male: bucket_zero, female: bucket_zero }
 		%w(male female).each do |gender|
-			players = by_gender[gender]
-			gender_prompts = prompts.select { |p| p.user && p.user.gender == gender }
+			all_players = by_gender[gender]
+			players = if day_label && league
+				all_players.select do |p|
+					reg = league.registration_for(p)
+					reg.nil? || reg.participates_on?(day_label)
+				end
+			else
+				all_players
+			end
+			gender_prompts = prompts.select { |p| p.user && p.user.gender == gender && players.any? { |pl| pl._id == p.user_id } }
 			yes_count          = gender_prompts.count { |p| p.status == 'yes' || p.status == 'partial' }
 			no_count           = gender_prompts.count { |p| p.status == 'no' }
 			not_answered_count = gender_prompts.count { |p| p.status == 'pending' } + (players.count - gender_prompts.size)
