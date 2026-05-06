@@ -514,6 +514,7 @@ class League
     invalid = days.reject { |d| DAY_NAMES.include?(d) }
     if invalid.any?
       errors.add(:game_days, "contains invalid day name(s): #{invalid.join(', ')}")
+      return
     end
     if days.uniq.size != days.size
       errors.add(:game_days, "must not contain duplicates")
