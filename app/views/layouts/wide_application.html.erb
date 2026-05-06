@@ -125,6 +125,11 @@
           <%= flash[:notice] %>
         </div>
       <% end %>
+      <% if flash[:warning] %>
+        <div class="alert alert-warning">
+          <%= flash[:warning] %>
+        </div>
+      <% end %>
       <% if flash[:error] %>
         <div class="alert alert-error">
           <%= flash[:error] %>

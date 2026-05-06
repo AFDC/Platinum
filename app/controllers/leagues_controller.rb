@@ -44,6 +44,13 @@ class LeaguesController < ApplicationController
         end
 
         if @league.update_attributes(league_params)
+            orphaned = @league.registrations.where(:status.in => %w(active waitlisted registering)).select do |r|
+                r.attending_days.present? && (r.attending_days - @league.game_days).any?
+            end
+            if orphaned.any?
+                names = orphaned.map { |r| r.user.name }.join(', ')
+                flash[:warning] = "Game-days change orphaned attending_days for: #{names}. Please follow up with these players."
+            end
             redirect_to @league, notice: "League Updated Successfully"
         else
             render :edit
