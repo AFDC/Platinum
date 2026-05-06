@@ -634,12 +634,16 @@
                 <li><strong>Waitlist Timestamp</strong>: {{=moment(waitlist_timestamp).format('MMM Do, h:mm a')}}</li>
             {{ } }}
             <li><strong>Notes:</strong> {{=notes}}</li>
+            <li><strong>Registration Type:</strong> {{=day_label || 'n/a'}}</li>
         </ul>
         <div class="alert alert-error hide" id="registrant-error-message"></div>
         <div class="alert alert-success hide" id="registrant-success-message"></div>
         <div id="team-selection-container"></div>
         <hr />
         <%=link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info'%>
+        <% if @league.requires_day_choice? && !@league.started? %>
+            <%= link_to "Change Type", choose_days_league_path(@league, registration_id: 'PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info' %>
+        <% end %>
         {{ if (status == "waitlisted") { }}
             <button class="btn btn-block btn-small btn-success" id="promote-waitlisted-registration-button">Move Into League</button>
         {{ } }}

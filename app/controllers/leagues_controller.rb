@@ -461,12 +461,8 @@ class LeaguesController < ApplicationController
     end
 
     def choose_days
-        @registration = @league.registration_for(current_user)
-
-        if @registration.nil?
-            redirect_to league_path(@league), flash: {error: "You don't have a registration in progress for this league."}
-            return
-        end
+        @registration = load_day_choice_registration
+        return unless @registration
 
         if @league.started?
             redirect_to registration_path(@registration), flash: {error: "This league has already started. Please contact a commissioner if your registration type needs to change."}
@@ -480,12 +476,8 @@ class LeaguesController < ApplicationController
     end
 
     def submit_day_choice
-        @registration = @league.registration_for(current_user)
-
-        if @registration.nil?
-            redirect_to league_path(@league), flash: {error: "You don't have a registration in progress for this league."}
-            return
-        end
+        @registration = load_day_choice_registration
+        return unless @registration
 
         if @league.started?
             redirect_to registration_path(@registration), flash: {error: "This league has already started. Please contact a commissioner if your registration type needs to change."}
@@ -511,6 +503,8 @@ class LeaguesController < ApplicationController
 
         if pre_pay_statuses.include?(@registration.status)
             redirect_to register_league_path(@league)
+        elsif params[:registration_id].present? && permitted_to?(:manage, @league)
+            redirect_to players_league_path(@league), notice: "Updated registration type for #{@registration.user.name}."
         else
             redirect_to registration_path(@registration), notice: "Registration type updated. Contact help@afdc.com if you need a price adjustment."
         end
@@ -1357,6 +1351,24 @@ class LeaguesController < ApplicationController
 
     def needs_day_choice_first?(reg)
         reg.present? && @league.requires_day_choice? && reg.attending_days.blank?
+    end
+
+    def load_day_choice_registration
+        if params[:registration_id].present? && permitted_to?(:manage, @league)
+            reg = @league.registrations.where(_id: params[:registration_id]).first
+            unless reg
+                redirect_to manage_roster_league_path(@league), flash: {error: "Registration not found."}
+                return nil
+            end
+            return reg
+        end
+
+        reg = @league.registration_for(current_user)
+        unless reg
+            redirect_to league_path(@league), flash: {error: "You don't have a registration in progress for this league."}
+            return nil
+        end
+        reg
     end
 
     def validate_day_choice_submission(submitted)

@@ -151,4 +151,32 @@ describe LeaguesController, type: :controller do
       flash[:error].should match(/already started/i)
     end
   end
+
+  describe "POST #submit_day_choice (commissioner-initiated)" do
+    let(:commish) { FactoryGirl.create(:user) }
+    let(:player)  { FactoryGirl.create(:user) }
+
+    before do
+      league.commissioners << commish
+      league.save!
+      Registration.new(league: league, user: player, status: 'active', attending_days: ['tuesday', 'thursday'], price: 80, paid: true).save(validate: false)
+      session[:user_id] = commish._id
+      controller.stub(:current_user).and_return(commish)
+    end
+
+    it "lets a commissioner change another player's attending_days via registration_id param" do
+      reg_id = league.registration_for(player)._id.to_s
+      post :submit_day_choice, id: league._id, registration_id: reg_id, attending_days: ['tuesday']
+      league.registration_for(player).attending_days.should eq(['tuesday'])
+    end
+
+    it "rejects when the actor lacks manage permission on the league" do
+      other = FactoryGirl.create(:user)
+      session[:user_id] = other._id
+      controller.stub(:current_user).and_return(other)
+      reg_id = league.registration_for(player)._id.to_s
+      post :submit_day_choice, id: league._id, registration_id: reg_id, attending_days: ['tuesday']
+      league.registration_for(player).attending_days.should eq(['tuesday', 'thursday']) # unchanged
+    end
+  end
 end
