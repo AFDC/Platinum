@@ -403,10 +403,14 @@ class LeaguesController < ApplicationController
         if (existing_registration)
             if existing_registration.status == 'active'
                 redirect_to registrations_user_path(current_user), notice: "You've already registered for that league."
-                return                
+                return
             end
 
             if existing_registration.is_registering?
+                if needs_day_choice_first?(existing_registration)
+                    redirect_to choose_days_league_path(@league)
+                    return
+                end
                 @registration = existing_registration
                 render "registrations/edit"
                 return
@@ -414,7 +418,7 @@ class LeaguesController < ApplicationController
 
             if existing_registration.status == 'waitlisted'
                 redirect_to league_path(@league), flash: {error: "You're currently on the wait list. Please watch your email to see if you'll get in."}
-                return    
+                return
             end
 
             # We deal with canceled, queued, and expired registrations as if the person has never registered
@@ -437,9 +441,14 @@ class LeaguesController < ApplicationController
         end
 
         # Create placeholder registration -- eliminates a race condition that allows too many people to register
-        # We first create queued registrations for everyone 
+        # We first create queued registrations for everyone
 
         @registration = registrar.initialize_registration!
+
+        if needs_day_choice_first?(@registration)
+            redirect_to choose_days_league_path(@league)
+            return
+        end
 
         render "registrations/edit"
     end
@@ -1272,6 +1281,10 @@ class LeaguesController < ApplicationController
 
     def initialize_roster_csv
         session[:roster_csv] = {} unless session[:roster_csv]
+    end
+
+    def needs_day_choice_first?(reg)
+        reg.present? && @league.requires_day_choice? && reg.attending_days.blank?
     end
 
     def league_params
