@@ -12,6 +12,7 @@ class Registration
     field :pair, type: Hash
     field :gender
     field :availability, type: Hash
+    field :attending_days, type: Array
     field :team_style_pref, type: Hash
     field :shirt_size
     
@@ -75,6 +76,35 @@ class Registration
 
     def gender_noun
         User::gender_noun(gender)
+    end
+
+    def single_day?
+        attending_days.present? && attending_days.length == 1
+    end
+
+    def chosen_day
+        return nil unless single_day?
+        attending_days.first
+    end
+
+    def registration_type_label
+        return nil unless league && league.requires_day_choice?
+        return nil if attending_days.blank?
+        if attending_days.length == 2
+            'Two-day'
+        else
+            "#{attending_days.first.capitalize} only"
+        end
+    end
+
+    def participates_on?(day_name)
+        return true if attending_days.blank?
+        attending_days.include?(day_name.to_s.downcase)
+    end
+
+    def day_choice_editable?
+        return false if league.nil?
+        !league.started?
     end
 
     # Pairing Stuff:
