@@ -85,6 +85,17 @@
                         =f.text_field :end_date, {'data-date-format' => 'yyyy-mm-dd', 'class' => 'date-field input-small'}
                         %span.add-on
                             %i.icon.icon-calendar
+            .control-group{ class: ('error' if errors[:game_days].any?)}
+                %label.control-label Game Days
+                .controls
+                    - %w(monday tuesday wednesday thursday friday saturday sunday).each do |day|
+                        %label.checkbox.inline{style: 'margin-right: 12px;'}
+                            = check_box_tag "league[game_days][]", day, @league.game_days.include?(day), class: 'game-days-checkbox'
+                            = day.capitalize
+                    %p.help-block Select up to 2. Leave all unchecked if the league doesn't run on fixed weekly days.
+                    - if errors[:game_days].any?
+                        %span.help-inline=errors[:game_days].first
+
             .control-group{ class: ('error' if errors[:price].any?)}
                 %label.control-label Registration Price
                 .controls
@@ -102,6 +113,25 @@
                         =f.text_field :price_women, class: 'input-small'
                     - if errors[:price_women].any?
                         %span.help-inline=errors[:price_women].first
+
+            .control-group{ class: ('error' if errors[:price_single_day].any?)}
+                %label.control-label Single-day Price
+                .controls
+                    .input-prepend
+                        %span.add-on $
+                        =f.text_field :price_single_day, class: 'input-small'
+                    %p.help-block Used when a player registers for one day only. Leave blank to charge full price.
+                    - if errors[:price_single_day].any?
+                        %span.help-inline=errors[:price_single_day].first
+
+            .control-group{ class: ('error' if errors[:price_women_single_day].any?)}
+                %label.control-label Women's Single-day Price
+                .controls
+                    .input-prepend
+                        %span.add-on $
+                        =f.text_field :price_women_single_day, class: 'input-small'
+                    - if errors[:price_women_single_day].any?
+                        %span.help-inline=errors[:price_women_single_day].first
 
             .control-group{ class: ('error' if errors[:pickup_price].any?)}
                 %label.control-label Pickup Price (per day)
@@ -320,4 +350,15 @@
                 $("#league_male_registration_open").val('');
                 $("#league_male_registration_close").val('');
             });
+
+            function enforceMaxTwoGameDays() {
+                var checked = $('.game-days-checkbox:checked').length;
+                $('.game-days-checkbox').each(function() {
+                    if (!this.checked) {
+                        this.disabled = (checked >= 2);
+                    }
+                });
+            }
+            $('.game-days-checkbox').on('change', enforceMaxTwoGameDays);
+            enforceMaxTwoGameDays();
         });

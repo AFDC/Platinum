@@ -1277,12 +1277,14 @@ class LeaguesController < ApplicationController
     def league_params
         permitted_params = [
             :name, :age_division, :season, :sport, :price, :price_women, :pickup_price, :pickup_registration,
+            :price_single_day, :price_women_single_day,
             :start_date, :end_date, :registration_open, :registration_close,
             :female_registration_open, :female_registration_close, :male_registration_open, :male_registration_close,
             :description, {commissioner_ids: []}, :male_limit, :female_limit,
             :max_grank_age, :allow_pairs, :covid_vax_required, :track_spirit_scores, :display_spirit_scores, :self_rank_type, :eos_tourney, :mst_tourney, :eos_champion_id, :mst_champion_id,
             {core_options: [:type, :male_limit, :female_limit, :rank_limit, :male_rank_constant, :female_rank_constant]}, :allow_pickups,
-            :solicit_donations, :donation_earmark, :donation_pitch, :attendance_enabled
+            :solicit_donations, :donation_earmark, :donation_pitch, :attendance_enabled,
+            {game_days: []}
         ]
 
         if permitted_to? :assign_comps, self
