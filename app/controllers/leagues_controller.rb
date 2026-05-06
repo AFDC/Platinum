@@ -802,6 +802,8 @@ class LeaguesController < ApplicationController
             pending_pair_matchup: pending_pair_matchup,
             pending_pair_is_registered: pending_pair_is_registered,
             waitlist_timestamp: waitlist_timestamp,
+            attending_days: reg.attending_days || [],
+            day_label: reg.registration_type_label || '',
             type: "individual"
         }
     end
