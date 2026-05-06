@@ -13,6 +13,8 @@ class League
   field :male_limit, type: Integer
   field :price, type: Integer
   field :price_women, type: Integer
+  field :price_single_day, type: Integer
+  field :price_women_single_day, type: Integer
   field :pickup_price, type: Integer
   field :registration_open, type: Date, default: 2.weeks.from_now.to_date
   field :registration_close, type: Date, default: 4.weeks.from_now.to_date
@@ -83,18 +85,34 @@ class League
   scope :started, -> { where(:start_date.lte => Time.current.to_date, :end_date.gte => Time.current.to_date).order_by(start_date: :desc) }
   scope :not_started, -> { where(:start_date.gte => Time.current.to_date).order_by(start_date: :desc) }
 
-  def get_price(gender = nil)
-    if gender == "female" and price_women.present?
-      return price_women
+  def get_price(gender = nil, single_day: false)
+    if gender == 'female'
+      if single_day
+        return price_women_single_day if price_women_single_day.present?
+        return price_women if price_women.present?
+        return price_single_day if price_single_day.present?
+        return price
+      else
+        return price_women if price_women.present?
+        return price
+      end
     end
 
-    return price
+    if single_day
+      return price_single_day if price_single_day.present?
+    end
+
+    price
   end
 
   def general_registration_open?
     return false if registration_open.nil? || registration_close.nil?
 
     open_time_on_date(registration_open).past? && close_time_on_date(registration_close).future?
+  end
+
+  def requires_day_choice?
+    game_days.present? && game_days.length == 2
   end
 
   def gender_permitted?(gender)
