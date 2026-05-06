@@ -107,6 +107,84 @@ describe AttendancePromptWorker do
     end
   end
 
+  describe "day-of-week filtering" do
+    let(:two_day_league) do
+      FactoryGirl.create(:league,
+        attendance_enabled: true,
+        game_days: ['tuesday', 'thursday']
+      )
+    end
+    let(:two_day_team) { FactoryGirl.create(:team, league: two_day_league) }
+    let(:tuesday_only_player) { FactoryGirl.create(:user) }
+    let(:both_days_player)   { FactoryGirl.create(:user) }
+
+    before do
+      two_day_team.players = [tuesday_only_player._id, both_days_player._id]
+      two_day_team.save!
+      Registration.new(league: two_day_league, user: tuesday_only_player, status: 'active', attending_days: ['tuesday']).save(validate: false)
+      Registration.new(league: two_day_league, user: both_days_player, status: 'active', attending_days: ['tuesday', 'thursday']).save(validate: false)
+      [tuesday_only_player, both_days_player].each do |u|
+        FactoryGirl.create(:notification_method, user: u)
+      end
+    end
+
+    def make_game_in_two_day_league(game_day, time = '7:00pm')
+      g = Game.new(league: two_day_league, game_time: LOCAL_TIMEZONE.parse("#{game_day} #{time}"))
+      g[:teams] = [two_day_team._id]
+      g.save!
+      g
+    end
+
+    def next_thursday_at_least(days_out)
+      d = Date.current + days_out
+      d += 1 while d.strftime('%A').downcase != 'thursday'
+      d
+    end
+
+    def next_tuesday_at_least(days_out)
+      d = Date.current + days_out
+      d += 1 while d.strftime('%A').downcase != 'tuesday'
+      d
+    end
+
+    it "creates a prompt for both-days player on a Thursday game" do
+      actual_day = next_thursday_at_least(AttendancePromptWorker::INITIAL_LEAD_DAYS)
+      make_game_in_two_day_league(actual_day)
+      Date.stub(:current).and_return(actual_day - AttendancePromptWorker::INITIAL_LEAD_DAYS)
+      AttendancePromptWorker.new.perform
+      AttendancePrompt.where(team_id: two_day_team._id, game_day: actual_day, user_id: both_days_player._id).count.should eq(1)
+    end
+
+    it "does NOT create a prompt for tuesday-only player on a Thursday game" do
+      actual_day = next_thursday_at_least(AttendancePromptWorker::INITIAL_LEAD_DAYS)
+      make_game_in_two_day_league(actual_day)
+      Date.stub(:current).and_return(actual_day - AttendancePromptWorker::INITIAL_LEAD_DAYS)
+      AttendancePromptWorker.new.perform
+      AttendancePrompt.where(team_id: two_day_team._id, game_day: actual_day, user_id: tuesday_only_player._id).count.should eq(0)
+    end
+
+    it "creates a prompt for tuesday-only player on a Tuesday game" do
+      actual_day = next_tuesday_at_least(AttendancePromptWorker::INITIAL_LEAD_DAYS)
+      make_game_in_two_day_league(actual_day)
+      Date.stub(:current).and_return(actual_day - AttendancePromptWorker::INITIAL_LEAD_DAYS)
+      AttendancePromptWorker.new.perform
+      AttendancePrompt.where(team_id: two_day_team._id, game_day: actual_day, user_id: tuesday_only_player._id).count.should eq(1)
+    end
+
+    it "still creates prompts for legacy players (attending_days nil)" do
+      legacy_player = FactoryGirl.create(:user)
+      two_day_team.players = two_day_team.players + [legacy_player._id]
+      two_day_team.save!
+      Registration.new(league: two_day_league, user: legacy_player, status: 'active', attending_days: nil).save(validate: false)
+      FactoryGirl.create(:notification_method, user: legacy_player)
+      actual_day = next_tuesday_at_least(AttendancePromptWorker::INITIAL_LEAD_DAYS)
+      make_game_in_two_day_league(actual_day)
+      Date.stub(:current).and_return(actual_day - AttendancePromptWorker::INITIAL_LEAD_DAYS)
+      AttendancePromptWorker.new.perform
+      AttendancePrompt.where(team_id: two_day_team._id, game_day: actual_day, user_id: legacy_player._id).count.should eq(1)
+    end
+  end
+
   describe "quiet hours" do
     before { AttendancePromptWorker.any_instance.unstub(:quiet_hours?) }
 
