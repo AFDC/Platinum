@@ -453,6 +453,62 @@ class LeaguesController < ApplicationController
         render "registrations/edit"
     end
 
+    def choose_days
+        @registration = @league.registration_for(current_user)
+
+        if @registration.nil?
+            redirect_to league_path(@league), flash: {error: "You don't have a registration in progress for this league."}
+            return
+        end
+
+        if @league.started?
+            redirect_to registration_path(@registration), flash: {error: "This league has already started. Please contact a commissioner if your registration type needs to change."}
+            return
+        end
+
+        unless @league.requires_day_choice?
+            redirect_to register_league_path(@league)
+            return
+        end
+    end
+
+    def submit_day_choice
+        @registration = @league.registration_for(current_user)
+
+        if @registration.nil?
+            redirect_to league_path(@league), flash: {error: "You don't have a registration in progress for this league."}
+            return
+        end
+
+        if @league.started?
+            redirect_to registration_path(@registration), flash: {error: "This league has already started. Please contact a commissioner if your registration type needs to change."}
+            return
+        end
+
+        submitted = Array(params[:attending_days]).compact.reject(&:blank?)
+
+        error = validate_day_choice_submission(submitted)
+        if error
+            flash.now[:error] = error
+            render :choose_days
+            return
+        end
+
+        pre_pay_statuses = %w(queued registering registering_waitlisted)
+
+        if !@registration.paid && pre_pay_statuses.include?(@registration.status)
+            @registration.set(attending_days: submitted, price: nil)
+        else
+            @registration.set(attending_days: submitted)
+        end
+
+        if pre_pay_statuses.include?(@registration.status)
+            redirect_to register_league_path(@league)
+        else
+            redirect_to registration_path(@registration), notice: "Registration type updated. Contact help@afdc.com if you need a price adjustment."
+        end
+    end
+
     def team_list
         respond_to do |format|
             format.json do
@@ -1285,6 +1341,16 @@ class LeaguesController < ApplicationController
 
     def needs_day_choice_first?(reg)
         reg.present? && @league.requires_day_choice? && reg.attending_days.blank?
+    end
+
+    def validate_day_choice_submission(submitted)
+        return "Please choose your registration type." if submitted.empty?
+        return "You can choose at most 2 days." if submitted.size > 2
+
+        invalid = submitted - @league.game_days
+        return "Selected day(s) are not configured for this league: #{invalid.join(', ')}" if invalid.any?
+
+        nil
     end
 
     def league_params
