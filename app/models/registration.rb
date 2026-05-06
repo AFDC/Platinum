@@ -65,7 +65,7 @@ class Registration
     end
 
     def ensure_price
-        self.price = league.get_price(gender) unless self.price.present?
+        self.price = league.get_price(gender, single_day: single_day?) unless self.price.present?
     end
 
     def formatted_signup_timestamp(format = :long)

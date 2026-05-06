@@ -109,6 +109,38 @@ describe Registration do
     end
   end
 
+  describe "#ensure_price" do
+    let(:user) { FactoryGirl.create(:user) }
+    let(:league) do
+      FactoryGirl.create(:league, price: 80, price_single_day: 50, game_days: ['tuesday', 'thursday'])
+    end
+
+    it "uses two-day price when attending_days is the full set" do
+      reg = Registration.new(league: league, user: user, attending_days: ['tuesday', 'thursday'])
+      reg.send(:ensure_price)
+      reg.price.should eq(80)
+    end
+
+    it "uses single-day price when attending_days has one entry" do
+      reg = Registration.new(league: league, user: user, attending_days: ['tuesday'])
+      reg.send(:ensure_price)
+      reg.price.should eq(50)
+    end
+
+    it "uses two-day price when attending_days is nil (legacy / single-day league)" do
+      legacy = FactoryGirl.create(:league, price: 80, game_days: [])
+      reg = Registration.new(league: legacy, user: user, attending_days: nil)
+      reg.send(:ensure_price)
+      reg.price.should eq(80)
+    end
+
+    it "does not overwrite an already-set price" do
+      reg = Registration.new(league: league, user: user, attending_days: ['tuesday'], price: 99)
+      reg.send(:ensure_price)
+      reg.price.should eq(99)
+    end
+  end
+
   describe "validation: attending_days" do
     let(:user_with_waiver) do
       u = FactoryGirl.create(:user)
