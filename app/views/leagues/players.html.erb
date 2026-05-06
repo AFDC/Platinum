@@ -323,6 +323,22 @@
                     field: "notes",
                     headerFilter: true
                 },
+                {
+                    title: "Days",
+                    field: "day_label",
+                    headerFilter: "list",
+                    headerFilterParams: {
+                        valuesLookup: "all",
+                        valuesLookupField: "day_label",
+                        clearable: true
+                    },
+                    formatter: function(cell) {
+                        var v = cell.getValue();
+                        if (!v) return "";
+                        var cls = (v === "Two-day") ? "label" : "label label-warning";
+                        return "<span class=\"" + cls + "\">" + v + "</span>";
+                    }
+                },
             ],
         });
 
