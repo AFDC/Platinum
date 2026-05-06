@@ -1049,6 +1049,13 @@ class LeaguesController < ApplicationController
             @has_roster_upload = false
             session[:roster_csv].delete(@league._id) if session[:roster_csv][@league._id]
         end
+
+        @one_day_summary = {}
+        if @league.requires_day_choice?
+            @league.game_days.each do |day|
+                @one_day_summary[day] = @league.registrations.active.select { |r| r.attending_days == [day] }.count
+            end
+        end
     end
 
     def upload_roster
