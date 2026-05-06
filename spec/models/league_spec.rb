@@ -98,5 +98,10 @@ describe League do
       league = FactoryGirl.create(:league, price: 80)
       league.get_price('male').should eq(80)
     end
+
+    it "falls back to price_single_day when both women single-day and price_women are blank" do
+      league = FactoryGirl.create(:league, price: 80, price_women: nil, price_single_day: 50, price_women_single_day: nil)
+      league.get_price('female', single_day: true).should eq(50)
+    end
   end
 end
