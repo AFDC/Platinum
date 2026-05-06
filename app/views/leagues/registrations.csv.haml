@@ -3,6 +3,8 @@
 - headers << "self_rank" if @league.self_rank_type == 'simple'
 - headers.push(*%w(exp_rank ath_rank skl_rank)) if @league.self_rank_type == "detailed"
 - headers.push(*%w(firstname lastname pronouns email matchup covid_vax availability notes birthdate height EOST))
+- headers.push('attending_days') if @league.requires_day_choice?
+- headers.push('registration_type') if @league.requires_day_choice?
 - if include_shirt_size
     - headers << 'shirt_size'
 = headers.join(',')
@@ -44,6 +46,9 @@
     - row << r.user.age
     - row << r.user_data['height']
     - row << r.eos_availability
+    - if @league.requires_day_choice?
+        - row << (r.attending_days || []).join(';')
+        - row << (r.registration_type_label || '')
     - if include_shirt_size
         - row << r.shirt_size
     = raw row.to_csv(row_sep: nil)
