@@ -44,9 +44,14 @@ class League
 
   field :pickup_registration, type: Boolean, default: false
   field :attendance_enabled, type: Boolean, default: false
+  field :game_days, type: Array, default: []
+
+  DAY_NAMES = %w(monday tuesday wednesday thursday friday saturday sunday).freeze
 
   after_initialize :build_options_if_nil
   after_find :migrate_self_rank_opts
+  validate :game_days_valid
+  before_save :normalize_game_days
 
   has_many :games
   has_many :teams, order: {league_rank: :asc}
@@ -499,5 +504,24 @@ class League
 
   def close_time_on_date(close_date)
     Time.zone.parse("#{close_date.to_date}").end_of_day
+  end
+
+  def game_days_valid
+    days = self.game_days || []
+    if days.size > 2
+      errors.add(:game_days, "must contain at most 2 days")
+    end
+    invalid = days.reject { |d| DAY_NAMES.include?(d) }
+    if invalid.any?
+      errors.add(:game_days, "contains invalid day name(s): #{invalid.join(', ')}")
+    end
+    if days.uniq.size != days.size
+      errors.add(:game_days, "must not contain duplicates")
+    end
+  end
+
+  def normalize_game_days
+    return if game_days.blank?
+    self.game_days = game_days.sort_by { |d| DAY_NAMES.index(d) || 99 }
   end
 end
