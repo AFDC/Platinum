@@ -31,7 +31,7 @@ class Registration
 
     field :pair_id, type: BSON::ObjectId
 
-    validate :has_valid_attendance_value, :has_signed_waiver
+    validate :has_valid_attendance_value, :has_signed_waiver, :has_valid_attending_days
 
     belongs_to :user
     belongs_to :league
@@ -282,6 +282,25 @@ class Registration
     def has_signed_waiver
         if waiver_acceptance_date.nil?
             errors.add(:waiver_accepted, "You must accept the liability waiver and refund policy to register.")
+        end
+    end
+
+    def has_valid_attending_days
+        return unless league && league.requires_day_choice?
+
+        if attending_days.blank?
+            errors.add(:attending_days, "Please choose your registration type (one-day or two-day).")
+            return
+        end
+
+        if attending_days.length > 2 || attending_days.length < 1
+            errors.add(:attending_days, "must contain 1 or 2 days.")
+            return
+        end
+
+        invalid = attending_days - league.game_days
+        if invalid.any?
+            errors.add(:attending_days, "contains days not configured for this league: #{invalid.join(', ')}")
         end
     end
 

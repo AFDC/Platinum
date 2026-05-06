@@ -108,4 +108,84 @@ describe Registration do
       reg.day_choice_editable?.should eq(false)
     end
   end
+
+  describe "validation: attending_days" do
+    let(:user_with_waiver) do
+      u = FactoryGirl.create(:user)
+      u
+    end
+
+    def build_reg(league, attrs = {})
+      r = Registration.new({
+        league: league, user: user_with_waiver,
+        waiver_acceptance_date: Time.now
+      }.merge(attrs))
+      r.availability = { 'general' => '100%', 'attend_tourney_eos' => false } unless r.availability.present?
+      r
+    end
+
+    context "when league does not require day choice" do
+      let(:league) { FactoryGirl.create(:league, game_days: []) }
+
+      it "is valid with attending_days nil" do
+        build_reg(league, attending_days: nil).tap do |r|
+          r.availability = { 'general' => '100%', 'attend_tourney_eos' => false }
+          r.valid?
+          r.errors[:attending_days].should be_empty
+        end
+      end
+    end
+
+    context "when league requires day choice" do
+      let(:league) { FactoryGirl.create(:league, game_days: ['tuesday', 'thursday']) }
+
+      def reg(attrs = {})
+        r = build_reg(league, attrs)
+        r.availability = { 'general' => '100%', 'attend_tourney_eos' => false }
+        r
+      end
+
+      it "rejects nil attending_days" do
+        r = reg(attending_days: nil)
+        r.valid?
+        r.errors[:attending_days].should be_present
+      end
+
+      it "rejects empty attending_days" do
+        r = reg(attending_days: [])
+        r.valid?
+        r.errors[:attending_days].should be_present
+      end
+
+      it "rejects more than two days" do
+        r = reg(attending_days: ['monday', 'tuesday', 'thursday'])
+        r.valid?
+        r.errors[:attending_days].should be_present
+      end
+
+      it "rejects days not in league.game_days" do
+        r = reg(attending_days: ['monday'])
+        r.valid?
+        r.errors[:attending_days].should be_present
+      end
+
+      it "accepts a one-day subset" do
+        r = reg(attending_days: ['tuesday'])
+        r.valid?
+        r.errors[:attending_days].should be_empty
+      end
+
+      it "accepts the full two-day set" do
+        r = reg(attending_days: ['tuesday', 'thursday'])
+        r.valid?
+        r.errors[:attending_days].should be_empty
+      end
+
+      it "is bypassed by save(validate: false)" do
+        r = reg(attending_days: nil)
+        r.status = 'queued'
+        r.save(validate: false).should eq(true)
+      end
+    end
+  end
 end
