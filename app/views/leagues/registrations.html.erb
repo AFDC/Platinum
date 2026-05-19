@@ -96,6 +96,29 @@
             var leagueCacheKey = "<%=@league.cache_key%>";
             var cachekeyURL = "<%=cachekey_league_path(@league, :json)%>";
             var ajaxURL   = "<%=reg_list_league_path(@league, :json)%>?active=true";
+
+            // Days column formatter: 2-day registrants get a green "2-Day" label;
+            // 1-day registrants get a 2-char abbreviation in a day-specific color;
+            // blank when there's no data (legacy / no-day-choice leagues).
+            var dayLabelFormatter = function(cell) {
+                var days = cell.getRow().getData().attending_days || [];
+                if (days.length === 0) return "";
+                if (days.length === 2) {
+                    return '<span class="label label-success">2-Day</span>';
+                }
+                var dayInfo = {
+                    monday:    { abbr: 'Mo', color: '#6F42C1' },
+                    tuesday:   { abbr: 'Tu', color: '#3a87ad' },
+                    wednesday: { abbr: 'We', color: '#6C757D' },
+                    thursday:  { abbr: 'Th', color: '#f89406' },
+                    friday:    { abbr: 'Fr', color: '#b94a48' },
+                    saturday:  { abbr: 'Sa', color: '#20C997' },
+                    sunday:    { abbr: 'Su', color: '#FD7E14' }
+                };
+                var info = dayInfo[days[0]] || { abbr: days[0].substring(0,2), color: '#999' };
+                return '<span class="label" style="background-color:' + info.color + ';">' + info.abbr + '</span>';
+            };
+
             var reg_table = new Tabulator("#registrant-data", {
                 // height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
                 ajaxURL:ajaxURL,
@@ -107,8 +130,17 @@
                     {title:"Draft ID", field:"draft_id", headerFilter:true},
                     {title:"Name", field:"name", headerFilter:true},
                     {title:"Rank", field:"rank"},
+<% if @league.requires_day_choice? %>
                     {
-                        title: "Avail", 
+                        title: "Days",
+                        field: "day_label",
+                        headerFilter: "list",
+                        headerFilterParams: { valuesLookup: "all", valuesLookupField: "day_label", clearable: true },
+                        formatter: dayLabelFormatter
+                    },
+<% end %>
+                    {
+                        title: "Avail",
                         field:"gen_availability",
                         headerFilter:"list", 
                         headerFilterParams:{valuesLookup: "all", valuesLookupField:"gen_availability", clearable: true}, 
@@ -151,22 +183,6 @@
                     },
                     {title:"Team", field:"team", headerFilter:"list", headerFilterParams:{valuesLookup: "all", valuesLookupField:"team", clearable: true}, hozAlign:"left"},
                     {title:"Notes", field:"notes", headerFilter:true},
-                    {
-                        title: "Days",
-                        field: "day_label",
-                        headerFilter: "list",
-                        headerFilterParams: {
-                            valuesLookup: "all",
-                            valuesLookupField: "day_label",
-                            clearable: true
-                        },
-                        formatter: function(cell) {
-                            var v = cell.getValue();
-                            if (!v) return "";
-                            var cls = (v === "Two-day") ? "label" : "label label-warning";
-                            return "<span class=\"" + cls + "\">" + v + "</span>";
-                        }
-                    },
                 ],
             });
 
