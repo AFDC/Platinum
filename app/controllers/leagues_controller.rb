@@ -484,9 +484,9 @@ class LeaguesController < ApplicationController
             return
         end
 
-        submitted = Array(params[:attending_days]).compact.reject(&:blank?)
+        submitted = resolve_attending_days_from_params
 
-        error = validate_day_choice_submission(submitted)
+        error = validate_day_choice_submission(submitted, type: params[:registration_type])
         if error
             flash.now[:error] = error
             render :choose_days
@@ -1371,8 +1371,23 @@ class LeaguesController < ApplicationController
         reg
     end
 
-    def validate_day_choice_submission(submitted)
-        return "Please choose your registration type." if submitted.empty?
+    def resolve_attending_days_from_params
+        case params[:registration_type]
+        when 'two_day'
+            @league.game_days
+        when 'one_day'
+            day = params[:chosen_day].to_s.strip
+            day.present? ? [day] : []
+        else
+            Array(params[:attending_days]).compact.reject(&:blank?)
+        end
+    end
+
+    def validate_day_choice_submission(submitted, type: nil)
+        if submitted.empty?
+            return "Please pick which day you'd like to play." if type == 'one_day'
+            return "Please choose your registration type."
+        end
         return "You can choose at most 2 days." if submitted.size > 2
 
         invalid = submitted - @league.game_days

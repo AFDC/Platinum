@@ -4,6 +4,14 @@
 = bootstrap_form_for(@registration, html: { class: 'form-horizontal' }, help: :block) do |f|
     = f.alert_message "Please fix the errors below."
     = f.hidden_field :league_id
+    - if @registration.registration_type_label
+        .control-group
+            %label.control-label Registration Type
+            .controls
+                = @registration.registration_type_label
+                - if @registration.day_choice_editable?
+                    &nbsp;
+                    = link_to "Change", choose_days_league_path(@registration.league), class: 'btn btn-mini'
     = f.select :gen_availability, [nil, '25%', '50%', '75%', '100%'], label: 'Availability'
     - if @registration.league.created_at > Date.new(2019, 4, 11)
         = f.select :shirt_size, [nil, 'XXL', 'XL', 'Large', 'Medium', 'Small', 'XS', 'XXS'], label: 'Unisex Shirt Size'
