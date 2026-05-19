@@ -50,6 +50,10 @@ class RegistrationsController < ApplicationController
     end
 
     def edit
+        if @registration.is_expired?
+            redirect_to register_league_path(@registration.league)
+            return
+        end
     end
 
     def update

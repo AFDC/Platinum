@@ -2,7 +2,7 @@
     .navbar-inner
         %ul.nav
             %li.active=link_to "League", @league
-            - if @registration
+            - if @registration && !@registration.is_expired?
                 %li= link_to "Update your Registration", edit_registration_path(@registration)
             - elsif @league.registration_open_for?(current_user)
                 %li= link_to "Register", register_league_path(@league)
