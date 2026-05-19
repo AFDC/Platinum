@@ -70,6 +70,14 @@
             %dt Status:
             %dd= @registration.status
 
+            - if @registration.registration_type_label
+                %dt Registration Type:
+                %dd
+                    = @registration.registration_type_label
+                    - if @registration.day_choice_editable?
+                        &nbsp;
+                        = link_to "Change", choose_days_league_path(@registration.league), class: 'btn btn-mini'
+
             %dt Role:
             %dd= @registration.player_strength
 

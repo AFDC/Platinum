@@ -83,6 +83,8 @@
     .container
       - if flash[:notice]
         .alert.alert-info= flash[:notice]
+      - if flash[:warning]
+        .alert.alert-warning= flash[:warning]
       - if flash[:error]
         .alert.alert-error= flash[:error]
       - if current_user

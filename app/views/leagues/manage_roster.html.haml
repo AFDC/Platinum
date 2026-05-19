@@ -19,6 +19,17 @@
             %li
                 %span{class: 'hasTooltip', title: 'players on a team with no registration'} Intruders:
                 =@intruders.count
+        - if @league.requires_day_choice?
+            %h4 Registration Types
+            %ul
+                - @league.game_days.each do |day|
+                    %li
+                        %span= "#{day.capitalize}-only:"
+                        %strong= @one_day_summary[day]
+                %li
+                    %span Two-day:
+                    %strong= @league.registrations.active.where(attending_days: @league.game_days).count
+            %p.muted Use the Days column on the player list to drill into a specific cohort.
         - if permitted_to? :upload_roster, @league
             %h4 CSV Import
             - if @has_roster_upload

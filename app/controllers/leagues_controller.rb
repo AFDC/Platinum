@@ -44,6 +44,13 @@ class LeaguesController < ApplicationController
         end
 
         if @league.update_attributes(league_params)
+            orphaned = @league.registrations.where(:status.in => %w(active waitlisted registering)).select do |r|
+                r.attending_days.present? && (r.attending_days - @league.game_days).any?
+            end
+            if orphaned.any?
+                names = orphaned.map { |r| r.user.name }.join(', ')
+                flash[:warning] = "Game-days change orphaned attending_days for: #{names}. Please follow up with these players."
+            end
             redirect_to @league, notice: "League Updated Successfully"
         else
             render :edit
@@ -403,10 +410,14 @@ class LeaguesController < ApplicationController
         if (existing_registration)
             if existing_registration.status == 'active'
                 redirect_to registrations_user_path(current_user), notice: "You've already registered for that league."
-                return                
+                return
             end
 
             if existing_registration.is_registering?
+                if needs_day_choice_first?(existing_registration)
+                    redirect_to choose_days_league_path(@league)
+                    return
+                end
                 @registration = existing_registration
                 render "registrations/edit"
                 return
@@ -414,7 +425,7 @@ class LeaguesController < ApplicationController
 
             if existing_registration.status == 'waitlisted'
                 redirect_to league_path(@league), flash: {error: "You're currently on the wait list. Please watch your email to see if you'll get in."}
-                return    
+                return
             end
 
             # We deal with canceled, queued, and expired registrations as if the person has never registered
@@ -437,11 +448,66 @@ class LeaguesController < ApplicationController
         end
 
         # Create placeholder registration -- eliminates a race condition that allows too many people to register
-        # We first create queued registrations for everyone 
+        # We first create queued registrations for everyone
 
         @registration = registrar.initialize_registration!
 
+        if needs_day_choice_first?(@registration)
+            redirect_to choose_days_league_path(@league)
+            return
+        end
+
         render "registrations/edit"
+    end
+
+    def choose_days
+        @registration = load_day_choice_registration
+        return unless @registration
+
+        if @league.started?
+            redirect_to registration_path(@registration), flash: {error: "This league has already started. Please contact a commissioner if your registration type needs to change."}
+            return
+        end
+
+        unless @league.requires_day_choice?
+            redirect_to register_league_path(@league)
+            return
+        end
+    end
+
+    def submit_day_choice
+        @registration = load_day_choice_registration
+        return unless @registration
+
+        if @league.started?
+            redirect_to registration_path(@registration), flash: {error: "This league has already started. Please contact a commissioner if your registration type needs to change."}
+            return
+        end
+
+        submitted = resolve_attending_days_from_params
+
+        error = validate_day_choice_submission(submitted, type: params[:registration_type])
+        if error
+            flash.now[:error] = error
+            render :choose_days
+            return
+        end
+
+        pre_pay_statuses = %w(queued registering registering_waitlisted)
+
+        if !@registration.paid && pre_pay_statuses.include?(@registration.status)
+            @registration.set(attending_days: submitted, price: nil)
+        else
+            @registration.set(attending_days: submitted)
+        end
+
+        if pre_pay_statuses.include?(@registration.status)
+            redirect_to register_league_path(@league)
+        elsif params[:registration_id].present? && permitted_to?(:manage, @league)
+            redirect_to players_league_path(@league), notice: "Updated registration type for #{@registration.user.name}."
+        else
+            redirect_to registration_path(@registration), notice: "Registration type updated. Contact help@afdc.com if you need a price adjustment."
+        end
     end
 
     def team_list
@@ -737,6 +803,8 @@ class LeaguesController < ApplicationController
             pending_pair_matchup: pending_pair_matchup,
             pending_pair_is_registered: pending_pair_is_registered,
             waitlist_timestamp: waitlist_timestamp,
+            attending_days: reg.attending_days || [],
+            day_label: reg.registration_type_label || '',
             type: "individual"
         }
     end
@@ -981,6 +1049,13 @@ class LeaguesController < ApplicationController
         else
             @has_roster_upload = false
             session[:roster_csv].delete(@league._id) if session[:roster_csv][@league._id]
+        end
+
+        @one_day_summary = {}
+        if @league.requires_day_choice?
+            @league.game_days.each do |day|
+                @one_day_summary[day] = @league.registrations.active.select { |r| r.attending_days == [day] }.count
+            end
         end
     end
 
@@ -1274,15 +1349,64 @@ class LeaguesController < ApplicationController
         session[:roster_csv] = {} unless session[:roster_csv]
     end
 
+    def needs_day_choice_first?(reg)
+        reg.present? && @league.requires_day_choice? && reg.attending_days.blank?
+    end
+
+    def load_day_choice_registration
+        if params[:registration_id].present? && permitted_to?(:manage, @league)
+            reg = @league.registrations.where(_id: params[:registration_id]).first
+            unless reg
+                redirect_to manage_roster_league_path(@league), flash: {error: "Registration not found."}
+                return nil
+            end
+            return reg
+        end
+
+        reg = @league.registration_for(current_user)
+        unless reg
+            redirect_to league_path(@league), flash: {error: "You don't have a registration in progress for this league."}
+            return nil
+        end
+        reg
+    end
+
+    def resolve_attending_days_from_params
+        case params[:registration_type]
+        when 'two_day'
+            @league.game_days
+        when 'one_day'
+            day = params[:chosen_day].to_s.strip
+            day.present? ? [day] : []
+        else
+            Array(params[:attending_days]).compact.reject(&:blank?)
+        end
+    end
+
+    def validate_day_choice_submission(submitted, type: nil)
+        if submitted.empty?
+            return "Please pick which day you'd like to play." if type == 'one_day'
+            return "Please choose your registration type."
+        end
+        return "You can choose at most 2 days." if submitted.size > 2
+
+        invalid = submitted - @league.game_days
+        return "Selected day(s) are not configured for this league: #{invalid.join(', ')}" if invalid.any?
+
+        nil
+    end
+
     def league_params
         permitted_params = [
             :name, :age_division, :season, :sport, :price, :price_women, :pickup_price, :pickup_registration,
+            :price_single_day, :price_women_single_day,
             :start_date, :end_date, :registration_open, :registration_close,
             :female_registration_open, :female_registration_close, :male_registration_open, :male_registration_close,
             :description, {commissioner_ids: []}, :male_limit, :female_limit,
             :max_grank_age, :allow_pairs, :covid_vax_required, :track_spirit_scores, :display_spirit_scores, :self_rank_type, :eos_tourney, :mst_tourney, :eos_champion_id, :mst_champion_id,
             {core_options: [:type, :male_limit, :female_limit, :rank_limit, :male_rank_constant, :female_rank_constant]}, :allow_pickups,
-            :solicit_donations, :donation_earmark, :donation_pitch, :attendance_enabled
+            :solicit_donations, :donation_earmark, :donation_pitch, :attendance_enabled,
+            {game_days: []}
         ]
 
         if permitted_to? :assign_comps, self

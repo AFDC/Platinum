@@ -61,10 +61,13 @@ class AttendancePromptWorker
     games = league.games.where(:game_time.gte => game_day.beginning_of_day,
                                :game_time.lte => game_day.end_of_day).to_a
     teams_for_day = group_games_by_team(games)
+    day_label = game_day.strftime('%A').downcase
     teams_for_day.each do |team_id, day_games|
       next if all_rained_out?(day_games)
       team = Team.find(team_id)
       team.players.each do |player|
+        reg = league.registration_for(player)
+        next if reg.present? && !reg.participates_on?(day_label)
         next if AttendancePrompt.where(user_id: player._id, team_id: team_id, game_day: game_day).exists?
         prompt = AttendancePrompt.create!(
           user: player, team: team, league: league,

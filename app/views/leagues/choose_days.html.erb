@@ -1,0 +1,372 @@
+<% content_for :title, @league.name %>
+<%= render :partial => '/pageheader', :locals => {subtitle: 'Choose Your Registration Type', breadcrumbs: {'Leagues' => leagues_path, @league.name => league_path(@league), 'Registration Type' => nil}} %>
+
+<%
+    day1, day2 = @league.game_days
+    current = @registration.attending_days || []
+    current_type = (current.length == 2 ? 'two_day' : (current.length == 1 ? 'one_day' : nil))
+    current_day = (current.length == 1 ? current.first : nil)
+%>
+
+<% if flash.now[:error] %>
+    <div class="alert alert-error"><%= flash.now[:error] %></div>
+<% end %>
+
+<div class="row day-choice-intro">
+    <div class="span12">
+        <h2 class="day-choice-intro__title">Choose your registration type</h2>
+        <p class="day-choice-intro__lead">
+            Every <%= @league.name %> team plays both <%= day1.capitalize %> and <%= day2.capitalize %>.
+        </p>
+        <p class="day-choice-intro__body">
+            We know not everyone can make both and we don't want that to keep you from signing up. One-day registration lets you tell us up front which night you're available, so captains can draft accordingly.
+        </p>
+    </div>
+</div>
+
+<%= form_tag choose_days_league_path(@league), method: :post, id: 'day-choice-form', class: 'day-choice-form' do %>
+    <% if params[:registration_id].present? %>
+        <%= hidden_field_tag :registration_id, params[:registration_id] %>
+    <% end %>
+    <fieldset class="day-choice-fieldset">
+        <legend class="sr-only">Registration type</legend>
+        <div class="row">
+            <div class="span6">
+                <label class="day-choice-card day-choice-card--two-day <%= 'is-selected' if current_type == 'two_day' %>" for="choice_two_day">
+                    <input class="day-choice-card__radio" type="radio" name="registration_type" id="choice_two_day" value="two_day" <%= 'checked' if current_type == 'two_day' %>>
+                    <span class="day-choice-card__check" aria-hidden="true">✓</span>
+                    <h3 class="day-choice-card__heading">Two-day registration</h3>
+                    <p>
+                        The standard league experience.
+                        You're signing up to play
+                        <strong><%= day1.capitalize %> and <%= day2.capitalize %>.</strong>
+                        and captains will draft you as a full-time player.
+                    </p>
+                </label>
+            </div>
+            <div class="span6">
+                <label class="day-choice-card day-choice-card--one-day <%= 'is-selected' if current_type == 'one_day' %>" for="choice_one_day">
+                    <input class="day-choice-card__radio" type="radio" name="registration_type" id="choice_one_day" value="one_day" <%= 'checked' if current_type == 'one_day' %>>
+                    <span class="day-choice-card__check" aria-hidden="true">✓</span>
+                    <h3 class="day-choice-card__heading">One-day registration</h3>
+                    <p>
+                        <strong>For players who can only make one night a week.</strong>
+                        Captains will build their rosters around you not being available on the other night. If you
+                        end up free on the other night, come play with your team anyway; we just won't have built the roster
+                        expecting you to be there.
+                    </p>
+                    <div class="day-choice-card__day-picker" id="one-day-day-pickers" aria-live="polite">
+                        <p class="day-choice-card__day-prompt">Which day?</p>
+                        <div class="day-choice-card__day-options">
+                            <% @league.game_days.each do |day| %>
+                                <label class="day-choice-pill <%= 'is-selected' if current_day == day %>" for="day_pick_<%= day %>">
+                                    <input class="day-choice-pill__radio" type="radio" id="day_pick_<%= day %>" name="chosen_day" value="<%= day %>" <%= 'checked' if current_day == day %>>
+                                    <span><%= day.capitalize %></span>
+                                </label>
+                            <% end %>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="form-actions day-choice-actions">
+        <button class="btn btn-primary btn-large" type="submit">Continue</button>
+        <% cancel_target = (@registration.persisted? && (current.any? || @registration.status == 'active')) ? registration_path(@registration) : league_path(@league) %>
+        <%= link_to "Cancel", cancel_target, class: 'btn btn-link' %>
+        <p class="day-choice-hint">You can change this at any point before the draft.</p>
+    </div>
+<% end %>
+
+<% content_for :page_styles do %>
+    <style>
+        /* Brand palette, scoped to this form and its sibling intro section. Sourced
+           from wip/brandguide.jsx. One accent (AFDC Blue) carries selected state on
+           both cards; the cards differentiate themselves through copy. */
+        .day-choice-intro,
+        .day-choice-form {
+            --c-ink: #1E2328;
+            --c-muted: #5F6B7A;
+            --c-border: #E8EAED;
+            --c-border-hover: #B6BCC4;
+            --c-accent: #2BA4D8;
+            --c-accent-dark: #1B7BA3;
+            --c-accent-tint: #EBF4FA;
+        }
+
+        /* ───── Typography scale ─────
+           Base 16px (overrides Bootstrap 2.3's 14px). One scale, five roles:
+             title  28 / 1.2  / -0.01em / 700
+             lead   18 / 1.55 / 500     (intro pull-quote)
+             body   16 / 1.6  / 400     (paragraphs)
+             label  11 / 1    / 700 uppercase + 0.08em tracking (eyebrows)
+             hint   13 / 1.4  / 400     (helper text)
+           Headings tighten letter-spacing slightly; body opens line-height. */
+
+        .day-choice-intro__title {
+            font-size: 28px;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+            font-weight: 700;
+            color: var(--c-ink);
+            margin: 0 0 12px;
+        }
+        .day-choice-intro__lead {
+            font-size: 18px;
+            line-height: 1.55;
+            font-weight: 500;
+            color: var(--c-ink);
+            max-width: 62ch;
+            margin: 0 0 12px;
+        }
+        .day-choice-intro__body {
+            font-size: 16px;
+            line-height: 1.6;
+            font-weight: 400;
+            color: var(--c-ink);
+            max-width: 65ch;
+            margin: 0 0 24px;
+        }
+
+        .day-choice-card__heading {
+            font-size: 20px;
+            line-height: 1.25;
+            letter-spacing: -0.005em;
+            font-weight: 700;
+            color: var(--c-ink);
+            margin: 0 0 12px;
+        }
+        .day-choice-card p {
+            font-size: 16px;
+            line-height: 1.55;
+            color: var(--c-ink);
+            margin: 0 0 12px;
+        }
+        .day-choice-card p:last-child { margin-bottom: 0; }
+        /* Tone down <strong>: browser default 700 looks heavy in Helvetica.
+           600 holds emphasis without shouting. */
+        .day-choice-card strong { font-weight: 600; }
+
+        .day-choice-card__day-prompt {
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--c-muted);
+            margin: 0 0 10px;
+        }
+
+        .day-choice-pill { font-size: 15px; }
+        .day-choice-hint {
+            font-size: 13px;
+            line-height: 1.4;
+            color: var(--c-muted);
+            margin: 12px 0 0;
+        }
+        /* ───── /Typography scale ───── */
+
+        /* Reset fieldset chrome and its default min-width: min-content,
+           which would otherwise force the inner .row to shrink-wrap and
+           wrap the two .span6 cards onto separate lines. */
+        .day-choice-fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+            min-width: 0;
+        }
+
+        .day-choice-card {
+            display: block;
+            position: relative;
+            padding: 24px;
+            border: 2px solid var(--c-border);
+            border-radius: 8px;
+            cursor: pointer;
+            min-height: 240px;
+            margin-bottom: 16px;
+            background: #fff;
+            color: var(--c-ink);
+            transition: border-color 150ms ease, background-color 150ms ease;
+        }
+        .day-choice-card:hover { border-color: var(--c-border-hover); }
+
+        .day-choice-card__radio {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        /* Selected state: same accent on both cards. Redundant cues (border,
+           background tint, checkmark) so colorblind users don't depend on hue alone.
+           Both .is-selected (JS) and :has() (CSS) selectors apply. */
+        .day-choice-card.is-selected,
+        .day-choice-card:has(.day-choice-card__radio:checked) {
+            border-color: var(--c-accent);
+            border-width: 3px;
+            padding: 23px;
+            background-color: var(--c-accent-tint);
+        }
+
+        .day-choice-card__check {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 20px;
+            line-height: 1;
+            font-weight: bold;
+            color: var(--c-accent-dark);
+            opacity: 0;
+            transform: scale(0.6);
+            transition: opacity 150ms ease, transform 150ms ease;
+        }
+        .day-choice-card.is-selected .day-choice-card__check,
+        .day-choice-card:has(.day-choice-card__radio:checked) .day-choice-card__check {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Visible focus indicator for keyboard navigation. */
+        .day-choice-card:has(.day-choice-card__radio:focus-visible),
+        .day-choice-card.is-focused {
+            outline: 3px solid var(--c-accent);
+            outline-offset: 4px;
+        }
+
+        /* Day-picker reveal: hidden until the one-day card is selected. */
+        .day-choice-card__day-picker {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--c-border);
+        }
+        .day-choice-card.is-selected .day-choice-card__day-picker,
+        .day-choice-card:has(.day-choice-card__radio:checked) .day-choice-card__day-picker {
+            display: block;
+        }
+        .day-choice-card__day-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Day-pills live inside the one-day card — primary interaction for picking the day. */
+        .day-choice-pill {
+            display: inline-block;
+            position: relative;
+            padding: 12px 20px;
+            border: 2px solid var(--c-border);
+            border-radius: 6px;
+            cursor: pointer;
+            min-width: 96px;
+            text-align: center;
+            background: #fff;
+            color: var(--c-ink);
+            font-weight: 600;
+            transition: border-color 150ms ease, background-color 150ms ease;
+            margin: 0;
+        }
+        .day-choice-pill:hover { border-color: var(--c-border-hover); }
+        .day-choice-pill__radio {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            margin: 0;
+            pointer-events: none;
+        }
+        .day-choice-pill.is-selected,
+        .day-choice-pill:has(.day-choice-pill__radio:checked) {
+            border-color: var(--c-accent);
+            background-color: var(--c-accent-tint);
+            color: var(--c-accent-dark);
+        }
+        .day-choice-pill:has(.day-choice-pill__radio:focus-visible),
+        .day-choice-pill.is-focused {
+            outline: 3px solid var(--c-accent);
+            outline-offset: 3px;
+        }
+
+        .day-choice-actions { padding-top: 16px; }
+
+        /* Hide visually but keep accessible to screen readers. */
+        .day-choice-form .sr-only {
+            position: absolute;
+            width: 1px; height: 1px;
+            padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0,0,0,0);
+            white-space: nowrap; border: 0;
+        }
+
+        /* Mobile: cards stack and don't need fixed minimum height. */
+        @media (max-width: 768px) {
+            .day-choice-card { min-height: 0; padding: 20px; }
+            .day-choice-card.is-selected,
+            .day-choice-card:has(.day-choice-card__radio:checked) { padding: 19px; }
+        }
+
+        /* Respect users who've requested reduced motion. */
+        @media (prefers-reduced-motion: reduce) {
+            .day-choice-card, .day-choice-card__check, .day-choice-pill {
+                transition: none;
+            }
+        }
+    </style>
+<% end %>
+
+<% content_for :page_scripts do %>
+    <script>
+        // Progressive enhancement only. The form posts registration_type and chosen_day;
+        // the server resolves attending_days. Without JS, the user submits, the server
+        // validates, and (if needed) re-renders with a flash message. Nothing breaks.
+        $(function(){
+            var $form = $('#day-choice-form');
+
+            function syncSelectedClasses() {
+                $form.find('.day-choice-card').each(function(){
+                    var $card = $(this);
+                    var checked = $card.find('.day-choice-card__radio').is(':checked');
+                    $card.toggleClass('is-selected', checked);
+                });
+                $form.find('.day-choice-pill').each(function(){
+                    var $pill = $(this);
+                    var checked = $pill.find('.day-choice-pill__radio').is(':checked');
+                    $pill.toggleClass('is-selected', checked);
+                });
+            }
+
+            // Tighten the UX: disable Continue when the current selection couldn't pass
+            // server validation. Without JS, the button stays enabled and the server
+            // catches the same cases with a flash message.
+            function syncContinueButton() {
+                var $continue = $form.find('button[type=submit]');
+                var type = $form.find('input[name=registration_type]:checked').val();
+                var dayPicked = $form.find('input[name=chosen_day]:checked').length > 0;
+                var valid = (type === 'two_day') || (type === 'one_day' && dayPicked);
+                $continue.prop('disabled', !valid);
+            }
+
+            function bindFocusClass(radioSelector, parentSelector) {
+                $form.on('focus', radioSelector, function(){
+                    $(this).closest(parentSelector).addClass('is-focused');
+                });
+                $form.on('blur', radioSelector, function(){
+                    $(this).closest(parentSelector).removeClass('is-focused');
+                });
+            }
+
+            $form.on('change', '.day-choice-card__radio, .day-choice-pill__radio', function(){
+                syncSelectedClasses();
+                syncContinueButton();
+            });
+            bindFocusClass('.day-choice-card__radio', '.day-choice-card');
+            bindFocusClass('.day-choice-pill__radio', '.day-choice-pill');
+            syncSelectedClasses();
+            syncContinueButton();
+        });
+    </script>
+<% end %>
