@@ -3,6 +3,7 @@
     #headers << "self_rank" if @league.self_rank_type == 'simple' 
     #headers.push(*%w(exp_rank ath_rank skl_rank)) if @league.self_rank_type == "detailed" 
     headers.push(*%w(strength age height availability EOST team notes))
+    headers.push('attending_days', 'registration_type') if @league.requires_day_choice?
 
     matchups = {
         'woman-matching' => "WMP",
@@ -41,5 +42,9 @@
     row << reg[:eos_availability]
     row << reg[:team]
     row << reg[:notes]
+    if @league.requires_day_choice?
+        row << (reg[:attending_days] || []).join(';')
+        row << reg[:day_label]
+    end
 %><%= raw row.to_csv(row_sep: nil) %>
 <% end %>
