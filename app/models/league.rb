@@ -283,6 +283,14 @@ class League
     end
   end
 
+  # Pickup candidates who are not already active members of the league. A user
+  # can join the pickup list before registering and later register for the
+  # league, so we exclude anyone with an active registration here.
+  def available_pickup_candidates
+    active_user_ids = registrations.active.distinct(:user_id)
+    pickup_candidates.not_in(user_id: active_user_ids)
+  end
+
   def team_for(user)
     if user
       teams.where({players: user}).first
