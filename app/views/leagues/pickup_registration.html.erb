@@ -26,7 +26,7 @@
                 <label class="control-label"><strong>Game Time</strong></label>
                 <div class="controls">
                     <span style="display: inline-block; padding: 5px;">
-                        <%= @pickup_registration.games.first&.start_time&.strftime("%I:%M %p") || "TBD" %>   
+                        <%= @pickup_registration.games.first&.game_time&.strftime("%I:%M %p") || "TBD" %>   
                     </span>
                 </div>
 
