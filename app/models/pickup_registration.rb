@@ -27,7 +27,7 @@ class PickupRegistration
     end
 
     def games
-        league.games.where(
+        team.games.where(
             :game_time.gte => assigned_date.beginning_of_day,
             :game_time.lte => assigned_date.end_of_day
         ).order(game_time: 'asc')
