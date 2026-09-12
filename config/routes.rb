@@ -84,6 +84,7 @@ Platinum::Application.routes.draw do
 
       get 'invite_pair'
       get 'leave_pair'
+      post 'leave_pair'
 
       get 'missing_spirit_reports'
 

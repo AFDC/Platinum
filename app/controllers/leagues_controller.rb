@@ -960,18 +960,32 @@ class LeaguesController < ApplicationController
 
     def leave_pair
         user_reg = @league.registration_for(current_user)
-        if user_reg.pair
-            pair_reg = @league.registration_for(user_reg.pair)
-
-            user_reg.pair = nil
-            user_reg.save!
-            pair_reg.pair = nil
-            pair_reg.save!
-
-            # TODO: Send "goodbye" email
+        unless user_reg
+            redirect_to league_path(@league), flash: {error: 'You do not have a registration for this league.'}
+            return
         end
 
-        redirect_to registrations_league_path(@league), flash: {success: "You are no longer paired."}
+        # Old bookmarks must never change a pair through a GET request.
+        if request.get?
+            redirect_to edit_registration_path(user_reg)
+            return
+        end
+
+        if @league.started?
+            redirect_to edit_registration_path(user_reg), flash: {error: 'This league has started. Contact your league commissioner to change your pair.'}
+            return
+        end
+
+        unless user_reg.pair_id.present?
+            redirect_to edit_registration_path(user_reg), notice: 'You are no longer paired.'
+            return
+        end
+
+        details = PairingCoordinator.new(@league).break_pair(user_reg, params[:pair_id])
+        log_audit('LeavePair', league: @league, registration: user_reg, details: details)
+        redirect_to edit_registration_path(user_reg), notice: 'You have left the pair. Current team assignments have been kept.'
+    rescue PairingCoordinator::PairChanged
+        redirect_to edit_registration_path(user_reg), flash: {error: 'Your pair has changed. Review your current pair and try again.'}
     end
 
     def invite_pair

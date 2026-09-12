@@ -124,7 +124,8 @@
                   %i.icon-chevron-sign-right
               %p You may not pair with another person or join a pod or core while you are paired.
 
-              = link_to "Leave this pair", leave_pair_league_path(@league), class: 'btn btn-block btn-small btn-warning'
+              - leave_pair_confirmation = "Leave your pair with #{@pair_reg.user.name}? Your current team assignments will stay the same."
+              = button_to "Leave this pair", leave_pair_league_path(@league, pair_id: @user_data[:pair_id]), method: :post, form: { onsubmit: "return window.confirm(#{leave_pair_confirmation.to_json});" }, class: 'btn btn-block btn-small btn-warning'
             - elsif @user_data[:pair_invite_count] > 0
               %p You have sent an invite to pair with another person. Before you can send any more, you must first cancel the existing invite.
               %p

@@ -3,6 +3,11 @@
 -elsif (@registration.status != 'active') && (@registration.league.comped? (@registration.user))
     .alert.alert-info This registration will be comped by the league
 
+- if @registration.user == current_user && @registration.pair_id.present? && !@registration.cored? && !@league.started?
+    - leave_pair_confirmation = "Leave your pair with #{@registration.pair&.name || 'the unavailable player'}? Your current team assignments will stay the same. Unsaved registration changes will be lost."
+    = form_tag leave_pair_league_path(@league), method: :post, id: 'leave-pair-form', onsubmit: "return window.confirm(#{leave_pair_confirmation.to_json});" do
+        = hidden_field_tag :pair_id, @registration.pair_id
+
 = bootstrap_form_for(@registration, html: { class: 'form-horizontal' }, help: :block) do |f|
     = f.alert_message "Please fix the errors below."
     = f.hidden_field :league_id
@@ -55,9 +60,15 @@
                     %span.help-inline Cored Players Cannot Pair
             - else
                 %span.span3.uneditable-input
-                    = @registration.pair.name
+                    = @registration.pair&.name || 'Unavailable player'
                 .controls
-                    %span.form-control.help-inline To remove a confirmed pair, email help@afdc.com
+                    - if @registration.user == current_user
+                        - if @league.started?
+                            %span.help-block This league has started. Contact your league commissioner to change your pair.
+                        - else
+                            %button.btn.btn-small{type: 'submit', form: 'leave-pair-form'} Leave pair
+                    - elsif permitted_to?(:manage, @league)
+                        = link_to 'Manage pairs in Manage Players', players_league_path(@league)
 
     = f.text_area :notes, rows: 5
     - if @registration.new_record?
