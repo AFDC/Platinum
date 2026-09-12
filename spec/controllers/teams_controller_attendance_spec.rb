@@ -1,7 +1,15 @@
 require 'spec_helper'
+require 'active_support/testing/time_helpers'
 
 describe TeamsController, type: :controller do
+  include ActiveSupport::Testing::TimeHelpers
   render_views
+
+  around do |example|
+    # The attendance window ends the following Monday, not seven days from now.
+    # Keep the relative-date fixtures inside that window regardless of the run date.
+    travel_to(LOCAL_TIMEZONE.parse(example.metadata[:today] || '2026-09-07 12:00')) { example.run }
+  end
 
   let(:captain) { FactoryGirl.create(:user) }
   let(:league)  { FactoryGirl.create(:league, attendance_enabled: true) }
@@ -17,6 +25,21 @@ describe TeamsController, type: :controller do
   end
 
   describe "GET #attendance" do
+    ['2026-09-12 12:00', '2026-09-13 12:00'].each do |today|
+      it 'includes Monday but excludes Tuesday when viewed on a weekend', today: today do
+        monday = Date.new(2026, 9, 14)
+        [monday, monday + 1].each do |day|
+          game = Game.new(league: league, game_time: LOCAL_TIMEZONE.parse("#{day} 7pm"))
+          game[:teams] = [team.id]
+          game.save!
+        end
+
+        get :attendance, id: team.id
+
+        expect(assigns(:upcoming_days)).to eq([monday])
+      end
+    end
+
     it "lists upcoming game-days within this week" do
       g = Game.new(league: league, game_time: Time.now + 2.days)
       g[:teams] = [team._id]

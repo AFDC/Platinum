@@ -1,6 +1,14 @@
 require 'spec_helper'
+require 'active_support/testing/time_helpers'
 
 describe LeaguesController, type: :controller do
+  include ActiveSupport::Testing::TimeHelpers
+
+  around do |example|
+    # Keep relative-date fixtures inside the current attendance window.
+    travel_to(LOCAL_TIMEZONE.parse(example.metadata[:today] || '2026-09-07 12:00')) { example.run }
+  end
+
   let(:commish) { FactoryGirl.create(:user) }
   let(:league)  { FactoryGirl.create(:league, attendance_enabled: true) }
   let(:team_a)  { FactoryGirl.create(:team, league: league, name: 'Sharks') }
@@ -14,6 +22,22 @@ describe LeaguesController, type: :controller do
   end
 
   describe "GET #attendance_overview" do
+    ['2026-09-12 12:00', '2026-09-13 12:00'].each do |today|
+      it 'includes Monday but excludes Tuesday when viewed on a weekend', today: today do
+        monday = Date.new(2026, 9, 14)
+        [[monday, team_a], [monday + 1, team_b]].each do |day, team|
+          game = Game.new(league: league, game_time: LOCAL_TIMEZONE.parse("#{day} 7pm"))
+          game[:teams] = [team.id]
+          game.save!
+        end
+
+        get :attendance_overview, id: league.id
+
+        expect(assigns(:game_days)).to eq([monday])
+        expect(assigns(:rows).map { |row| row[:team] }).to eq([team_a])
+      end
+    end
+
     it "shows a row per team for each upcoming game-day" do
       day = Date.current + 3
       g1 = Game.new(league: league, game_time: LOCAL_TIMEZONE.parse("#{day} 7pm"))
