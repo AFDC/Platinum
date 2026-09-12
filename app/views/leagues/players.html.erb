@@ -434,11 +434,43 @@
             }
         }
 
+        function bind_break_pair(rowData) {
+            $('#break-pair-button').on('click', function() {
+                var button = $(this);
+                var partnerName = rowData.pair_name || 'the unavailable player';
+                if (!window.confirm('Break the pair between ' + rowData.name_without_pronouns +
+                    ' and ' + partnerName + '? Their current team assignments will stay the same.')) {
+                    return;
+                }
+                button.prop('disabled', true).text('Breaking pair…');
+                $('#registrant-error-message, #registrant-success-message').hide();
+                $.ajax({
+                    headers: { 'X-CSRF-Token': CSRF_TOKEN },
+                    url: '<%= break_pair_league_path(@league, :json) %>',
+                    method: 'POST',
+                    data: { registration_id: rowData.id, pair_id: rowData.pair_id }
+                }).done(function(data) {
+                    // Discard the stale pair's controls so team changes cannot affect both players.
+                    $('#player-details').empty().append(
+                        $('<div>', { 'class': 'alert alert-success', role: 'status', tabindex: '-1' }).text(data.msg)
+                    );
+                    $('#player-details [role=status]').focus();
+                    refresh_data();
+                }).fail(function(xhr) {
+                    $('#registrant-error-message').text(
+                        (xhr.responseJSON && xhr.responseJSON.msg) || 'Could not break the pair. Please try again.'
+                    ).attr('role', 'alert').show();
+                    button.prop('disabled', false).text('Break pair');
+                });
+            });
+        }
+
         function render_player_details(rowData) {
             var domTarget = $('#player-details');
             var registrant_profile = _.template($('#registrant-detail-template').html());
 
             domTarget.html(registrant_profile(rowData));
+            bind_break_pair(rowData);
             render_team_updater(rowData["team_id"], [rowData["id"]]);
             $("#player-details-container").show();
 
@@ -505,6 +537,7 @@
             var pair_profile = _.template($('#pair-detail-template').html());
 
             domTarget.html(pair_profile(rowData));
+            bind_break_pair(rowData._children[0]);
             render_team_updater(rowData["team_id"], [rowData._children[0]["id"], rowData._children[1]["id"]]);
             $("#player-details-container").show();
         }
@@ -647,8 +680,8 @@
             {{ if (grank.score) { }}
                 <li><strong>gRank</strong>: {{=grank.score}}</li>
             {{ } }}
-            {{ if (pending_pair_name) { }}
-                <li><strong>Pending Pair</strong>: {{=pending_pair_name}}</li>
+            {{ if (pair_id) { }}
+                <li><strong>Pair</strong>: {{= _.escape(pair_name || 'Unavailable player') }}</li>
             {{ } }}
             {{ if (waitlist_timestamp) { }}
                 <li><strong>Waitlist Timestamp</strong>: {{=moment(waitlist_timestamp).format('MMM Do, h:mm a')}}</li>
@@ -663,6 +696,9 @@
         <div id="team-selection-container"></div>
         <hr />
         <%=link_to "Edit Registration", edit_registration_path('PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info'%>
+        {{ if (pair_id) { }}
+            <button type="button" class="btn btn-block btn-small" id="break-pair-button">Break pair</button>
+        {{ } }}
         <% if @league.requires_day_choice? && !@league.started? %>
             <%= link_to "Change Type", choose_days_league_path(@league, registration_id: 'PLACEHOLDER').gsub('PLACEHOLDER', '{{=id}}').html_safe, class: 'btn btn-block btn-small btn-info' %>
         <% end %>
@@ -694,6 +730,8 @@
         <div class="alert alert-error hide" id="registrant-error-message"></div>
         <div class="alert alert-success hide" id="registrant-success-message"></div>
         <div id="team-selection-container"></div>
+        <hr />
+        <button type="button" class="btn btn-block btn-small" id="break-pair-button">Break pair</button>
     </script>
 
 <script id="team-selection-template" type="text/x-underscore">

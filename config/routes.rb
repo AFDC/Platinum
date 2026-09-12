@@ -64,6 +64,7 @@ Platinum::Application.routes.draw do
       get 'team_list'
       post 'cancel_registration'
       post 'promote_waitlisted_registration'
+      post 'break_pair'
       post 'add_player_to_team'
 
       post 'update_invites'

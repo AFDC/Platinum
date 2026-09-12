@@ -283,6 +283,20 @@ class LeaguesController < ApplicationController
         end        
     end
 
+    def break_pair
+        registration = @league.registrations.where(id: params[:registration_id]).first
+        unless registration
+            render json: { msg: 'Registration not found in this league.' }, status: :not_found
+            return
+        end
+
+        details = PairingCoordinator.new(@league).break_pair(registration, params[:pair_id])
+        log_audit('BreakPair', league: @league, registration: registration, details: details)
+        render json: { msg: 'Pair broken. Current team assignments have been kept.' }
+    rescue PairingCoordinator::PairChanged => e
+        render json: { msg: e.message }, status: :conflict
+    end
+
     def promote_waitlisted_registration
         respond_to do |format|
             format.json do
@@ -800,6 +814,8 @@ class LeaguesController < ApplicationController
             matchup: reg.gender_noun,
             notes: reg.notes,
             pending_pair_name: pending_pair_name,
+            pair_id: reg.pair_id&.to_s,
+            pair_name: reg.pair&.name,
             pending_pair_matchup: pending_pair_matchup,
             pending_pair_is_registered: pending_pair_is_registered,
             waitlist_timestamp: waitlist_timestamp,
