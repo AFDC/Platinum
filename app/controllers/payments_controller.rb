@@ -32,6 +32,11 @@ class PaymentsController < ApplicationController
         return
       end
 
+      if league_registration.free?
+        redirect_to registration_path(league_registration), notice: 'This registration is free. No payment is required.'
+        return
+      end
+
       donation = Donation.new(amount: params[:donation_amount])
 
       if league_registration.league.solicit_donations? && donation.valid?
@@ -120,6 +125,11 @@ class PaymentsController < ApplicationController
 
     if registration.is_expired?
       redirect_to register_league_path(registration.league), flash: {error: "You took too long to register. Please try again."}
+      return
+    end
+
+    if registration.free?
+      redirect_to registration_path(registration), notice: 'This registration is free. No payment authorization is required.'
       return
     end
 

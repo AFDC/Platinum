@@ -1,4 +1,6 @@
--if (@registration.status != 'active') && (@registration.league.comped? (@registration.user))
+-if @registration.free?
+    .alert.alert-info This registration is free. No payment is required.
+-elsif (@registration.status != 'active') && (@registration.league.comped? (@registration.user))
     .alert.alert-info This registration will be comped by the league
 
 = bootstrap_form_for(@registration, html: { class: 'form-horizontal' }, help: :block) do |f|

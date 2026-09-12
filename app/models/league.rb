@@ -70,8 +70,14 @@ class League
   belongs_to :mst_champion, class_name: "Team", inverse_of: nil
 
   validates :name, :presence => true
-  validates :price, :numericality => { integer_only: true, greater_than: 0, less_than: 250, allow_blank: false  }
-  validates :price_women, :numericality => { integer_only: true, greater_than: 0, less_than: 250, allow_blank: true  }
+  REGISTRATION_PRICE_FIELDS = %w(price price_women price_single_day price_women_single_day).freeze
+  attr_accessor :confirm_free_registration
+
+  validates :price, presence: { message: 'Enter a price. Use 0 only for free registration.' }
+  validates :price, :numericality => { only_integer: true, greater_than_or_equal_to: 0, less_than: 250, allow_blank: false }
+  validates :price_women, :price_single_day, :price_women_single_day,
+    :numericality => { only_integer: true, greater_than_or_equal_to: 0, less_than: 250, allow_blank: true }
+  validate :free_registration_confirmed
   validates :self_rank_type, :inclusion => { in: %w(simple detailed none) }
   validates :age_division, :inclusion => { in: %w(adult juniors) }
   validates :season, :inclusion => { in: %w(fall winter spring summer saturday) }
@@ -323,7 +329,7 @@ class League
 
   def add_to_league(reg)
     # COPIED FROM league.rake
-    if comped?(reg.user) == false
+    if !reg.free? && comped?(reg.user) == false
       if reg["pre_authorization"].nil? || reg["pre_authorization"]["stored_payment_token"].nil?
         puts "\tNo payment method token found for #{reg.user.name}"
         reg.update_attributes(status: "canceled")
@@ -388,7 +394,7 @@ class League
         reg.update_attributes(status: "waitlisted_paying")
         puts "Attempting to activate registration for #{reg.user.name}"
 
-        if comped?(reg.user) == false
+        if !reg.free? && comped?(reg.user) == false
           if reg["pre_authorization"].nil? || reg["pre_authorization"]["stored_payment_token"].nil?
             puts "\tNo payment method token found for #{reg.user.name}"
             reg.update_attributes(status: "canceled")
@@ -512,6 +518,15 @@ class League
   end
 
   private
+
+  def free_registration_confirmed
+    introduces_free_price = REGISTRATION_PRICE_FIELDS.any? do |field|
+      self[field] == 0 && (new_record? || attribute_changed?(field))
+    end
+    if introduces_free_price && confirm_free_registration != '1'
+      errors.add(:confirm_free_registration, 'A $0 price allows registration without payment. Confirm that this is intentional, or enter a paid price.')
+    end
+  end
 
   def build_options_if_nil
     build_core_options if core_options.nil?

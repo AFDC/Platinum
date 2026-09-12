@@ -37,10 +37,10 @@ namespace :league do
             return 'Canceled, No Refund Needed'
         end
 
-        if reg.comped == true
+        if reg.free? || reg.comped == true
             reg.status = 'canceled'
             reg.save
-            return 'Comped Registration Canceled'
+            return 'Registration Canceled, No Refund Needed'
         end
 
         # If we get here, the registration is active and not comped

@@ -10,14 +10,18 @@
                             = fa_icon 'thumbs-up'
                             You're in!
                         %p
-                            You've registered and paid. There's nothing left to do! Enjoy #{@registration.league.name}!
+                            Your registration is complete. Enjoy #{@registration.league.name}!
                     - when 'registering'
                         %h2
                             = fa_icon 'warning-sign'
                             You're Almost Done...
                         %p
-                            We haven't received your payment for this league!
-                            #{link_to("Click here to pay now!", pay_registration_path(@registration))}
+                            - if @registration.free?
+                                Complete your registration and waiver to join this free league.
+                                = link_to 'Complete registration', edit_registration_path(@registration)
+                            - else
+                                We haven't received your payment for this league!
+                                #{link_to("Click here to pay now!", pay_registration_path(@registration))}
                         - if @registration.expires_at
                             %p
                                 %em Note:

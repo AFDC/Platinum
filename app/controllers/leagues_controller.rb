@@ -257,7 +257,7 @@ class LeaguesController < ApplicationController
 
                 success_message = nil
 
-                if reg.status != "active" || reg.paid == false
+                if reg.status != "active" || reg.free? || reg.paid == false
                     reg.update_attributes(status: "canceled")
                     success_message = "Registration canceled."
                     log_audit("CancelRegistration", league: @league, user: reg.user)
@@ -1399,7 +1399,7 @@ class LeaguesController < ApplicationController
     def league_params
         permitted_params = [
             :name, :age_division, :season, :sport, :price, :price_women, :pickup_price, :pickup_registration,
-            :price_single_day, :price_women_single_day,
+            :price_single_day, :price_women_single_day, :confirm_free_registration,
             :start_date, :end_date, :registration_open, :registration_close,
             :female_registration_open, :female_registration_close, :male_registration_open, :male_registration_close,
             :description, {commissioner_ids: []}, :male_limit, :female_limit,

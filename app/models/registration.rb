@@ -68,6 +68,10 @@ class Registration
         self.price = league.get_price(gender, single_day: single_day?) unless self.price.present?
     end
 
+    def free?
+        price == 0
+    end
+
     def formatted_signup_timestamp(format = :long)
         return "None" if signup_timestamp.nil?
         
@@ -135,6 +139,8 @@ class Registration
 
     def activate!
         self.status = 'active'
+        self.expires_at = nil
+        self.warning_email_sent_at = nil
         save!
         RegistrationMailer.delay.registration_active(self._id.to_s)
     end
@@ -142,6 +148,7 @@ class Registration
     def waitlist(pre_auth = nil)
         update_attributes(
             pre_authorization: pre_auth,
+            expires_at: nil,
             waitlist_timestamp: Time.now,
             status: "waitlisted"
         )

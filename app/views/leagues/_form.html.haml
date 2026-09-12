@@ -97,41 +97,55 @@
                         %span.help-inline=errors[:game_days].first
 
             .control-group{ class: ('error' if errors[:price].any?)}
-                %label.control-label Registration Price
+                %label.control-label{for: 'league_price'} Registration Price (required)
                 .controls
                     .input-prepend
                         %span.add-on $
-                        =f.text_field :price, class: 'input-small'
+                        =f.number_field :price, class: 'input-small registration-price', min: 0, max: 249, step: 1, required: true, 'aria-describedby' => 'registration-price-help'
+                    %p.help-block#registration-price-help Enter a whole-dollar price. Enter 0 only if registration should be free.
                     - if errors[:price].any?
                         %span.help-inline=errors[:price].first
 
             .control-group{ class: ('error' if errors[:price_women].any?)}
-                %label.control-label Women's Reg. Price
+                %label.control-label{for: 'league_price_women'} Women's Reg. Price
                 .controls
                     .input-prepend
                         %span.add-on $
-                        =f.text_field :price_women, class: 'input-small'
+                        =f.number_field :price_women, class: 'input-small registration-price', min: 0, max: 249, step: 1
+                    %p.help-block Leave blank to use the registration price. Enter 0 for free registration.
                     - if errors[:price_women].any?
                         %span.help-inline=errors[:price_women].first
 
             .control-group{ class: ('error' if errors[:price_single_day].any?)}
-                %label.control-label Single-day Price
+                %label.control-label{for: 'league_price_single_day'} Single-day Price
                 .controls
                     .input-prepend
                         %span.add-on $
-                        =f.text_field :price_single_day, class: 'input-small'
+                        =f.number_field :price_single_day, class: 'input-small registration-price', min: 0, max: 249, step: 1
                     %p.help-block Used when a player registers for one day only. Leave blank to charge full price.
                     - if errors[:price_single_day].any?
                         %span.help-inline=errors[:price_single_day].first
 
             .control-group{ class: ('error' if errors[:price_women_single_day].any?)}
-                %label.control-label Women's Single-day Price
+                %label.control-label{for: 'league_price_women_single_day'} Women's Single-day Price
                 .controls
                     .input-prepend
                         %span.add-on $
-                        =f.text_field :price_women_single_day, class: 'input-small'
+                        =f.number_field :price_women_single_day, class: 'input-small registration-price', min: 0, max: 249, step: 1
+                    %p.help-block Leave blank to use the women's registration price, then the single-day price, then the registration price. Enter 0 for free registration.
                     - if errors[:price_women_single_day].any?
                         %span.help-inline=errors[:price_women_single_day].first
+
+            .control-group#free-registration-confirmation{ class: ('error' if errors[:confirm_free_registration].any?)}
+                .controls
+                    .alert.alert-warning{role: 'status'}
+                        %strong A $0 price means no registration payment.
+                        %p Players using a $0 price will complete registration without checkout. Paid price overrides still apply. Existing registrations keep their recorded price.
+                        %label.checkbox{for: 'league_confirm_free_registration'}
+                            = f.check_box :confirm_free_registration
+                            I intend to offer free registration at the $0 prices entered above.
+                        - if errors[:confirm_free_registration].any?
+                            %span.help-block=errors[:confirm_free_registration].first
 
             .control-group{ class: ('error' if errors[:pickup_price].any?)}
                 %label.control-label Pickup Price (per day)
@@ -341,6 +355,19 @@
     :javascript
         $(function(){
             $(".date-field").datepicker();
+
+            function updateFreeRegistrationWarning() {
+                var hasFreePrice = $('.registration-price').toArray().some(function(input) {
+                    var value = $.trim(input.value);
+                    return value !== '' && Number(value) === 0;
+                });
+                $('#free-registration-confirmation').toggle(hasFreePrice);
+            }
+            $('.registration-price').on('input change', function() {
+                $('#league_confirm_free_registration').prop('checked', false);
+                updateFreeRegistrationWarning();
+            });
+            updateFreeRegistrationWarning();
 
             $("#clear_female_reg_dates").click(function(){
                 $("#league_female_registration_open").val('');

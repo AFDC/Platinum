@@ -19,6 +19,11 @@ class RegistrationsController < ApplicationController
             return
         end
 
+        if @registration.free?
+            redirect_to edit_registration_path(@registration), notice: 'Complete your registration and waiver to join for free.'
+            return
+        end
+
         # This player doesn't have to pay
         if @registration.league.comped? @registration.user
             @registration.comped = true
@@ -38,6 +43,11 @@ class RegistrationsController < ApplicationController
 
         if @registration.is_expired?
             redirect_to register_league_path(@registration.league), flash: {error: "You took too long to register. Please try again."}
+            return
+        end
+
+        if @registration.free?
+            redirect_to edit_registration_path(@registration), notice: 'Complete your registration and waiver to join the waitlist for free.'
             return
         end
 
@@ -112,11 +122,28 @@ class RegistrationsController < ApplicationController
             sig = WaiverSignature.create_from_registration!(@registration)
             if sig.nil?
                 Bugsnag.notify(StandardError.new("Failed to create waiver signature for registration #{@registration.id}"))
+                if @registration.free?
+                    @registration.errors.add(:waiver_accepted, 'We could not record your waiver signature. Please contact help@afdc.com.')
+                    render :edit
+                    return
+                end
             end
         end
 
         log_audit('Register', league: @registration.league, registration: @registration)
         MailChimpWorker.perform_async(@registration.user._id.to_s, params[:subscribe])
+
+        if @registration.free?
+            if @registration.status == 'registering_waitlisted'
+                @registration.waitlist
+                message = 'You are now on the waitlist. No payment is required.'
+            else
+                @registration.activate!
+                message = 'Registration complete! No payment is required.'
+            end
+            redirect_to registration_path(@registration), notice: message
+            return
+        end
 
         if @registration.status == "registering_waitlisted"
             redirect_to waitlist_authorize_registration_path(@registration)

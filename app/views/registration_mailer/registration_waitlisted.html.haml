@@ -1,9 +1,11 @@
 %p #{@user.firstname},
 
 %p
-  We have received your for #{link_to(@league.name, league_url(@league))}, but the league is currently full.
-  You have a slot on the waitlist; if a spot opens up, we'll charge your card and add you to the league
-  automatically.
+  We have received your registration for #{link_to(@league.name, league_url(@league))}, but the league is currently full.
+  - if @registration.free?
+    You have a slot on the waitlist; if a spot opens up, we'll add you to the league automatically. No payment is required.
+  - else
+    You have a slot on the waitlist; if a spot opens up, we'll charge your card and add you to the league automatically.
 
 %p
   If you have any questions, please contact the league commissioner. For technical issues or

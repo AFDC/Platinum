@@ -6,6 +6,7 @@ class RegistrationPaymentReminderWorker
     r = Registration.find(registration_id)
 
     return unless r.present?
+    return if r.free?
 
     if r.status == 'registering'
         logger.info { "#{registration_id} Not yet paid. :(" }
